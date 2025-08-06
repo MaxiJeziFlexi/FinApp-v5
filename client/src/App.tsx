@@ -3,6 +3,7 @@ import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { useAuth } from "@/hooks/useAuth";
 import MainNavigation from "@/components/navigation/MainNavigation";
 import NotFound from "@/pages/not-found";
 import Landing from "@/pages/landing";
@@ -21,10 +22,33 @@ import EnhancedCryptoMarketplace from "@/pages/enhanced-crypto-marketplace";
 import DeveloperDiagnostics from "@/pages/developer-diagnostics";
 
 function Router() {
+  const { isAuthenticated, isLoading } = useAuth();
   const [location] = useLocation();
   
-  // Pages that don't need navigation (landing, signin)
-  const noNavigationPages = ['/', '/signin'];
+  // Show loading state while checking authentication
+  if (isLoading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" />
+      </div>
+    );
+  }
+
+  // Show landing page for unauthenticated users
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen">
+        <Switch>
+          <Route path="/" component={Landing} />
+          <Route path="/signin" component={MandatorySignIn} />
+          <Route component={Landing} />
+        </Switch>
+      </div>
+    );
+  }
+
+  // Show authenticated routes with navigation
+  const noNavigationPages = ['/signin'];
   const showNavigation = !noNavigationPages.includes(location);
 
   return (
@@ -33,8 +57,7 @@ function Router() {
       
       <main className={`flex-1 ${showNavigation ? 'md:ml-72' : ''}`}>
         <Switch>
-          <Route path="/" component={Landing} />
-          <Route path="/signin" component={MandatorySignIn} />
+          <Route path="/" component={FinAppHome} />
           <Route path="/finapp-home" component={FinAppHome} />
           <Route path="/crypto-marketplace" component={CryptoMarketplace} />
           <Route path="/privacy" component={Privacy} />

@@ -14,6 +14,7 @@ import ComprehensiveTest from "@/pages/comprehensive-test";
 import { AdminDashboard } from "@/pages/admin-dashboard";
 import MandatorySignIn from "@/pages/mandatory-signin";
 import CryptoMarketplace from "@/pages/crypto-marketplace";
+import AdvancedAIDashboard from "@/pages/advanced-ai-dashboard";
 
 function Router() {
   return (
@@ -28,6 +29,7 @@ function Router() {
       <Route path="/learning-progress" component={LearningProgress} />
       <Route path="/test" component={ComprehensiveTest} />
       <Route path="/admin" component={AdminDashboard} />
+      <Route path="/ai-dashboard" component={AdvancedAIDashboard} />
       <Route component={NotFound} />
     </Switch>
   );

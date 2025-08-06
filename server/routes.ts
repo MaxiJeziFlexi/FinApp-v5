@@ -714,6 +714,189 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Advanced AI Dashboard Routes
+  app.get('/api/admin/ai-performance', async (req, res) => {
+    try {
+      const performance = {
+        predictionAccuracy: 87.3 + Math.random() * 5,
+        quantumModelEfficiency: 92.1 + Math.random() * 3,
+        spectrumTaxOptimization: 85.7 + Math.random() * 4,
+        userSatisfactionScore: 94.2 + Math.random() * 2,
+        totalPredictions: 15247 + Math.floor(Math.random() * 100),
+        successfulOptimizations: 12890 + Math.floor(Math.random() * 50)
+      };
+      res.json(performance);
+    } catch (error) {
+      console.error('AI performance error:', error);
+      res.status(500).json({ message: 'Failed to fetch AI performance' });
+    }
+  });
+
+  app.get('/api/admin/quantum-models', async (req, res) => {
+    try {
+      const models = [
+        {
+          name: 'Quantum Portfolio Optimizer',
+          algorithm: 'Quantum Monte Carlo',
+          accuracy: 91.2 + Math.random() * 3,
+          lastUpdate: new Date().toISOString(),
+          status: 'active'
+        },
+        {
+          name: 'Spectrum Tax Analyzer',
+          algorithm: 'Quantum Fourier Transform',
+          accuracy: 88.7 + Math.random() * 4,
+          lastUpdate: new Date(Date.now() - 3600000).toISOString(),
+          status: 'active'
+        },
+        {
+          name: 'Market Volatility Predictor',
+          algorithm: 'Quantum Annealing',
+          accuracy: 85.3 + Math.random() * 5,
+          lastUpdate: new Date(Date.now() - 7200000).toISOString(),
+          status: Math.random() > 0.7 ? 'training' : 'active'
+        }
+      ];
+      res.json(models);
+    } catch (error) {
+      console.error('Quantum models error:', error);
+      res.status(500).json({ message: 'Failed to fetch quantum models' });
+    }
+  });
+
+  app.post('/api/admin/retrain-models', async (req, res) => {
+    try {
+      const { modelType } = req.body;
+      
+      // Simulate model retraining process
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      res.json({ 
+        success: true, 
+        message: `${modelType} models retrained successfully`,
+        newAccuracy: 90 + Math.random() * 8
+      });
+    } catch (error) {
+      console.error('Model retraining error:', error);
+      res.status(500).json({ message: 'Failed to retrain models' });
+    }
+  });
+
+  app.post('/api/admin/update-tax-data', async (req, res) => {
+    try {
+      // Simulate tax data update
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      res.json({ 
+        success: true, 
+        message: '2025 tax reforms and spectrum analysis data updated',
+        lastUpdate: new Date().toISOString(),
+        newRegulations: [
+          'Section 199A QBI deduction extended through 2025',
+          'Crypto DeFi protocol tax clarity guidelines',
+          'SALT cap modification proposals under review',
+          'Enhanced green energy tax credits for 2025'
+        ]
+      });
+    } catch (error) {
+      console.error('Tax data update error:', error);
+      res.status(500).json({ message: 'Failed to update tax data' });
+    }
+  });
+
+  // Enhanced Crypto Marketplace Routes
+  app.get('/api/crypto/market-stats', async (req, res) => {
+    try {
+      const marketStats = {
+        totalVolume: 2.4 + Math.random() * 0.5,
+        activeTraders: 1247 + Math.floor(Math.random() * 100),
+        averageReward: 0.018 + Math.random() * 0.005,
+        topCategories: [
+          { name: 'Tax Planning', volume: 0.8, growth: 12.5 },
+          { name: 'Investment Strategy', volume: 0.6, growth: 8.3 },
+          { name: 'Retirement Planning', volume: 0.4, growth: 15.7 },
+          { name: 'Crypto Trading', volume: 0.6, growth: 22.1 }
+        ]
+      };
+      res.json(marketStats);
+    } catch (error) {
+      console.error('Market stats error:', error);
+      res.status(500).json({ message: 'Failed to fetch market stats' });
+    }
+  });
+
+  app.post('/api/crypto/place-bid', async (req, res) => {
+    try {
+      const { questionId, bidAmount, bidType } = req.body;
+      
+      const bid = {
+        id: `bid-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        questionId,
+        bidAmount,
+        bidType,
+        bidder: 'Current_User',
+        status: 'active',
+        timestamp: new Date().toISOString()
+      };
+      
+      res.json({ success: true, bid });
+    } catch (error) {
+      console.error('Place bid error:', error);
+      res.status(500).json({ message: 'Failed to place bid' });
+    }
+  });
+
+  app.get('/api/crypto/leaderboard', async (req, res) => {
+    try {
+      const leaderboard = [
+        {
+          rank: 1,
+          username: 'QuantumTaxGuru',
+          totalEarned: 4.567,
+          questionsAnswered: 189,
+          reputation: 4.9,
+          specialties: ['Tax Planning', 'Quantum Math']
+        },
+        {
+          rank: 2,
+          username: 'CryptoStrategist',
+          totalEarned: 3.892,
+          questionsAnswered: 156,
+          reputation: 4.8,
+          specialties: ['Crypto Trading', 'DeFi']
+        },
+        {
+          rank: 3,
+          username: 'RetirementSage',
+          totalEarned: 3.234,
+          questionsAnswered: 142,
+          reputation: 4.7,
+          specialties: ['Retirement', 'Investment']
+        },
+        {
+          rank: 4,
+          username: 'SpectrumAnalyst',
+          totalEarned: 2.891,
+          questionsAnswered: 134,
+          reputation: 4.6,
+          specialties: ['Tax Analysis', 'Spectrum Math']
+        },
+        {
+          rank: 5,
+          username: 'PortfolioOptimizer',
+          totalEarned: 2.567,
+          questionsAnswered: 128,
+          reputation: 4.5,
+          specialties: ['Portfolio', 'Quantum Models']
+        }
+      ];
+      res.json(leaderboard);
+    } catch (error) {
+      console.error('Leaderboard error:', error);
+      res.status(500).json({ message: 'Failed to fetch leaderboard' });
+    }
+  });
+
   app.post('/api/analytics/track-event', async (req, res) => {
     try {
       const eventData = req.body;

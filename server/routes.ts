@@ -424,6 +424,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get all subscription plans (alternative endpoint)
+  app.get('/api/subscription-plans', async (req, res) => {
+    try {
+      const plans = await storage.getSubscriptionPlans();
+      res.json(plans);
+    } catch (error) {
+      console.error('Error fetching subscription plans:', error);
+      res.status(500).json({ message: 'Failed to fetch subscription plans' });
+    }
+  });
+
   // Speech recognition helper endpoint
   app.post('/api/speech/validate', async (req, res) => {
     try {

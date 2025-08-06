@@ -4,6 +4,7 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/not-found";
+import Landing from "@/pages/landing";
 import FinAppHome from "@/pages/finapp-home";
 import Privacy from "@/pages/privacy";
 import Security from "@/pages/security";
@@ -15,7 +16,8 @@ import { AdminDashboard } from "@/pages/admin-dashboard";
 function Router() {
   return (
     <Switch>
-      <Route path="/" component={FinAppHome} />
+      <Route path="/" component={Landing} />
+      <Route path="/finapp-home" component={FinAppHome} />
       <Route path="/privacy" component={Privacy} />
       <Route path="/security" component={Security} />
       <Route path="/analytics" component={AnalyticsDashboard} />

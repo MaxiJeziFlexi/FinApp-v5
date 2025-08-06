@@ -103,7 +103,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             role: isAdmin ? 'admin' : 'user',
             apiUsageThisMonth: '0',
             apiUsageResetDate: new Date(),
-            emailVerified: true, // Skip email verification
+            emailVerified: true, // Email verification disabled as requested
           });
         } catch (error: any) {
           // If user creation fails due to duplicate email, try to get existing user

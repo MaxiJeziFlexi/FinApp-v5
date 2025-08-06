@@ -90,13 +90,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Check if user exists, create if not
       let user = await storage.getUser(userId);
       if (!user) {
+        // Determine if this should be an admin (for demo purposes, check email or name)
+        const isAdmin = profileData.email?.includes('admin') || profileData.name?.toLowerCase().includes('admin');
+        
         user = await storage.createUser({
           id: userId,
           name: profileData.name || 'User',
           email: profileData.email || `${profileData.name || 'user'}@finapp.demo`,
-          subscriptionTier: 'free',
-          accountStatus: 'pending',
-          role: 'user',
+          subscriptionTier: isAdmin ? 'max' : 'free', // Admin gets Max plan automatically
+          accountStatus: 'active',
+          role: isAdmin ? 'admin' : 'user',
           apiUsageThisMonth: '0',
           apiUsageResetDate: new Date(),
           createdAt: new Date(),
@@ -458,6 +461,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Generate a unique user ID
       const userId = `user-${crypto.randomBytes(8).toString('hex')}-${crypto.randomBytes(8).toString('hex')}`;
       
+      // Check if this should be an admin user
+      const isAdmin = userData.email?.includes('admin') || userData.firstName?.toLowerCase().includes('admin') || userData.lastName?.toLowerCase().includes('admin');
+      
       // Create user
       const user = await storage.createUser({
         id: userId,
@@ -472,8 +478,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         city: userData.city,
         occupation: userData.occupation,
         preferences: userData.preferences,
-        accountStatus: 'pending',
-        emailVerified: false,
+        accountStatus: isAdmin ? 'active' : 'pending', // Admin accounts are immediately active
+        emailVerified: isAdmin ? true : false, // Admin accounts skip email verification
+        role: isAdmin ? 'admin' : 'user',
+        subscriptionTier: isAdmin ? 'max' : 'free', // Admin gets Max plan automatically
       });
 
       // Create user profile
@@ -638,14 +646,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: 'Plan not found' });
       }
 
-      // For now, just update user subscription tier directly
-      // In a real app, you'd integrate with Stripe here
-      await storage.updateUser(userId, {
-        subscriptionTier: planId as 'free' | 'premium' | 'pro',
-        subscriptionStatus: 'active',
-        subscriptionStartDate: new Date(),
-        subscriptionEndDate: new Date(Date.now() + (billingInterval === 'year' ? 365 : 30) * 24 * 60 * 60 * 1000),
-      });
+      // Check if user is admin - admins always get Max plan
+      if (user.role === 'admin') {
+        await storage.updateUser(userId, {
+          subscriptionTier: 'max',
+          subscriptionStatus: 'active',
+          subscriptionStartDate: new Date(),
+          subscriptionEndDate: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000), // 1 year for admins
+        });
+      } else {
+        // For regular users, update subscription tier directly
+        // In a real app, you'd integrate with Stripe here
+        await storage.updateUser(userId, {
+          subscriptionTier: planId as 'free' | 'pro' | 'max',
+          subscriptionStatus: 'active',
+          subscriptionStartDate: new Date(),
+          subscriptionEndDate: new Date(Date.now() + (billingInterval === 'year' ? 365 : 30) * 24 * 60 * 60 * 1000),
+        });
+      }
 
       // Log subscription activity
       await storage.logUserActivity({
@@ -675,10 +693,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/user/:userId', async (req, res) => {
     try {
       const { userId } = req.params;
-      const user = await storage.getUser(userId);
+      let user = await storage.getUser(userId);
       
       if (!user) {
         return res.status(404).json({ message: 'User not found' });
+      }
+      
+      // Auto-upgrade admin users to Max plan if they don't have it
+      if (user.role === 'admin' && user.subscriptionTier !== 'max') {
+        user = await storage.updateUser(userId, {
+          subscriptionTier: 'max',
+          subscriptionStatus: 'active',
+          subscriptionStartDate: new Date(),
+          subscriptionEndDate: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000), // 1 year
+          accountStatus: 'active'
+        });
       }
       
       res.json(user);
@@ -708,6 +737,51 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error: any) {
       console.error('Error updating user:', error);
       res.status(500).json({ message: 'Failed to update user' });
+    }
+  });
+
+  // Admin quick access route - makes any user an admin with Max plan
+  app.post('/api/admin/promote/:userId', async (req, res) => {
+    try {
+      const { userId } = req.params;
+      
+      // Get user first
+      let user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(404).json({ message: 'User not found' });
+      }
+      
+      // Promote to admin with Max plan
+      user = await storage.updateUser(userId, {
+        role: 'admin',
+        subscriptionTier: 'max',
+        subscriptionStatus: 'active',
+        subscriptionStartDate: new Date(),
+        subscriptionEndDate: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000), // 1 year
+        accountStatus: 'active',
+        emailVerified: true
+      });
+
+      // Log admin promotion
+      await storage.logUserActivity({
+        userId: userId,
+        action: 'admin_promoted',
+        details: {
+          promotedBy: 'system',
+          subscriptionTier: 'max'
+        },
+        ipAddress: req.ip,
+        userAgent: req.get('User-Agent'),
+      });
+      
+      res.json({
+        success: true,
+        message: 'User promoted to admin with Max plan',
+        user
+      });
+    } catch (error: any) {
+      console.error('Error promoting user to admin:', error);
+      res.status(500).json({ message: 'Failed to promote user' });
     }
   });
 

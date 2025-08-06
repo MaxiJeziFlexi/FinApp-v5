@@ -1,8 +1,9 @@
-import { Switch, Route } from "wouter";
+import { Switch, Route, useLocation } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import MainNavigation from "@/components/navigation/MainNavigation";
 import NotFound from "@/pages/not-found";
 import Landing from "@/pages/landing";
 import FinAppHome from "@/pages/finapp-home";
@@ -20,24 +21,36 @@ import EnhancedCryptoMarketplace from "@/pages/enhanced-crypto-marketplace";
 import DeveloperDiagnostics from "@/pages/developer-diagnostics";
 
 function Router() {
+  const [location] = useLocation();
+  
+  // Pages that don't need navigation (landing, signin)
+  const noNavigationPages = ['/', '/signin'];
+  const showNavigation = !noNavigationPages.includes(location);
+
   return (
-    <Switch>
-      <Route path="/" component={Landing} />
-      <Route path="/signin" component={MandatorySignIn} />
-      <Route path="/finapp-home" component={FinAppHome} />
-      <Route path="/crypto-marketplace" component={CryptoMarketplace} />
-      <Route path="/privacy" component={Privacy} />
-      <Route path="/security" component={Security} />
-      <Route path="/analytics" component={AnalyticsDashboard} />
-      <Route path="/learning-progress" component={LearningProgress} />
-      <Route path="/test" component={ComprehensiveTest} />
-      <Route path="/admin" component={AdminDashboard} />
-      <Route path="/ai-dashboard" component={AdvancedAIDashboard} />
-      <Route path="/gaming" component={GamingHub} />
-      <Route path="/enhanced-crypto" component={EnhancedCryptoMarketplace} />
-      <Route path="/developer-diagnostics" component={DeveloperDiagnostics} />
-      <Route component={NotFound} />
-    </Switch>
+    <div className="flex min-h-screen">
+      {showNavigation && <MainNavigation />}
+      
+      <main className={`flex-1 ${showNavigation ? 'md:ml-72' : ''}`}>
+        <Switch>
+          <Route path="/" component={Landing} />
+          <Route path="/signin" component={MandatorySignIn} />
+          <Route path="/finapp-home" component={FinAppHome} />
+          <Route path="/crypto-marketplace" component={CryptoMarketplace} />
+          <Route path="/privacy" component={Privacy} />
+          <Route path="/security" component={Security} />
+          <Route path="/analytics" component={AnalyticsDashboard} />
+          <Route path="/learning-progress" component={LearningProgress} />
+          <Route path="/test" component={ComprehensiveTest} />
+          <Route path="/admin" component={AdminDashboard} />
+          <Route path="/ai-dashboard" component={AdvancedAIDashboard} />
+          <Route path="/gaming" component={GamingHub} />
+          <Route path="/enhanced-crypto" component={EnhancedCryptoMarketplace} />
+          <Route path="/developer-diagnostics" component={DeveloperDiagnostics} />
+          <Route component={NotFound} />
+        </Switch>
+      </main>
+    </div>
   );
 }
 

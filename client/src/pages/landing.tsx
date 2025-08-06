@@ -56,6 +56,7 @@ import { useRef } from 'react';
 import { Link } from 'wouter';
 import FloatingElements, { Card3D, Button3D, AnimatedNumber3D } from '@/components/3d/FloatingElements';
 import SignUpModal from '@/components/auth/SignUpModal';
+import QuickNavigation from '@/components/navigation/QuickNavigation';
 
 interface FeatureCard {
   icon: any;
@@ -787,6 +788,11 @@ export default function Landing() {
             </div>
           </motion.div>
         </div>
+      </section>
+
+      {/* Quick Navigation Section */}
+      <section className="py-20 px-6 bg-gray-50">
+        <QuickNavigation />
       </section>
 
       {/* Footer */}

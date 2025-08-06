@@ -1,6 +1,6 @@
 # Overview
 
-This is a financial advisory application built with a React frontend and Express.js backend, designed to provide personalized financial guidance through an AI-powered chat interface. The system guides users through onboarding, advisor selection, decision trees, and interactive chat sessions with specialized financial advisors. It integrates with OpenAI's API for intelligent financial advice and uses PostgreSQL for data persistence.
+FinApp - The world's most advanced AI Financial Education Platform. This revolutionary application combines comprehensive financial education with cutting-edge AI technology to create the biggest learning AI financial experiment ever. Built with React frontend and Express.js backend, it features advanced data collection, behavioral analytics, AI model tuning, and 3D financial visualizations. The system provides personalized financial guidance through AI-powered advisors while continuously learning from user interactions to improve financial literacy globally.
 
 # User Preferences
 
@@ -40,10 +40,12 @@ Preferred communication style: Simple, everyday language.
 - **Data Access**: Role-based access through the storage layer interface
 
 ## Core Application Flow
-1. **Onboarding**: Users complete financial profile including goals, income, and timeframe
-2. **Advisor Selection**: Users choose from specialized financial advisors (Budget Planner, Savings Strategist, Debt Expert, Retirement Advisor)
-3. **Decision Tree**: Users navigate through advisor-specific decision trees to gather context
-4. **AI Chat**: OpenAI-powered conversations provide personalized financial advice based on user profile and decision history
+1. **Smart Onboarding**: Advanced profiling with behavioral pattern recognition and learning style detection
+2. **AI Advisor Ecosystem**: Dynamic advisor selection with specialized financial education modules
+3. **Interactive Decision Trees**: Gamified financial decision-making with real-time feedback and learning analytics
+4. **Intelligent Chat System**: Context-aware AI conversations with sentiment analysis and personalized learning paths
+5. **Data Collection & Analytics**: Comprehensive user behavior tracking for AI model improvement and financial education research
+6. **3D Visualizations**: Immersive financial data representations and interactive learning modules
 
 ## Speech Recognition Integration
 - **Client-Side**: Web Speech API integration for voice input

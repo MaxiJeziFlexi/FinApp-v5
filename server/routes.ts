@@ -378,6 +378,65 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Analytics routes
+  app.get('/api/analytics/user-behavior/:userId', async (req, res) => {
+    try {
+      const { userId } = req.params;
+      const { analyticsService } = await import('./services/analyticsService');
+      const behaviorData = await analyticsService.getUserDashboardData(userId);
+      res.json(behaviorData);
+    } catch (error) {
+      console.error('Error fetching user behavior data:', error);
+      res.status(500).json({ message: 'Failed to fetch behavior analytics' });
+    }
+  });
+
+  app.get('/api/analytics/ai-performance', async (req, res) => {
+    try {
+      const { analyticsService } = await import('./services/analyticsService');
+      const performanceData = await analyticsService.getModelPerformanceInsights();
+      res.json(performanceData);
+    } catch (error) {
+      console.error('Error fetching AI performance data:', error);
+      res.status(500).json({ message: 'Failed to fetch AI analytics' });
+    }
+  });
+
+  app.get('/api/analytics/realtime-learning', async (req, res) => {
+    try {
+      const { analyticsService } = await import('./services/analyticsService');
+      const realtimeData = await analyticsService.getRealTimeLearningInsights();
+      res.json(realtimeData);
+    } catch (error) {
+      console.error('Error fetching real-time learning data:', error);
+      res.status(500).json({ message: 'Failed to fetch real-time analytics' });
+    }
+  });
+
+  app.post('/api/analytics/track-event', async (req, res) => {
+    try {
+      const eventData = req.body;
+      const { analyticsService } = await import('./services/analyticsService');
+      await analyticsService.trackLearningEvent(eventData);
+      res.json({ success: true, message: 'Event tracked successfully' });
+    } catch (error) {
+      console.error('Error tracking learning event:', error);
+      res.status(500).json({ message: 'Failed to track event' });
+    }
+  });
+
+  app.post('/api/analytics/track-ai-performance', async (req, res) => {
+    try {
+      const performanceData = req.body;
+      const { analyticsService } = await import('./services/analyticsService');
+      await analyticsService.trackAIModelPerformance(performanceData);
+      res.json({ success: true, message: 'AI performance tracked successfully' });
+    } catch (error) {
+      console.error('Error tracking AI performance:', error);
+      res.status(500).json({ message: 'Failed to track AI performance' });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

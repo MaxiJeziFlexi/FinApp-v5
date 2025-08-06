@@ -282,6 +282,81 @@ export const verificationCodes = pgTable("verification_codes", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// Bank Accounts Table - stores connected bank accounts via Plaid
+export const bankAccounts = pgTable("bank_accounts", {
+  id: varchar("id", { length: 255 }).primaryKey(),
+  userId: varchar("user_id", { length: 255 }).notNull().references(() => users.id),
+  plaidAccessToken: varchar("plaid_access_token", { length: 500 }).notNull(),
+  plaidAccountId: varchar("plaid_account_id", { length: 255 }).notNull(),
+  plaidItemId: varchar("plaid_item_id", { length: 255 }).notNull(),
+  institutionId: varchar("institution_id", { length: 255 }),
+  institutionName: varchar("institution_name", { length: 255 }),
+  accountName: varchar("account_name", { length: 255 }),
+  accountType: varchar("account_type", { length: 100 }), // checking, savings, credit, investment
+  accountSubtype: varchar("account_subtype", { length: 100 }),
+  mask: varchar("mask", { length: 10 }), // last 4 digits
+  availableBalance: decimal("available_balance", { precision: 12, scale: 2 }),
+  currentBalance: decimal("current_balance", { precision: 12, scale: 2 }),
+  isoCurrencyCode: varchar("iso_currency_code", { length: 3 }).default('USD'),
+  isActive: boolean("is_active").default(true),
+  lastSyncDate: timestamp("last_sync_date").defaultNow(),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow()
+});
+
+// Bank Transactions Table - stores transaction data from Plaid
+export const bankTransactions = pgTable("bank_transactions", {
+  id: varchar("id", { length: 255 }).primaryKey(),
+  userId: varchar("user_id", { length: 255 }).notNull().references(() => users.id),
+  accountId: varchar("account_id", { length: 255 }).notNull().references(() => bankAccounts.id),
+  plaidTransactionId: varchar("plaid_transaction_id", { length: 255 }).notNull().unique(),
+  amount: decimal("amount", { precision: 12, scale: 2 }).notNull(),
+  isoCurrencyCode: varchar("iso_currency_code", { length: 3 }).default('USD'),
+  date: date("date").notNull(),
+  name: varchar("name", { length: 500 }).notNull(),
+  merchantName: varchar("merchant_name", { length: 255 }),
+  
+  // Transaction categorization
+  primaryCategory: varchar("primary_category", { length: 100 }),
+  detailedCategory: varchar("detailed_category", { length: 100 }),
+  confidenceLevel: varchar("confidence_level", { length: 50 }),
+  
+  // Location data
+  locationData: jsonb("location_data"),
+  
+  // Payment metadata
+  paymentChannel: varchar("payment_channel", { length: 100 }), // online, in store, etc
+  paymentMethod: varchar("payment_method", { length: 100 }), // card, ach, etc
+  
+  // Account-specific info
+  accountOwner: varchar("account_owner", { length: 255 }),
+  pending: boolean("pending").default(false),
+  
+  // AI Analysis fields
+  aiCategory: varchar("ai_category", { length: 100 }),
+  aiInsights: jsonb("ai_insights"),
+  educationalTags: text("educational_tags").array(),
+  
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow()
+});
+
+// Bank Connection Status - track Plaid link status
+export const bankConnections = pgTable("bank_connections", {
+  id: varchar("id", { length: 255 }).primaryKey(),
+  userId: varchar("user_id", { length: 255 }).notNull().references(() => users.id),
+  plaidItemId: varchar("plaid_item_id", { length: 255 }).notNull().unique(),
+  institutionId: varchar("institution_id", { length: 255 }),
+  institutionName: varchar("institution_name", { length: 255 }),
+  status: varchar("status", { enum: ['connected', 'requires_update', 'error', 'disconnected'] }).default('connected'),
+  lastError: varchar("last_error", { length: 500 }),
+  consentExpiresAt: timestamp("consent_expires_at"),
+  lastSuccessfulUpdate: timestamp("last_successful_update").defaultNow(),
+  updateFrequency: varchar("update_frequency", { length: 50 }).default('daily'),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow()
+});
+
 // Relations
 export const usersRelations = relations(users, ({ one, many }) => ({
   profile: one(userProfiles, {
@@ -295,6 +370,9 @@ export const usersRelations = relations(users, ({ one, many }) => ({
   behaviors: many(behaviorPatterns),
   activities: many(userActivityLog),
   verificationCodes: many(verificationCodes),
+  bankAccounts: many(bankAccounts),
+  bankTransactions: many(bankTransactions),
+  bankConnections: many(bankConnections),
 }));
 
 export const userProfilesRelations = relations(userProfiles, ({ one }) => ({
@@ -382,6 +460,12 @@ export type EducationContent = typeof educationContent.$inferSelect;
 export type NewEducationContent = typeof educationContent.$inferInsert;
 export type VerificationCode = typeof verificationCodes.$inferSelect;
 export type NewVerificationCode = typeof verificationCodes.$inferInsert;
+export type BankAccount = typeof bankAccounts.$inferSelect;
+export type NewBankAccount = typeof bankAccounts.$inferInsert;
+export type BankTransaction = typeof bankTransactions.$inferSelect;
+export type NewBankTransaction = typeof bankTransactions.$inferInsert;
+export type BankConnection = typeof bankConnections.$inferSelect;
+export type NewBankConnection = typeof bankConnections.$inferInsert;
 
 // Insert schemas with validation
 export const insertUserSchema = createInsertSchema(users).omit({

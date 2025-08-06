@@ -4,6 +4,7 @@ import { storage } from "./storage";
 import { openAIService } from "./services/openai";
 import { decisionTreeService } from "./services/decisionTree";
 import { speechRecognitionService } from "./services/speechRecognition";
+import { plaidService } from "./services/plaidService";
 import { 
   insertUserSchema, 
   insertUserProfileSchema, 
@@ -704,6 +705,147 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error: any) {
       console.error('Error updating user:', error);
       res.status(500).json({ message: 'Failed to update user' });
+    }
+  });
+
+  // Bank Integration Routes (Plaid API)
+  
+  // Create Plaid Link token
+  app.post('/api/bank/create-link-token', async (req, res) => {
+    try {
+      const { userId } = req.body;
+      
+      if (!userId) {
+        return res.status(400).json({ message: 'User ID is required' });
+      }
+      
+      const linkToken = await plaidService.createLinkToken(userId);
+      res.json(linkToken);
+    } catch (error: any) {
+      console.error('Error creating link token:', error);
+      res.status(500).json({ message: 'Failed to create link token' });
+    }
+  });
+
+  // Exchange public token for access token
+  app.post('/api/bank/exchange-token', async (req, res) => {
+    try {
+      const { userId, publicToken } = req.body;
+      
+      if (!userId || !publicToken) {
+        return res.status(400).json({ message: 'User ID and public token are required' });
+      }
+      
+      const result = await plaidService.exchangePublicToken(userId, publicToken);
+      
+      // Log bank connection
+      await storage.logUserActivity({
+        userId: userId,
+        action: 'bank_connected',
+        details: { itemId: result.itemId, accountCount: result.accounts.length },
+        ipAddress: req.ip,
+        userAgent: req.get('User-Agent'),
+      });
+      
+      res.json(result);
+    } catch (error: any) {
+      console.error('Error exchanging token:', error);
+      res.status(500).json({ message: 'Failed to link bank account' });
+    }
+  });
+
+  // Get user's bank accounts
+  app.get('/api/bank/accounts/:userId', async (req, res) => {
+    try {
+      const { userId } = req.params;
+      const accounts = await storage.getUserBankAccounts(userId);
+      res.json(accounts);
+    } catch (error: any) {
+      console.error('Error fetching bank accounts:', error);
+      res.status(500).json({ message: 'Failed to fetch bank accounts' });
+    }
+  });
+
+  // Get account balances
+  app.get('/api/bank/balances/:userId', async (req, res) => {
+    try {
+      const { userId } = req.params;
+      const balances = await plaidService.getAccountBalances(userId);
+      res.json(balances);
+    } catch (error: any) {
+      console.error('Error fetching balances:', error);
+      res.status(500).json({ message: 'Failed to fetch account balances' });
+    }
+  });
+
+  // Sync transactions
+  app.post('/api/bank/sync-transactions', async (req, res) => {
+    try {
+      const { userId, accountId } = req.body;
+      
+      if (!userId) {
+        return res.status(400).json({ message: 'User ID is required' });
+      }
+      
+      const transactions = await plaidService.syncTransactions(userId, accountId);
+      
+      // Log transaction sync
+      await storage.logUserActivity({
+        userId: userId,
+        action: 'transactions_synced',
+        details: { transactionCount: transactions.length },
+        ipAddress: req.ip,
+        userAgent: req.get('User-Agent'),
+      });
+      
+      res.json({ 
+        message: 'Transactions synced successfully',
+        count: transactions.length,
+        transactions 
+      });
+    } catch (error: any) {
+      console.error('Error syncing transactions:', error);
+      res.status(500).json({ message: 'Failed to sync transactions' });
+    }
+  });
+
+  // Get user's transactions
+  app.get('/api/bank/transactions/:userId', async (req, res) => {
+    try {
+      const { userId } = req.params;
+      const { limit } = req.query;
+      const transactions = await storage.getUserBankTransactions(userId, Number(limit) || 50);
+      res.json(transactions);
+    } catch (error: any) {
+      console.error('Error fetching transactions:', error);
+      res.status(500).json({ message: 'Failed to fetch transactions' });
+    }
+  });
+
+  // Disconnect bank account
+  app.post('/api/bank/disconnect', async (req, res) => {
+    try {
+      const { userId, accountId } = req.body;
+      
+      if (!userId || !accountId) {
+        return res.status(400).json({ message: 'User ID and account ID are required' });
+      }
+      
+      await plaidService.disconnectAccount(userId, accountId);
+      
+      // Log bank disconnection
+      await storage.logUserActivity({
+        userId: userId,
+        action: 'bank_disconnected',
+        details: { accountId },
+        ipAddress: req.ip,
+        userAgent: req.get('User-Agent'),
+      });
+      
+      res.json({ message: 'Bank account disconnected successfully' });
+    } catch (error: any) {
+      console.error('Error disconnecting bank account:', error);
+      res.status(500).json({ message: 'Failed to disconnect bank account' });
     }
   });
 

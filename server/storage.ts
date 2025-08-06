@@ -7,6 +7,9 @@ import {
   decisionTreeProgress,
   achievements,
   userAchievements,
+  bankAccounts,
+  bankTransactions,
+  bankConnections,
   type User, 
   type InsertUser,
   type UserProfile,
@@ -22,7 +25,13 @@ import {
   type Achievement,
   type InsertAchievement,
   type UserAchievement,
-  type InsertUserAchievement
+  type InsertUserAchievement,
+  type BankAccount,
+  type NewBankAccount,
+  type BankTransaction,
+  type NewBankTransaction,
+  type BankConnection,
+  type NewBankConnection
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, asc } from "drizzle-orm";
@@ -73,6 +82,23 @@ export interface IStorage {
   createVerificationCode(verification: any): Promise<any>;
   verifyEmailCode(userId: string, code: string): Promise<boolean>;
   logUserActivity(activity: any): Promise<void>;
+
+  // Bank operations
+  createBankAccount(account: any): Promise<BankAccount>;
+  getBankAccount(accountId: string): Promise<BankAccount | undefined>;
+  getUserBankAccounts(userId: string): Promise<BankAccount[]>;
+  updateBankAccount(accountId: string, updates: any): Promise<BankAccount>;
+  
+  createBankTransaction(transaction: any): Promise<BankTransaction>;
+  getBankTransaction(transactionId: string): Promise<BankTransaction | undefined>;
+  getBankTransactionByPlaidId(plaidTransactionId: string): Promise<BankTransaction | undefined>;
+  getUserBankTransactions(userId: string, limit?: number): Promise<BankTransaction[]>;
+  getAccountTransactions(accountId: string, limit?: number): Promise<BankTransaction[]>;
+  
+  createBankConnection(connection: any): Promise<BankConnection>;
+  getBankConnection(connectionId: string): Promise<BankConnection | undefined>;
+  getBankConnectionByItemId(itemId: string): Promise<BankConnection | undefined>;
+  updateBankConnection(connectionId: string, updates: any): Promise<BankConnection>;
 
   // Subscription operations
   getSubscriptionPlans(): Promise<any[]>;
@@ -408,6 +434,115 @@ export class DatabaseStorage implements IStorage {
       console.error('Error creating subscription plan:', error);
       throw new Error('Failed to create subscription plan');
     }
+  }
+
+  // Bank operations
+  async createBankAccount(account: NewBankAccount): Promise<BankAccount> {
+    const [newAccount] = await db
+      .insert(bankAccounts)
+      .values(account)
+      .returning();
+    return newAccount;
+  }
+
+  async getBankAccount(accountId: string): Promise<BankAccount | undefined> {
+    const [account] = await db
+      .select()
+      .from(bankAccounts)
+      .where(eq(bankAccounts.id, accountId));
+    return account;
+  }
+
+  async getUserBankAccounts(userId: string): Promise<BankAccount[]> {
+    return await db
+      .select()
+      .from(bankAccounts)
+      .where(and(eq(bankAccounts.userId, userId), eq(bankAccounts.isActive, true)))
+      .orderBy(desc(bankAccounts.createdAt));
+  }
+
+  async updateBankAccount(accountId: string, updates: Partial<NewBankAccount>): Promise<BankAccount> {
+    const [updated] = await db
+      .update(bankAccounts)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(bankAccounts.id, accountId))
+      .returning();
+    return updated;
+  }
+
+  async createBankTransaction(transaction: NewBankTransaction): Promise<BankTransaction> {
+    const [newTransaction] = await db
+      .insert(bankTransactions)
+      .values(transaction)
+      .returning();
+    return newTransaction;
+  }
+
+  async getBankTransaction(transactionId: string): Promise<BankTransaction | undefined> {
+    const [transaction] = await db
+      .select()
+      .from(bankTransactions)
+      .where(eq(bankTransactions.id, transactionId));
+    return transaction;
+  }
+
+  async getBankTransactionByPlaidId(plaidTransactionId: string): Promise<BankTransaction | undefined> {
+    const [transaction] = await db
+      .select()
+      .from(bankTransactions)
+      .where(eq(bankTransactions.plaidTransactionId, plaidTransactionId));
+    return transaction;
+  }
+
+  async getUserBankTransactions(userId: string, limit = 50): Promise<BankTransaction[]> {
+    return await db
+      .select()
+      .from(bankTransactions)
+      .where(eq(bankTransactions.userId, userId))
+      .orderBy(desc(bankTransactions.date))
+      .limit(limit);
+  }
+
+  async getAccountTransactions(accountId: string, limit = 50): Promise<BankTransaction[]> {
+    return await db
+      .select()
+      .from(bankTransactions)
+      .where(eq(bankTransactions.accountId, accountId))
+      .orderBy(desc(bankTransactions.date))
+      .limit(limit);
+  }
+
+  async createBankConnection(connection: NewBankConnection): Promise<BankConnection> {
+    const [newConnection] = await db
+      .insert(bankConnections)
+      .values(connection)
+      .returning();
+    return newConnection;
+  }
+
+  async getBankConnection(connectionId: string): Promise<BankConnection | undefined> {
+    const [connection] = await db
+      .select()
+      .from(bankConnections)
+      .where(eq(bankConnections.id, connectionId));
+    return connection;
+  }
+
+  async getBankConnectionByItemId(itemId: string): Promise<BankConnection | undefined> {
+    const [connection] = await db
+      .select()
+      .from(bankConnections)
+      .where(eq(bankConnections.plaidItemId, itemId));
+    return connection;
+  }
+
+  async updateBankConnection(connectionId: string, updates: Partial<NewBankConnection>): Promise<BankConnection> {
+    const [updated] = await db
+      .update(bankConnections)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(bankConnections.id, connectionId))
+      .returning();
+    return updated;
   }
 }
 

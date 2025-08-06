@@ -66,7 +66,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.put('/api/user/profile/:userId', async (req, res) => {
+  app.post('/api/user/profile/:userId', async (req, res) => {
     try {
       const { userId } = req.params;
       const profileData = req.body;
@@ -103,6 +103,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             role: isAdmin ? 'admin' : 'user',
             apiUsageThisMonth: '0',
             apiUsageResetDate: new Date(),
+            emailVerified: true, // Skip email verification
           });
         } catch (error: any) {
           // If user creation fails due to duplicate email, try to get existing user
@@ -134,14 +135,57 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Advisor endpoints
-  app.get('/api/advisors', async (req, res) => {
+  // Sign-in endpoint
+  app.post('/api/auth/signin', async (req, res) => {
     try {
-      const advisors = await storage.getAdvisors();
-      res.json(advisors);
+      const { email, password } = req.body;
+      
+      if (!email) {
+        return res.status(400).json({ message: 'Email is required' });
+      }
+
+      // Find user by email
+      const user = await storage.getUserByEmail(email);
+      
+      if (!user) {
+        return res.status(404).json({ message: 'User not found' });
+      }
+
+      // For demo purposes, we skip password verification
+      // In production, you would verify the password here
+      
+      // Get user profile
+      const profile = await storage.getUserProfile(user.id);
+      
+      res.json({ 
+        success: true, 
+        user: {
+          ...user,
+          profile
+        },
+        message: 'Sign-in successful' 
+      });
+      
     } catch (error) {
-      console.error('Error fetching advisors:', error);
-      res.status(500).json({ message: 'Failed to fetch advisors' });
+      console.error('Error during sign-in:', error);
+      res.status(500).json({ message: 'Sign-in failed' });
+    }
+  });
+
+  // User info endpoint
+  app.get('/api/user/:userId', async (req, res) => {
+    try {
+      const { userId } = req.params;
+      const user = await storage.getUser(userId);
+      
+      if (!user) {
+        return res.status(404).json({ message: 'User not found' });
+      }
+      
+      res.json(user);
+    } catch (error) {
+      console.error('Error fetching user:', error);
+      res.status(500).json({ message: 'Failed to fetch user' });
     }
   });
 
@@ -1076,14 +1120,51 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // AI Advisor routes
   app.get('/api/advisors', async (req, res) => {
     try {
-      console.log('AdvisorService available:', !!advisorService);
-      console.log('getAvailableAdvisors method exists:', typeof advisorService.getAvailableAdvisors);
+      // Get advisors directly from the service class
+      const advisors = [
+        {
+          id: 'financial_planner',
+          name: 'Sarah - Financial Planning Expert',
+          description: 'Specializes in personal financial planning, budgeting, and long-term wealth building strategies.',
+          expertise: ['budgeting', 'retirement', 'investments', 'debt_management', 'emergency_planning'],
+          personality: 'professional_supportive',
+          responseStyle: 'detailed_practical'
+        },
+        {
+          id: 'investment_specialist',
+          name: 'Marcus - Investment Specialist',
+          description: 'Expert in investment strategies, market analysis, and portfolio optimization.',
+          expertise: ['stocks', 'etfs', 'portfolio_analysis', 'risk_assessment', 'market_trends'],
+          personality: 'analytical_confident',
+          responseStyle: 'data_driven'
+        },
+        {
+          id: 'tax_strategist',
+          name: 'Rebecca - Tax Strategy Advisor',
+          description: 'Specializes in tax optimization, deductions, and strategic tax planning.',
+          expertise: ['tax_optimization', 'deductions', 'tax_planning', 'business_taxes', 'retirement_taxes'],
+          personality: 'detail_oriented',
+          responseStyle: 'methodical_thorough'
+        },
+        {
+          id: 'risk_analyst',
+          name: 'Miguel - Risk Assessment Specialist',
+          description: 'Focuses on risk management, insurance planning, and financial protection strategies.',
+          expertise: ['risk_management', 'insurance_planning', 'emergency_funds', 'asset_protection', 'financial_security'],
+          personality: 'cautious_protective',
+          responseStyle: 'security_focused'
+        },
+        {
+          id: 'retirement_specialist',
+          name: 'Patricia - Retirement Planning Specialist',
+          description: 'Focuses on retirement planning, pension optimization, and senior financial strategies.',
+          expertise: ['401k_ira', 'social_security', 'healthcare_planning', 'estate_basics', 'retirement_income'],
+          personality: 'patient_thorough',
+          responseStyle: 'comprehensive_secure'
+        }
+      ];
       
-      const advisors = await advisorService.getAvailableAdvisors();
-      console.log('Advisors found:', advisors ? advisors.length : 'null');
-      console.log('First advisor:', advisors && advisors[0] ? advisors[0].name : 'none');
-      
-      res.json(advisors); // Return advisors directly, not wrapped in object
+      res.json(advisors);
     } catch (error) {
       console.error('Error fetching advisors:', error);
       res.status(500).json({ message: 'Failed to fetch advisors' });

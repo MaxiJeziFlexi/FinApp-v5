@@ -12,12 +12,16 @@ import AnalyticsDashboard from "@/pages/analytics-dashboard";
 import LearningProgress from "@/pages/learning-progress";
 import ComprehensiveTest from "@/pages/comprehensive-test";
 import { AdminDashboard } from "@/pages/admin-dashboard";
+import MandatorySignIn from "@/pages/mandatory-signin";
+import CryptoMarketplace from "@/pages/crypto-marketplace";
 
 function Router() {
   return (
     <Switch>
       <Route path="/" component={Landing} />
+      <Route path="/signin" component={MandatorySignIn} />
       <Route path="/finapp-home" component={FinAppHome} />
+      <Route path="/crypto-marketplace" component={CryptoMarketplace} />
       <Route path="/privacy" component={Privacy} />
       <Route path="/security" component={Security} />
       <Route path="/analytics" component={AnalyticsDashboard} />

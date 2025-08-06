@@ -1,6 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
+import { advancedAI } from "./services/advancedAI";
 import { openAIService } from "./services/openai";
 import { decisionTreeService } from "./services/decisionTree";
 import { speechRecognitionService } from "./services/speechRecognition";
@@ -490,6 +491,226 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Error fetching real-time learning data:', error);
       res.status(500).json({ message: 'Failed to fetch real-time analytics' });
+    }
+  });
+
+  // Advanced AI Routes with Spectrum Tax and Quantum Mathematics
+  app.post('/api/ai/predict-customer-needs', async (req, res) => {
+    try {
+      const { userProfile } = req.body;
+      const predictions = await advancedAI.predictCustomerNeeds(userProfile);
+      res.json(predictions);
+    } catch (error) {
+      console.error('AI prediction error:', error);
+      res.status(500).json({ message: 'Failed to generate AI predictions' });
+    }
+  });
+
+  app.post('/api/ai/personalized-advice', async (req, res) => {
+    try {
+      const { userProfile, marketData } = req.body;
+      const advice = await advancedAI.generatePersonalizedAdvice(userProfile, marketData);
+      res.json(advice);
+    } catch (error) {
+      console.error('Personalized advice error:', error);
+      res.status(500).json({ message: 'Failed to generate personalized advice' });
+    }
+  });
+
+  // Mandatory Authentication Routes
+  app.post('/api/auth/signin', async (req, res) => {
+    try {
+      const userData = req.body;
+      const user = await storage.createUser({
+        ...userData,
+        id: `user-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        role: userData.role || 'user',
+        createdAt: new Date(),
+        onboardingComplete: true
+      });
+      res.json({ success: true, user, message: 'Profile created successfully' });
+    } catch (error) {
+      console.error('Sign-in error:', error);
+      res.status(500).json({ message: 'Failed to create user profile' });
+    }
+  });
+
+  app.post('/api/auth/admin-signin', async (req, res) => {
+    try {
+      const adminData = req.body;
+      const admin = await storage.createUser({
+        ...adminData,
+        id: `admin-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        role: 'admin',
+        userType: 'admin',
+        createdAt: new Date(),
+        onboardingComplete: true
+      });
+      res.json({ success: true, user: admin, message: 'Admin access granted' });
+    } catch (error) {
+      console.error('Admin sign-in error:', error);
+      res.status(500).json({ message: 'Admin authentication failed' });
+    }
+  });
+
+  // Crypto Marketplace Routes
+  app.get('/api/crypto/user-stats', async (req, res) => {
+    try {
+      const stats = {
+        cryptoBalance: 1.25075 + Math.random() * 0.5,
+        totalEarned: 3400.50 + Math.random() * 1000,
+        questionsAnswered: 127 + Math.floor(Math.random() * 50),
+        helpfulAnswers: 98 + Math.floor(Math.random() * 30),
+        reputation: 4.8 + Math.random() * 0.2,
+        level: 15 + Math.floor(Math.random() * 10)
+      };
+      res.json(stats);
+    } catch (error) {
+      console.error('User stats error:', error);
+      res.status(500).json({ message: 'Failed to fetch user stats' });
+    }
+  });
+
+  app.get('/api/crypto/advice-requests', async (req, res) => {
+    try {
+      const adviceRequests = [
+        {
+          id: '1',
+          title: 'Tax Optimization for High-Frequency Trading',
+          description: 'Looking for advanced strategies to minimize tax liability on crypto trading profits using 2025 reforms.',
+          category: 'Tax Planning',
+          complexity: 9,
+          bounty: 500,
+          cryptoReward: 0.025,
+          asker: 'CryptoTrader_Pro',
+          responses: 3,
+          status: 'open',
+          tags: ['Tax', 'Crypto', 'Advanced', 'Trading']
+        },
+        {
+          id: '2',
+          title: 'Quantum Portfolio Optimization Strategy',
+          description: 'Need help implementing quantum mathematical models for portfolio balance. Complex derivatives involved.',
+          category: 'Investment Strategy',
+          complexity: 10,
+          bounty: 750,
+          cryptoReward: 0.040,
+          asker: 'QuantumInvestor',
+          responses: 1,
+          status: 'open',
+          tags: ['Quantum', 'Portfolio', 'Advanced', 'Mathematics']
+        },
+        {
+          id: '3',
+          title: 'Retirement Planning with DeFi Integration',
+          description: 'How to safely integrate DeFi protocols into traditional retirement planning while maintaining security.',
+          category: 'Retirement',
+          complexity: 7,
+          bounty: 300,
+          cryptoReward: 0.015,
+          asker: 'RetirementPlan2025',
+          responses: 5,
+          status: 'answered',
+          tags: ['DeFi', 'Retirement', 'Security', 'Planning']
+        },
+        {
+          id: '4',
+          title: 'Spectrum Tax Analysis for Multi-State Business',
+          description: 'Need expert analysis on state tax obligations using spectrum analysis methodology for complex business structure.',
+          category: 'Tax Planning',
+          complexity: 8,
+          bounty: 400,
+          cryptoReward: 0.020,
+          asker: 'BusinessOwner_TX',
+          responses: 2,
+          status: 'open',
+          tags: ['Spectrum', 'Tax', 'Business', 'Multi-State']
+        }
+      ];
+      res.json(adviceRequests);
+    } catch (error) {
+      console.error('Advice requests error:', error);
+      res.status(500).json({ message: 'Failed to fetch advice requests' });
+    }
+  });
+
+  app.post('/api/crypto/submit-question', async (req, res) => {
+    try {
+      const questionData = req.body;
+      const newQuestion = {
+        id: `q-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        ...questionData,
+        asker: 'Current_User',
+        responses: 0,
+        status: 'open',
+        cryptoReward: questionData.bounty / 50000,
+        tags: [questionData.category],
+        timestamp: new Date().toISOString()
+      };
+      
+      res.json({ success: true, question: newQuestion });
+    } catch (error) {
+      console.error('Submit question error:', error);
+      res.status(500).json({ message: 'Failed to submit question' });
+    }
+  });
+
+  app.post('/api/crypto/answer-question/:id', async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { answer } = req.body;
+      
+      const rewardAmount = 0.005 + (answer.length / 1000) * 0.01;
+      
+      const answerData = {
+        id: `a-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        questionId: id,
+        answer,
+        author: 'Current_User',
+        cryptoReward: rewardAmount,
+        timestamp: new Date().toISOString(),
+        helpful: false
+      };
+      
+      res.json({ success: true, answer: answerData, cryptoEarned: rewardAmount });
+    } catch (error) {
+      console.error('Answer question error:', error);
+      res.status(500).json({ message: 'Failed to submit answer' });
+    }
+  });
+
+  app.get('/api/crypto/transactions', async (req, res) => {
+    try {
+      const transactions = [
+        { 
+          id: '1', 
+          type: 'earn', 
+          amount: 0.025, 
+          description: 'Complex tax strategy answer - Spectrum analysis', 
+          timestamp: new Date(Date.now() - 86400000).toISOString(), 
+          status: 'completed' 
+        },
+        { 
+          id: '2', 
+          type: 'earn', 
+          amount: 0.015, 
+          description: 'Retirement planning advice - DeFi integration', 
+          timestamp: new Date(Date.now() - 172800000).toISOString(), 
+          status: 'completed' 
+        },
+        { 
+          id: '3', 
+          type: 'spend', 
+          amount: 0.020, 
+          description: 'Premium quantum math consultation purchase', 
+          timestamp: new Date(Date.now() - 259200000).toISOString(), 
+          status: 'completed' 
+        }
+      ];
+      res.json(transactions);
+    } catch (error) {
+      console.error('Transactions error:', error);
+      res.status(500).json({ message: 'Failed to fetch transactions' });
     }
   });
 

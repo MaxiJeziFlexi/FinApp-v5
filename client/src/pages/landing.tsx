@@ -314,15 +314,13 @@ export default function Landing() {
               Harness the power of AI to optimize your finances, maximize returns, and achieve your financial goals faster than ever before.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
-              <Button3D
-                onClick={() => setShowSignUpModal(true)}
+              <Button
+                onClick={() => window.location.href = '/signin'}
                 className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white text-lg px-8 py-3 rounded-xl font-semibold"
               >
-                <div className="flex items-center">
-                  <User className="mr-2 h-5 w-5" />
-                  Complete Profile & Start
-                </div>
-              </Button3D>
+                <User className="mr-2 h-5 w-5" />
+                Complete Profile & Start
+              </Button>
               <Button size="lg" variant="outline" className="text-lg px-8 py-3">
                 <MessageSquare className="mr-2 h-5 w-5" />
                 Schedule Demo
@@ -532,15 +530,13 @@ export default function Landing() {
                 <p className="text-sm opacity-80">Crypto Conversion Rate</p>
               </div>
             </div>
-            <Button3D
-              onClick={() => setShowSignUpModal(true)}
+            <Button
+              onClick={() => window.location.href = '/signin'}
               className="bg-white text-purple-600 hover:bg-gray-100 px-8 py-3 rounded-xl font-semibold"
             >
-              <div className="flex items-center">
-                <Bitcoin className="mr-2 h-5 w-5" />
-                Start Earning Crypto
-              </div>
-            </Button3D>
+              <Bitcoin className="mr-2 h-5 w-5" />
+              Start Earning Crypto
+            </Button>
           </div>
         </div>
       </section>
@@ -840,12 +836,7 @@ export default function Landing() {
         </div>
       </footer>
 
-      {/* Mandatory Profile Sign-Up Modal */}
-      <SignUpModal 
-        isOpen={showSignUpModal} 
-        onClose={() => setShowSignUpModal(false)}
-        onSuccess={handleSignUpSuccess}
-      />
+
     </div>
   );
 }

@@ -165,12 +165,13 @@ export class AnalyticsService {
   }
 
   private async detectLearningStyle(userId: string): Promise<string> {
-    const recentEvents = await db
-      .select()
-      .from(learningAnalytics)
-      .where(eq(learningAnalytics.userId, userId))
-      .orderBy(desc(learningAnalytics.createdAt))
-      .limit(10);
+    try {
+      const recentEvents = await db
+        .select()
+        .from(learningAnalytics)
+        .where(eq(learningAnalytics.userId, userId))
+        .orderBy(sql`${learningAnalytics.timestamp} DESC`)
+        .limit(10);
 
     // Analyze interaction patterns to determine learning style
     const interactionTypes = recentEvents.map(event => event.eventData?.interactionType).filter(Boolean);
@@ -191,6 +192,10 @@ export class AnalyticsService {
 
     const dominantStyle = Object.entries(percentages).reduce((a, b) => percentages[a[0]] > percentages[b[0]] ? a : b)[0];
     return dominantStyle;
+    } catch (error) {
+      console.error('Error detecting learning style:', error);
+      return 'mixed';
+    }
   }
 
   private async analyzeRiskTolerance(userId: string): Promise<string> {
@@ -326,8 +331,8 @@ export class AnalyticsService {
       const recentEvents = await db
         .select()
         .from(learningAnalytics)
-        .where(gte(learningAnalytics.createdAt, last24Hours))
-        .orderBy(desc(learningAnalytics.createdAt));
+        .where(sql`${learningAnalytics.timestamp} >= ${last24Hours}`)
+        .orderBy(sql`${learningAnalytics.timestamp} DESC`);
 
       const eventTypes = recentEvents.reduce((acc, event) => {
         acc[event.eventType] = (acc[event.eventType] || 0) + 1;

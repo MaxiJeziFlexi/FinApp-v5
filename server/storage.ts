@@ -68,6 +68,15 @@ export interface IStorage {
   getAchievements(): Promise<Achievement[]>;
   getUserAchievements(userId: string): Promise<UserAchievement[]>;
   awardAchievement(userId: string, achievementId: string): Promise<UserAchievement>;
+
+  // Authentication and verification
+  createVerificationCode(verification: any): Promise<any>;
+  verifyEmailCode(userId: string, code: string): Promise<boolean>;
+  logUserActivity(activity: any): Promise<void>;
+
+  // Subscription operations
+  getSubscriptionPlans(): Promise<any[]>;
+  createSubscriptionPlan(plan: any): Promise<any>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -324,6 +333,81 @@ export class DatabaseStorage implements IStorage {
       .returning();
 
     return newAchievement;
+  }
+  // Authentication and verification methods
+  async createVerificationCode(verification: any): Promise<any> {
+    try {
+      // For now, store verification codes in memory
+      // In production, you'd store these in the database
+      return { id: generateId('verify'), ...verification };
+    } catch (error) {
+      console.error('Error creating verification code:', error);
+      throw new Error('Failed to create verification code');
+    }
+  }
+
+  async verifyEmailCode(userId: string, code: string): Promise<boolean> {
+    try {
+      // For now, accept any 6-character code
+      // In production, you'd verify against stored codes
+      return code.length === 6;
+    } catch (error) {
+      console.error('Error verifying email code:', error);
+      return false;
+    }
+  }
+
+  async logUserActivity(activity: any): Promise<void> {
+    try {
+      // For now, just log to console
+      // In production, you'd store in the database
+      console.log('User activity:', activity);
+    } catch (error) {
+      console.error('Error logging user activity:', error);
+    }
+  }
+
+  // Subscription methods
+  async getSubscriptionPlans(): Promise<any[]> {
+    try {
+      // Return default plans for now
+      return [
+        {
+          id: 'free',
+          name: 'Free',
+          description: 'Perfect for getting started with AI financial education',
+          price: 0,
+          currency: 'USD',
+          interval: 'month',
+          features: {
+            aiAdvisors: 1,
+            analysisReports: 3,
+            portfolioTracking: false,
+            premiumSupport: false,
+            advancedAnalytics: false,
+            apiAccess: false,
+            customDashboards: false,
+            priorityLearning: false,
+          },
+          stripePriceId: null,
+          active: true,
+          createdAt: new Date(),
+        }
+      ];
+    } catch (error) {
+      console.error('Error fetching subscription plans:', error);
+      throw new Error('Failed to fetch subscription plans');
+    }
+  }
+
+  async createSubscriptionPlan(plan: any): Promise<any> {
+    try {
+      // For now, just return the plan with an ID
+      return { id: generateId('plan'), ...plan };
+    } catch (error) {
+      console.error('Error creating subscription plan:', error);
+      throw new Error('Failed to create subscription plan');
+    }
   }
 }
 

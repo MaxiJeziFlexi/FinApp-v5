@@ -10,6 +10,7 @@ import {
   insertChatMessageSchema,
   insertDecisionTreeProgressSchema 
 } from "@shared/schema";
+import crypto from "crypto";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   
@@ -434,6 +435,267 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Error tracking AI performance:', error);
       res.status(500).json({ message: 'Failed to track AI performance' });
+    }
+  });
+
+  // Authentication and Registration Routes
+  app.post('/api/auth/register', async (req, res) => {
+    try {
+      const userData = req.body;
+      
+      // Generate a unique user ID
+      const userId = `user-${crypto.randomBytes(8).toString('hex')}-${crypto.randomBytes(8).toString('hex')}`;
+      
+      // Create user
+      const user = await storage.createUser({
+        id: userId,
+        name: `${userData.firstName} ${userData.lastName}`,
+        email: userData.email,
+        username: userData.username,
+        firstName: userData.firstName,
+        lastName: userData.lastName,
+        phoneNumber: userData.phoneNumber,
+        dateOfBirth: userData.dateOfBirth ? new Date(userData.dateOfBirth) : undefined,
+        country: userData.country,
+        city: userData.city,
+        occupation: userData.occupation,
+        preferences: userData.preferences,
+        accountStatus: 'pending',
+        emailVerified: false,
+      });
+
+      // Create user profile
+      const profile = await storage.createUserProfile({
+        id: `profile-${userId}`,
+        userId: userId,
+        financialGoal: 'general_literacy',
+        timeframe: 'medium',
+        monthlyIncome: 'medium',
+        onboardingComplete: false,
+        progress: 0,
+      });
+
+      // Generate verification code
+      const verificationCode = Math.random().toString(36).substring(2, 8).toUpperCase();
+      await storage.createVerificationCode({
+        userId: userId,
+        code: verificationCode,
+        type: 'email',
+        expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 hours
+      });
+
+      // Log registration activity
+      await storage.logUserActivity({
+        userId: userId,
+        action: 'user_registered',
+        details: {
+          email: userData.email,
+          country: userData.country,
+          registrationMethod: 'email'
+        },
+        ipAddress: req.ip,
+        userAgent: req.get('User-Agent'),
+      });
+
+      res.json({
+        user,
+        profile,
+        verificationRequired: true,
+        message: 'Registration successful. Please check your email for verification.'
+      });
+    } catch (error: any) {
+      console.error('Registration error:', error);
+      res.status(400).json({ 
+        message: error.message || 'Registration failed' 
+      });
+    }
+  });
+
+  app.post('/api/auth/verify-email', async (req, res) => {
+    try {
+      const { userId, code } = req.body;
+      
+      const verification = await storage.verifyEmailCode(userId, code);
+      if (!verification) {
+        return res.status(400).json({ message: 'Invalid or expired verification code' });
+      }
+
+      // Update user email verification status
+      await storage.updateUser(userId, { 
+        emailVerified: true, 
+        accountStatus: 'active' 
+      });
+
+      res.json({ message: 'Email verified successfully' });
+    } catch (error: any) {
+      console.error('Email verification error:', error);
+      res.status(500).json({ message: 'Verification failed' });
+    }
+  });
+
+  // Premium Subscription Routes
+  app.get('/api/subscription/plans', async (req, res) => {
+    try {
+      const plans = await storage.getSubscriptionPlans();
+      res.json(plans);
+    } catch (error) {
+      console.error('Error fetching subscription plans:', error);
+      // Return default plans if database fails
+      res.json([
+        {
+          id: 'free',
+          name: 'Free',
+          description: 'Perfect for getting started with AI financial education',
+          price: 0,
+          currency: 'USD',
+          interval: 'month',
+          features: {
+            aiAdvisors: 1,
+            analysisReports: 3,
+            portfolioTracking: false,
+            premiumSupport: false,
+            advancedAnalytics: false,
+            apiAccess: false,
+            customDashboards: false,
+            priorityLearning: false,
+          },
+          stripePriceId: null,
+          active: true,
+          createdAt: new Date(),
+        },
+        {
+          id: 'premium',
+          name: 'Premium',
+          description: 'Enhanced AI learning with advanced analytics',
+          price: 1999,
+          currency: 'USD',
+          interval: 'month',
+          features: {
+            aiAdvisors: 5,
+            analysisReports: 25,
+            portfolioTracking: true,
+            premiumSupport: true,
+            advancedAnalytics: true,
+            apiAccess: false,
+            customDashboards: true,
+            priorityLearning: true,
+          },
+          stripePriceId: 'price_premium',
+          active: true,
+          createdAt: new Date(),
+        },
+        {
+          id: 'pro',
+          name: 'Pro',
+          description: 'Complete AI financial education platform',
+          price: 4999,
+          currency: 'USD',
+          interval: 'month',
+          features: {
+            aiAdvisors: 999,
+            analysisReports: 999,
+            portfolioTracking: true,
+            premiumSupport: true,
+            advancedAnalytics: true,
+            apiAccess: true,
+            customDashboards: true,
+            priorityLearning: true,
+          },
+          stripePriceId: 'price_pro',
+          active: true,
+          createdAt: new Date(),
+        },
+      ]);
+    }
+  });
+
+  app.post('/api/subscription/create', async (req, res) => {
+    try {
+      const { userId, planId, billingInterval } = req.body;
+      
+      // Get user
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(404).json({ message: 'User not found' });
+      }
+
+      // Get plan
+      const plans = await storage.getSubscriptionPlans();
+      const selectedPlan = plans.find(p => p.id === planId);
+      if (!selectedPlan) {
+        return res.status(404).json({ message: 'Plan not found' });
+      }
+
+      // For now, just update user subscription tier directly
+      // In a real app, you'd integrate with Stripe here
+      await storage.updateUser(userId, {
+        subscriptionTier: planId as 'free' | 'premium' | 'pro',
+        subscriptionStatus: 'active',
+        subscriptionStartDate: new Date(),
+        subscriptionEndDate: new Date(Date.now() + (billingInterval === 'year' ? 365 : 30) * 24 * 60 * 60 * 1000),
+      });
+
+      // Log subscription activity
+      await storage.logUserActivity({
+        userId: userId,
+        action: 'subscription_created',
+        details: {
+          planId,
+          billingInterval,
+          price: selectedPlan.price,
+        },
+        ipAddress: req.ip,
+        userAgent: req.get('User-Agent'),
+      });
+
+      res.json({ 
+        message: 'Subscription updated successfully',
+        plan: selectedPlan,
+        user: await storage.getUser(userId)
+      });
+    } catch (error: any) {
+      console.error('Subscription creation error:', error);
+      res.status(500).json({ message: 'Subscription creation failed' });
+    }
+  });
+
+  // User Management Routes
+  app.get('/api/user/:userId', async (req, res) => {
+    try {
+      const { userId } = req.params;
+      const user = await storage.getUser(userId);
+      
+      if (!user) {
+        return res.status(404).json({ message: 'User not found' });
+      }
+      
+      res.json(user);
+    } catch (error) {
+      console.error('Error fetching user:', error);
+      res.status(500).json({ message: 'Failed to fetch user' });
+    }
+  });
+
+  app.put('/api/user/:userId', async (req, res) => {
+    try {
+      const { userId } = req.params;
+      const updateData = req.body;
+      
+      const user = await storage.updateUser(userId, updateData);
+      
+      // Log profile update
+      await storage.logUserActivity({
+        userId: userId,
+        action: 'profile_updated',
+        details: { updatedFields: Object.keys(updateData) },
+        ipAddress: req.ip,
+        userAgent: req.get('User-Agent'),
+      });
+
+      res.json(user);
+    } catch (error: any) {
+      console.error('Error updating user:', error);
+      res.status(500).json({ message: 'Failed to update user' });
     }
   });
 

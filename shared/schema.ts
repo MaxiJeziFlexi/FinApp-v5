@@ -14,11 +14,58 @@ import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 import { relations } from "drizzle-orm";
 
-// Users table
+// Users table with modern authentication and premium features
 export const users = pgTable("users", {
   id: varchar("id", { length: 255 }).primaryKey(),
   name: varchar("name", { length: 255 }).notNull(),
-  email: varchar("email", { length: 255 }).unique(),
+  email: varchar("email", { length: 255 }).unique().notNull(),
+  username: varchar("username", { length: 100 }).unique(),
+  firstName: varchar("first_name", { length: 100 }),
+  lastName: varchar("last_name", { length: 100 }),
+  profileImageUrl: varchar("profile_image_url", { length: 500 }),
+  phoneNumber: varchar("phone_number", { length: 20 }),
+  dateOfBirth: timestamp("date_of_birth"),
+  country: varchar("country", { length: 100 }),
+  city: varchar("city", { length: 100 }),
+  occupation: varchar("occupation", { length: 100 }),
+  
+  // Premium subscription fields
+  subscriptionTier: varchar("subscription_tier", { enum: ['free', 'premium', 'pro'] }).default('free'),
+  subscriptionStatus: varchar("subscription_status", { enum: ['active', 'cancelled', 'expired'] }).default('active'),
+  subscriptionStartDate: timestamp("subscription_start_date"),
+  subscriptionEndDate: timestamp("subscription_end_date"),
+  stripeCustomerId: varchar("stripe_customer_id", { length: 255 }),
+  stripeSubscriptionId: varchar("stripe_subscription_id", { length: 255 }),
+  
+  // User preferences and settings
+  preferences: jsonb("preferences").default({
+    theme: 'system',
+    language: 'en',
+    currency: 'USD',
+    notifications: {
+      email: true,
+      push: true,
+      sms: false,
+      marketing: false
+    },
+    privacy: {
+      profileVisibility: 'private',
+      dataSharing: false,
+      analyticsOptOut: false
+    },
+    aiSettings: {
+      preferredAdvisorType: 'general',
+      riskTolerance: 'moderate',
+      learningStyle: 'visual'
+    }
+  }),
+  
+  // Verification and security
+  emailVerified: boolean("email_verified").default(false),
+  phoneVerified: boolean("phone_verified").default(false),
+  twoFactorEnabled: boolean("two_factor_enabled").default(false),
+  accountStatus: varchar("account_status", { enum: ['active', 'suspended', 'pending'] }).default('pending'),
+  
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -191,6 +238,51 @@ export const educationContent = pgTable("education_content", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// Subscription plans table
+export const subscriptionPlans = pgTable("subscription_plans", {
+  id: varchar("id", { length: 50 }).primaryKey(),
+  name: varchar("name", { length: 100 }).notNull(),
+  description: text("description"),
+  price: integer("price").notNull(), // in cents
+  currency: varchar("currency", { length: 3 }).default('USD'),
+  interval: varchar("interval", { enum: ['month', 'year'] }).notNull(),
+  features: jsonb("features").default({
+    aiAdvisors: 3,
+    analysisReports: 10,
+    portfolioTracking: true,
+    premiumSupport: false,
+    advancedAnalytics: false,
+    apiAccess: false,
+    customDashboards: false,
+    priorityLearning: false
+  }),
+  stripePriceId: varchar("stripe_price_id", { length: 255 }),
+  active: boolean("active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// User verification codes for email/phone
+export const verificationCodes = pgTable("verification_codes", {
+  id: varchar("id", { length: 255 }).primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id", { length: 255 }).references(() => users.id).notNull(),
+  code: varchar("code", { length: 10 }).notNull(),
+  type: varchar("type", { enum: ['email', 'phone', 'password_reset'] }).notNull(),
+  expiresAt: timestamp("expires_at").notNull(),
+  used: boolean("used").default(false),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// User activity log
+export const userActivityLog = pgTable("user_activity_log", {
+  id: varchar("id", { length: 255 }).primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id", { length: 255 }).references(() => users.id).notNull(),
+  action: varchar("action", { length: 100 }).notNull(),
+  details: jsonb("details"),
+  ipAddress: varchar("ip_address", { length: 45 }),
+  userAgent: text("user_agent"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 // Relations
 export const usersRelations = relations(users, ({ one, many }) => ({
   profile: one(userProfiles, {
@@ -351,3 +443,7 @@ export type AIModelPerformance = typeof aiModelPerformance.$inferSelect;
 export type InsertAIModelPerformance = typeof aiModelPerformance.$inferInsert;
 export type EducationContent = typeof educationContent.$inferSelect;
 export type InsertEducationContent = typeof educationContent.$inferInsert;
+export type SubscriptionPlan = typeof subscriptionPlans.$inferSelect;
+export type InsertSubscriptionPlan = typeof subscriptionPlans.$inferInsert;
+export type VerificationCode = typeof verificationCodes.$inferSelect;
+export type InsertVerificationCode = typeof verificationCodes.$inferInsert;

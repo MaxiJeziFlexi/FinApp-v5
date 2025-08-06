@@ -17,8 +17,17 @@ import {
   Zap,
   Globe,
   Users,
-  BookOpen
+  BookOpen,
+  LogIn,
+  UserPlus,
+  Crown,
+  Settings
 } from "lucide-react";
+
+import AuthModal from "@/components/auth/AuthModal";
+import UserProfileDropdown from "@/components/auth/UserProfileDropdown";
+import UserSettingsModal from "@/components/settings/UserSettingsModal";
+import PremiumSubscriptionPlans from "@/components/premium/PremiumSubscriptionPlans";
 
 import OnboardingForm from "@/components/financial/OnboardingForm";
 import AdvisorSelection from "@/components/financial/AdvisorSelection";
@@ -28,7 +37,7 @@ import AchievementNotification from "@/components/financial/AchievementNotificat
 import { FinancialVisualizations3D } from "@/components/financial/FinancialVisualizations3D";
 import { AdvancedAnalyticsDashboard } from "@/components/financial/AdvancedAnalyticsDashboard";
 
-import type { UserProfile } from "@shared/schema";
+import type { UserProfile, User as UserType } from "@shared/schema";
 
 type AppFlow = 'onboarding' | 'advisor-selection' | 'decision-tree' | 'chat' | 'analytics';
 
@@ -37,6 +46,13 @@ export default function FinAppHome() {
   const [selectedAdvisor, setSelectedAdvisor] = useState<string | null>(null);
   const [userId] = useState(() => `user-${Math.random().toString(36).substring(2, 15)}-${Math.random().toString(36).substring(2, 15)}`);
   const [showAchievement, setShowAchievement] = useState<string | null>(null);
+  
+  // Authentication and user state
+  const [currentUser, setCurrentUser] = useState<UserType | null>(null);
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [showSettingsModal, setShowSettingsModal] = useState(false);
+  const [showPremiumModal, setShowPremiumModal] = useState(false);
+  const [authModalTab, setAuthModalTab] = useState<'signin' | 'signup' | 'premium'>('signup');
 
   // Track user engagement analytics
   useEffect(() => {
@@ -147,6 +163,31 @@ export default function FinAppHome() {
     setShowAchievement('decision_tree_complete');
   };
 
+  // Authentication handlers
+  const handleUserRegistered = (user: UserType) => {
+    setCurrentUser(user);
+    setShowAuthModal(false);
+  };
+
+  const handleLogout = () => {
+    setCurrentUser(null);
+    setCurrentFlow('onboarding');
+    setSelectedAdvisor(null);
+  };
+
+  const handleOpenAuth = (tab: 'signin' | 'signup' | 'premium' = 'signup') => {
+    setAuthModalTab(tab);
+    setShowAuthModal(true);
+  };
+
+  const handleOpenPremium = () => {
+    if (currentUser) {
+      setShowPremiumModal(true);
+    } else {
+      handleOpenAuth('premium');
+    }
+  };
+
   if (profileLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -190,6 +231,48 @@ export default function FinAppHome() {
                 <span className="text-sm">Advanced Analytics</span>
               </div>
             </div>
+            
+            {/* Authentication Section for Header */}
+            {!currentUser && (
+              <div className="flex items-center justify-center gap-4 mt-6">
+                <Button
+                  variant="outline"
+                  onClick={() => handleOpenAuth('signin')}
+                  className="bg-white/10 border-white/20 text-white hover:bg-white/20 flex items-center gap-2"
+                >
+                  <LogIn className="w-4 h-4" />
+                  Sign In
+                </Button>
+                <Button
+                  onClick={() => handleOpenAuth('signup')}
+                  className="bg-white text-purple-600 hover:bg-gray-100 font-semibold flex items-center gap-2"
+                >
+                  <UserPlus className="w-4 h-4" />
+                  Join the Experiment
+                </Button>
+              </div>
+            )}
+            
+            {/* User Profile Section for Header */}
+            {currentUser && (
+              <div className="flex items-center justify-center mt-6">
+                <div className="flex items-center gap-4 bg-white/10 backdrop-blur-sm rounded-lg px-4 py-2">
+                  <div className="text-center">
+                    <p className="text-sm font-medium">Welcome back, {currentUser.firstName || 'User'}!</p>
+                    <p className="text-xs opacity-80">
+                      {currentUser.subscriptionTier === 'free' ? 'Free Plan' : 
+                       currentUser.subscriptionTier === 'pro' ? 'Pro Member' : 'Premium Member'}
+                    </p>
+                  </div>
+                  <UserProfileDropdown
+                    user={currentUser}
+                    onLogout={handleLogout}
+                    onOpenSettings={() => setShowSettingsModal(true)}
+                    onOpenSubscription={handleOpenPremium}
+                  />
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -325,6 +408,26 @@ export default function FinAppHome() {
           />
         )}
 
+        {/* Premium Upgrade CTA for non-premium users */}
+        {currentUser && currentUser.subscriptionTier === 'free' && (
+          <Card className="mt-8 bg-gradient-to-r from-purple-600 to-pink-600 text-white">
+            <CardContent className="p-6 text-center">
+              <Crown className="w-12 h-12 mx-auto mb-4 text-yellow-300" />
+              <h3 className="text-2xl font-bold mb-2">Unlock Premium AI Features</h3>
+              <p className="mb-4 opacity-90">
+                Get unlimited AI advisors, advanced analytics, and priority learning features
+              </p>
+              <Button
+                onClick={handleOpenPremium}
+                className="bg-white text-purple-600 hover:bg-gray-100 font-semibold"
+              >
+                <Crown className="w-4 h-4 mr-2" />
+                Upgrade to Premium
+              </Button>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Footer - Data Collection Notice */}
         <Card className="mt-8">
           <CardContent className="p-4">
@@ -346,6 +449,33 @@ export default function FinAppHome() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Authentication Modal */}
+      <AuthModal
+        isOpen={showAuthModal}
+        onClose={() => setShowAuthModal(false)}
+        onUserRegistered={handleUserRegistered}
+        defaultTab={authModalTab}
+      />
+
+      {/* User Settings Modal */}
+      {currentUser && (
+        <UserSettingsModal
+          isOpen={showSettingsModal}
+          onClose={() => setShowSettingsModal(false)}
+          user={currentUser}
+        />
+      )}
+
+      {/* Premium Subscription Modal */}
+      {showPremiumModal && currentUser && (
+        <PremiumSubscriptionPlans
+          currentTier={currentUser.subscriptionTier || 'free'}
+          userId={currentUser.id}
+          onSuccess={() => setShowPremiumModal(false)}
+          onClose={() => setShowPremiumModal(false)}
+        />
+      )}
     </div>
   );
 }

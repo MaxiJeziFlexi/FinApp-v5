@@ -238,7 +238,7 @@ export class AdvisorService {
     // Prepare messages for OpenAI
     const openAIMessages = [
       { role: 'system', content: advisor.systemPrompt + contextPrompt },
-      ...session.messages.slice(-10).map(msg => ({ // Keep last 10 messages for context
+      ...session.messages.slice(-10).map((msg: AdvisorMessage) => ({ // Keep last 10 messages for context
         role: msg.role === 'assistant' ? 'assistant' : 'user',
         content: msg.content
       }))
@@ -357,4 +357,6 @@ export class AdvisorService {
   }
 }
 
-export const advisorService = new AdvisorService();
+const advisorServiceInstance = new AdvisorService();
+console.log('Creating advisor service with', advisorServiceInstance.advisors.length, 'advisors');
+export const advisorService = advisorServiceInstance;

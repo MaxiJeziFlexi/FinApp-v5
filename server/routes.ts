@@ -93,18 +93,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Determine if this should be an admin (for demo purposes, check email or name)
         const isAdmin = profileData.email?.includes('admin') || profileData.name?.toLowerCase().includes('admin');
         
-        user = await storage.createUser({
-          id: userId,
-          name: profileData.name || 'User',
-          email: profileData.email || `${profileData.name || 'user'}@finapp.demo`,
-          subscriptionTier: isAdmin ? 'max' : 'free', // Admin gets Max plan automatically
-          accountStatus: 'active',
-          role: isAdmin ? 'admin' : 'user',
-          apiUsageThisMonth: '0',
-          apiUsageResetDate: new Date(),
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        });
+        try {
+          user = await storage.createUser({
+            id: userId,
+            name: profileData.name || 'User',
+            email: profileData.email || `${profileData.name || 'user'}@finapp.demo`,
+            subscriptionTier: isAdmin ? 'max' : 'free', // Admin gets Max plan automatically
+            accountStatus: 'active',
+            role: isAdmin ? 'admin' : 'user',
+            apiUsageThisMonth: '0',
+            apiUsageResetDate: new Date(),
+          });
+        } catch (error: any) {
+          // If user creation fails due to duplicate email, try to get existing user
+          if (error.code === '23505') {
+            user = await storage.getUserByEmail(profileData.email || `${profileData.name || 'user'}@finapp.demo`);
+            if (!user) {
+              throw error; // Re-throw if we still can't find the user
+            }
+          } else {
+            throw error;
+          }
+        }
       }
 
       // Check if profile exists, create or update
@@ -1066,9 +1076,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // AI Advisor routes
   app.get('/api/advisors', async (req, res) => {
     try {
+      console.log('AdvisorService available:', !!advisorService);
+      console.log('getAvailableAdvisors method exists:', typeof advisorService.getAvailableAdvisors);
+      
       const advisors = await advisorService.getAvailableAdvisors();
-      console.log('Advisors:', advisors);
-      res.json({ advisors });
+      console.log('Advisors found:', advisors ? advisors.length : 'null');
+      console.log('First advisor:', advisors && advisors[0] ? advisors[0].name : 'none');
+      
+      res.json(advisors); // Return advisors directly, not wrapped in object
     } catch (error) {
       console.error('Error fetching advisors:', error);
       res.status(500).json({ message: 'Failed to fetch advisors' });

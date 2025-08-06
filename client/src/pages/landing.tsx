@@ -2,6 +2,10 @@ import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { 
   Brain, 
   TrendingUp, 
@@ -23,11 +27,35 @@ import {
   PieChart,
   BookOpen,
   Calculator,
-  CreditCard
+  CreditCard,
+  FileText,
+  TrendingDown,
+  PiggyBank,
+  Coins,
+  Trophy,
+  GamepadIcon,
+  Gift,
+  Bitcoin,
+  Activity,
+  BarChart2,
+  Building,
+  Briefcase,
+  Heart,
+  Home,
+  GraduationCap,
+  Clock,
+  Lock,
+  Mail,
+  Phone,
+  Building2,
+  Calendar,
+  User
 } from 'lucide-react';
 import { motion, useInView } from 'framer-motion';
 import { useRef } from 'react';
 import { Link } from 'wouter';
+import FloatingElements, { Card3D, Button3D, AnimatedNumber3D } from '@/components/3d/FloatingElements';
+import SignUpModal from '@/components/auth/SignUpModal';
 
 interface FeatureCard {
   icon: any;
@@ -49,6 +77,78 @@ interface TestimonialCard {
   content: string;
   avatar: string;
 }
+
+const aiUseCases = [
+  {
+    icon: FileText,
+    title: "AI Report Generator",
+    description: "Generate comprehensive financial reports analyzing your spending, investments, and growth opportunities with AI-powered insights.",
+    features: ["Monthly financial summaries", "Investment performance analysis", "Risk assessment reports", "Goal progress tracking"],
+    gradient: "from-blue-500 to-cyan-600"
+  },
+  {
+    icon: TrendingUp,
+    title: "Investment Consultation AI",
+    description: "Get real-time investment advice based on current market conditions, your risk profile, and financial goals.",
+    features: ["Portfolio optimization", "Market trend analysis", "Risk-adjusted recommendations", "Diversification strategies"],
+    gradient: "from-green-500 to-emerald-600"
+  },
+  {
+    icon: Calculator,
+    title: "Tax Optimization & Loopholes",
+    description: "Stay ahead with up-to-date tax reform analysis and legal optimization strategies updated in real-time.",
+    features: ["2025 tax reform compliance", "Legal loophole identification", "Deduction maximization", "Tax-loss harvesting"],
+    gradient: "from-purple-500 to-indigo-600"
+  },
+  {
+    icon: PiggyBank,
+    title: "Safe Retirement Planning",
+    description: "AI-powered retirement strategies that adapt to changing regulations and market conditions.",
+    features: ["401(k) optimization", "IRA strategies", "Social Security maximization", "Healthcare cost planning"],
+    gradient: "from-orange-500 to-red-600"
+  },
+  {
+    icon: GraduationCap,
+    title: "Learning Access Hub",
+    description: "Personalized financial education with adaptive learning paths based on your knowledge level and goals.",
+    features: ["Interactive courses", "Skill assessments", "Progress tracking", "Certification programs"],
+    gradient: "from-teal-500 to-blue-600"
+  },
+  {
+    icon: Users,
+    title: "Community & Discussions",
+    description: "Connect with financial experts and peers in a gamified learning environment with cryptocurrency rewards.",
+    features: ["Expert Q&A sessions", "Peer discussions", "Knowledge sharing", "Crypto reward system"],
+    gradient: "from-pink-500 to-rose-600"
+  }
+];
+
+const gamificationFeatures = [
+  {
+    icon: Trophy,
+    title: "Achievement Levels",
+    description: "Unlock new levels as you complete financial milestones and educational modules.",
+    reward: "XP + Crypto Tokens"
+  },
+  {
+    icon: Coins,
+    title: "Community Points",
+    description: "Earn points by helping others with detailed financial explanations and insights.",
+    reward: "Convertible to Crypto"
+  },
+  {
+    icon: Bitcoin,
+    title: "Crypto Rewards",
+    description: "Transfer earned points to cryptocurrency or use for premium platform features.",
+    reward: "BTC, ETH, Custom Token"
+  },
+  {
+    icon: GamepadIcon,
+    title: "Learning Challenges",
+    description: "Complete daily challenges and quests to improve your financial knowledge.",
+    reward: "Bonus Multipliers"
+  }
+];
 
 const features: FeatureCard[] = [
   {
@@ -151,6 +251,7 @@ function AnimatedCounter({ end, duration = 2000 }: { end: number; duration?: num
 
 export default function Landing() {
   const [activeFeature, setActiveFeature] = useState(0);
+  const [showSignUpModal, setShowSignUpModal] = useState(false);
   
   useEffect(() => {
     const interval = setInterval(() => {
@@ -158,6 +259,10 @@ export default function Landing() {
     }, 4000);
     return () => clearInterval(interval);
   }, []);
+
+  const handleSignUpSuccess = () => {
+    window.location.href = '/finapp-home';
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-blue-50 dark:from-gray-900 dark:via-gray-800 dark:to-blue-900">
@@ -209,12 +314,15 @@ export default function Landing() {
               Harness the power of AI to optimize your finances, maximize returns, and achieve your financial goals faster than ever before.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
-              <Link href="/finapp-home">
-                <Button size="lg" className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-lg px-8 py-3">
-                  <Play className="mr-2 h-5 w-5" />
-                  Start Free Trial
-                </Button>
-              </Link>
+              <Button3D
+                onClick={() => setShowSignUpModal(true)}
+                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white text-lg px-8 py-3 rounded-xl font-semibold"
+              >
+                <div className="flex items-center">
+                  <User className="mr-2 h-5 w-5" />
+                  Complete Profile & Start
+                </div>
+              </Button3D>
               <Button size="lg" variant="outline" className="text-lg px-8 py-3">
                 <MessageSquare className="mr-2 h-5 w-5" />
                 Schedule Demo
@@ -305,6 +413,134 @@ export default function Landing() {
                 </motion.div>
               );
             })}
+          </div>
+        </div>
+      </section>
+
+      {/* Comprehensive AI Use Cases Section */}
+      <section id="ai-features" className="py-20 px-6 bg-gradient-to-br from-gray-50 to-blue-50 dark:from-gray-900 dark:to-blue-900 relative overflow-hidden">
+        <FloatingElements />
+        <div className="container mx-auto relative z-10">
+          <div className="text-center mb-16">
+            <Badge className="mb-4 bg-gradient-to-r from-purple-100 to-blue-100 text-purple-900 border-purple-200">
+              <Brain className="w-3 h-3 mr-1" />
+              AI-Powered Financial Services
+            </Badge>
+            <h2 className="text-4xl md:text-5xl font-bold mb-6 bg-gradient-to-r from-gray-900 to-blue-900 dark:from-white dark:to-blue-100 bg-clip-text text-transparent">
+              How Our AI Works for You
+            </h2>
+            <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
+              Revolutionary AI-powered financial tools that provide real-time insights, personalized strategies, and comprehensive analysis
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mb-20">
+            {aiUseCases.map((useCase, index) => {
+              const IconComponent = useCase.icon;
+              return (
+                <Card3D key={index} className="group">
+                  <Card className="h-full hover:shadow-2xl transition-all duration-300 border-0 bg-white/80 backdrop-blur-sm">
+                    <CardHeader>
+                      <div className={`inline-flex p-3 rounded-lg bg-gradient-to-r ${useCase.gradient} text-white mb-4`}>
+                        <IconComponent className="h-6 w-6" />
+                      </div>
+                      <CardTitle className="text-xl font-bold text-gray-900 dark:text-white group-hover:text-blue-600 transition-colors">
+                        {useCase.title}
+                      </CardTitle>
+                      <CardDescription className="text-gray-600 dark:text-gray-300">
+                        {useCase.description}
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <ul className="space-y-2">
+                        {useCase.features.map((feature, idx) => (
+                          <li key={idx} className="flex items-center text-sm text-gray-600 dark:text-gray-300">
+                            <CheckCircle className="h-4 w-4 text-green-500 mr-2 flex-shrink-0" />
+                            {feature}
+                          </li>
+                        ))}
+                      </ul>
+                    </CardContent>
+                  </Card>
+                </Card3D>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      {/* Gamification & Community Section */}
+      <section className="py-20 px-6 bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-900 dark:to-pink-900 relative overflow-hidden">
+        <div className="container mx-auto">
+          <div className="text-center mb-16">
+            <Badge className="mb-4 bg-gradient-to-r from-orange-100 to-yellow-100 text-orange-900 border-orange-200">
+              <GamepadIcon className="w-3 h-3 mr-1" />
+              Gamified Learning Experience
+            </Badge>
+            <h2 className="text-4xl md:text-5xl font-bold mb-6 bg-gradient-to-r from-purple-900 to-pink-900 dark:from-white dark:to-pink-100 bg-clip-text text-transparent">
+              Earn While You Learn
+            </h2>
+            <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
+              Get rewarded for your financial knowledge. Answer complex questions, help the community, and earn cryptocurrency tokens
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
+            {gamificationFeatures.map((feature, index) => {
+              const IconComponent = feature.icon;
+              return (
+                <Card3D key={index}>
+                  <Card className="text-center hover:shadow-xl transition-all duration-300 bg-white/90 backdrop-blur-sm border-0">
+                    <CardHeader>
+                      <div className="mx-auto p-4 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full text-white mb-4 w-fit">
+                        <IconComponent className="h-8 w-8" />
+                      </div>
+                      <CardTitle className="text-lg font-bold text-gray-900 dark:text-white">
+                        {feature.title}
+                      </CardTitle>
+                      <CardDescription className="text-gray-600 dark:text-gray-300">
+                        {feature.description}
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <Badge className="bg-gradient-to-r from-green-100 to-emerald-100 text-green-800 border-green-200">
+                        {feature.reward}
+                      </Badge>
+                    </CardContent>
+                  </Card>
+                </Card3D>
+              );
+            })}
+          </div>
+
+          <div className="bg-gradient-to-r from-purple-600 to-pink-600 rounded-2xl p-8 text-white text-center">
+            <h3 className="text-2xl font-bold mb-4">Community Q&A Rewards System</h3>
+            <p className="text-lg mb-6 opacity-90">
+              Answer financial questions with detailed explanations and earn points convertible to cryptocurrency
+            </p>
+            <div className="grid grid-cols-3 gap-6 mb-6">
+              <div>
+                <AnimatedNumber3D value={500} suffix="+" />
+                <p className="text-sm opacity-80">Detailed Answers</p>
+              </div>
+              <div>
+                <AnimatedNumber3D value={1250} suffix=" pts" />
+                <p className="text-sm opacity-80">Available for Conversion</p>
+              </div>
+              <div>
+                <AnimatedNumber3D value={75} suffix="%" />
+                <p className="text-sm opacity-80">Crypto Conversion Rate</p>
+              </div>
+            </div>
+            <Button3D
+              onClick={() => setShowSignUpModal(true)}
+              className="bg-white text-purple-600 hover:bg-gray-100 px-8 py-3 rounded-xl font-semibold"
+            >
+              <div className="flex items-center">
+                <Bitcoin className="mr-2 h-5 w-5" />
+                Start Earning Crypto
+              </div>
+            </Button3D>
           </div>
         </div>
       </section>
@@ -603,6 +839,13 @@ export default function Landing() {
           </div>
         </div>
       </footer>
+
+      {/* Mandatory Profile Sign-Up Modal */}
+      <SignUpModal 
+        isOpen={showSignUpModal} 
+        onClose={() => setShowSignUpModal(false)}
+        onSuccess={handleSignUpSuccess}
+      />
     </div>
   );
 }

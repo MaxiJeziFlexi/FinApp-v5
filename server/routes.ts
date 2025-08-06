@@ -205,11 +205,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       res.json({
-        completed: progress.completed,
-        decision_path: progress.decisionPath,
-        progress: progress.progress,
-        current_step: progress.currentStep,
-        final_recommendation: progress.finalRecommendation
+        completed: progress.completedAt ? true : false,
+        decision_path: progress.responses || [],
+        progress: progress.progress || 0,
+        current_step: progress.currentNode || 'start',
+        final_recommendation: progress.recommendations || null
       });
     } catch (error) {
       console.error('Error fetching decision tree status:', error);
@@ -305,7 +305,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         sessionId: session.id,
         userId: user_id,
         advisorId: advisor_id,
-        role: 'user',
+        sender: 'user',
         content: message,
         modelUsed: model || 'gpt-4o'
       });
@@ -332,7 +332,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         sessionId: session.id,
         userId: user_id,
         advisorId: advisor_id,
-        role: 'assistant',
+        sender: 'advisor',
         content: aiResponse.response,
         sentiment: sentiment.sentiment,
         confidence: sentiment.confidence,

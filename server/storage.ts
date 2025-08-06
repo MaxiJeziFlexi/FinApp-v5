@@ -15,17 +15,17 @@ import {
   type UserProfile,
   type InsertUserProfile,
   type Advisor,
-  type InsertAdvisor,
+  type NewAdvisor,
   type AdvisorSession,
-  type InsertAdvisorSession,
+  type NewAdvisorSession,
   type ChatMessage,
   type InsertChatMessage,
   type DecisionTreeProgress,
   type InsertDecisionTreeProgress,
   type Achievement,
-  type InsertAchievement,
+  type Achievement,
   type UserAchievement,
-  type InsertUserAchievement,
+  type NewUserAchievement,
   type BankAccount,
   type NewBankAccount,
   type BankTransaction,
@@ -189,7 +189,7 @@ export class DatabaseStorage implements IStorage {
     return advisor;
   }
 
-  async createAdvisor(advisor: InsertAdvisor): Promise<Advisor> {
+  async createAdvisor(advisor: NewAdvisor): Promise<Advisor> {
     const [newAdvisor] = await db
       .insert(advisors)
       .values(advisor)
@@ -334,7 +334,7 @@ export class DatabaseStorage implements IStorage {
       .select()
       .from(achievements)
       .where(eq(achievements.isActive, true))
-      .orderBy(asc(achievements.category), asc(achievements.title));
+      .orderBy(asc(achievements.category), asc(achievements.name));
   }
 
   async getUserAchievements(userId: string): Promise<UserAchievement[]> {
@@ -342,7 +342,7 @@ export class DatabaseStorage implements IStorage {
       .select()
       .from(userAchievements)
       .where(eq(userAchievements.userId, userId))
-      .orderBy(desc(userAchievements.earnedAt));
+      .orderBy(desc(userAchievements.createdAt));
   }
 
   async awardAchievement(userId: string, achievementId: string): Promise<UserAchievement> {

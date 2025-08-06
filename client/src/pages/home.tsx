@@ -9,6 +9,7 @@ import FinancialProgressChart from "@/components/financial/FinancialProgressChar
 import { useQuery } from "@tanstack/react-query";
 import { Bot, TrendingUp, Shield, Users, Award } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { useDiagnostics } from "@/hooks/useDiagnostics";
 
 type ViewType = 'onboarding' | 'advisorSelection' | 'decisionTree' | 'chat';
 
@@ -35,6 +36,7 @@ interface Achievement {
 }
 
 export default function Home() {
+  const { trackInteraction } = useDiagnostics();
   const [currentView, setCurrentView] = useState<ViewType>('onboarding');
   const [userId] = useState(() => {
     let storedUserId = localStorage.getItem('userId');

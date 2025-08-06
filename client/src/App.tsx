@@ -17,6 +17,7 @@ import CryptoMarketplace from "@/pages/crypto-marketplace";
 import AdvancedAIDashboard from "@/pages/advanced-ai-dashboard";
 import GamingHub from "@/pages/gaming-hub";
 import EnhancedCryptoMarketplace from "@/pages/enhanced-crypto-marketplace";
+import DeveloperDiagnostics from "@/pages/developer-diagnostics";
 
 function Router() {
   return (
@@ -34,6 +35,7 @@ function Router() {
       <Route path="/ai-dashboard" component={AdvancedAIDashboard} />
       <Route path="/gaming" component={GamingHub} />
       <Route path="/enhanced-crypto" component={EnhancedCryptoMarketplace} />
+      <Route path="/developer-diagnostics" component={DeveloperDiagnostics} />
       <Route component={NotFound} />
     </Switch>
   );

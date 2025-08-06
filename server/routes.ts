@@ -18,6 +18,7 @@ import {
 import crypto from "crypto";
 import { AuthUtils } from "./utils/auth";
 import { RealtimeDataService } from "./services/realtimeDataService";
+import { DiagnosticsService } from "./services/diagnosticsService";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   
@@ -1137,6 +1138,88 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Challenges error:', error);
       res.status(500).json({ message: 'Failed to fetch challenges' });
+    }
+  });
+
+  // Advanced Diagnostics Routes (Developers/Admins Only)
+  app.post('/api/diagnostics/track-interaction', async (req, res) => {
+    try {
+      const interaction = req.body;
+      await DiagnosticsService.trackInteraction(interaction);
+      res.json({ success: true });
+    } catch (error) {
+      console.error('Track interaction error:', error);
+      res.status(500).json({ message: 'Failed to track interaction' });
+    }
+  });
+
+  app.get('/api/diagnostics/heatmap/:page', async (req, res) => {
+    try {
+      const { page } = req.params;
+      const { start, end } = req.query;
+      
+      const timeRange = start && end ? {
+        start: new Date(start as string),
+        end: new Date(end as string)
+      } : undefined;
+      
+      const heatMapData = await DiagnosticsService.generateHeatMap(page, timeRange);
+      res.json(heatMapData);
+    } catch (error) {
+      console.error('Heat map error:', error);
+      res.status(500).json({ message: 'Failed to generate heat map' });
+    }
+  });
+
+  app.get('/api/diagnostics/click-ratios/:page', async (req, res) => {
+    try {
+      const { page } = req.params;
+      const clickRatios = await DiagnosticsService.getClickRatios(page);
+      res.json(clickRatios);
+    } catch (error) {
+      console.error('Click ratios error:', error);
+      res.status(500).json({ message: 'Failed to fetch click ratios' });
+    }
+  });
+
+  app.get('/api/diagnostics/system-health', async (req, res) => {
+    try {
+      const healthReport = await DiagnosticsService.getSystemHealthReport();
+      res.json(healthReport);
+    } catch (error) {
+      console.error('System health error:', error);
+      res.status(500).json({ message: 'Failed to get system health' });
+    }
+  });
+
+  app.get('/api/diagnostics/insights', async (req, res) => {
+    try {
+      const insights = await DiagnosticsService.generateDiagnosticInsights();
+      res.json(insights);
+    } catch (error) {
+      console.error('Diagnostic insights error:', error);
+      res.status(500).json({ message: 'Failed to generate insights' });
+    }
+  });
+
+  app.get('/api/diagnostics/user-behavior', async (req, res) => {
+    try {
+      const analytics = await DiagnosticsService.getUserBehaviorAnalytics();
+      res.json(analytics);
+    } catch (error) {
+      console.error('User behavior analytics error:', error);
+      res.status(500).json({ message: 'Failed to fetch user behavior analytics' });
+    }
+  });
+
+  app.post('/api/diagnostics/performance-metrics', async (req, res) => {
+    try {
+      const metrics = req.body;
+      await DiagnosticsService.trackPerformanceMetrics(metrics);
+      res.json({ success: true });
+    } catch (error) {
+      console.error('Performance metrics error:', error);
+      res.status(500).json({ message: 'Failed to track performance metrics' });
     }
   });
 

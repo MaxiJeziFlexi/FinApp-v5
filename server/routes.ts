@@ -16,6 +16,8 @@ import {
   insertDecisionTreeProgressSchema 
 } from "@shared/schema";
 import crypto from "crypto";
+import { AuthUtils } from "./utils/auth";
+import { RealtimeDataService } from "./services/realtimeDataService";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   
@@ -517,17 +519,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Mandatory Authentication Routes
+  // Mandatory Authentication Routes with Password Hashing
   app.post('/api/auth/signin', async (req, res) => {
     try {
       const userData = req.body;
+      
+      // Validate password strength if provided
+      if (userData.password) {
+        const passwordValidation = AuthUtils.validatePasswordStrength(userData.password);
+        if (!passwordValidation.isValid) {
+          return res.status(400).json({ 
+            message: 'Password does not meet security requirements',
+            feedback: passwordValidation.feedback 
+          });
+        }
+        
+        // Hash the password
+        userData.passwordHash = await AuthUtils.hashPassword(userData.password);
+        delete userData.password; // Remove plain password
+      }
+      
       const user = await storage.createUser({
         ...userData,
         id: `user-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
         role: userData.role || 'user',
         createdAt: new Date(),
-        onboardingComplete: true
+        onboardingComplete: true,
+        securityToken: AuthUtils.generateSecureToken()
       });
+      
       res.json({ success: true, user, message: 'Profile created successfully' });
     } catch (error) {
       console.error('Sign-in error:', error);
@@ -535,17 +555,69 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.post('/api/auth/login', async (req, res) => {
+    try {
+      const { email, password } = req.body;
+      
+      if (!email || !password) {
+        return res.status(400).json({ message: 'Email and password are required' });
+      }
+      
+      const user = await storage.getUserByEmail(email);
+      if (!user || !user.passwordHash) {
+        return res.status(401).json({ message: 'Invalid credentials' });
+      }
+      
+      const isValidPassword = await AuthUtils.verifyPassword(password, user.passwordHash);
+      if (!isValidPassword) {
+        return res.status(401).json({ message: 'Invalid credentials' });
+      }
+      
+      // Generate session token
+      const sessionToken = AuthUtils.generateSecureToken();
+      await storage.updateUser(user.id, { lastLogin: new Date(), sessionToken });
+      
+      res.json({ 
+        success: true, 
+        user: { ...user, passwordHash: undefined }, // Remove password hash from response
+        sessionToken,
+        message: 'Login successful' 
+      });
+    } catch (error) {
+      console.error('Login error:', error);
+      res.status(500).json({ message: 'Login failed' });
+    }
+  });
+
   app.post('/api/auth/admin-signin', async (req, res) => {
     try {
       const adminData = req.body;
+      
+      // Enhanced admin password validation
+      if (adminData.password) {
+        const passwordValidation = AuthUtils.validatePasswordStrength(adminData.password);
+        if (passwordValidation.score < 6) { // Higher security for admins
+          return res.status(400).json({ 
+            message: 'Admin password must be highly secure',
+            feedback: passwordValidation.feedback 
+          });
+        }
+        
+        adminData.passwordHash = await AuthUtils.hashPassword(adminData.password);
+        delete adminData.password;
+      }
+      
       const admin = await storage.createUser({
         ...adminData,
         id: `admin-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
         role: 'admin',
         userType: 'admin',
         createdAt: new Date(),
-        onboardingComplete: true
+        onboardingComplete: true,
+        adminToken: AuthUtils.generateAdminToken(),
+        securityLevel: 'maximum'
       });
+      
       res.json({ success: true, user: admin, message: 'Admin access granted' });
     } catch (error) {
       console.error('Admin sign-in error:', error);
@@ -894,6 +966,177 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Leaderboard error:', error);
       res.status(500).json({ message: 'Failed to fetch leaderboard' });
+    }
+  });
+
+  // Real-time AI Data Routes
+  app.get('/api/realtime/market-analysis/:userId', async (req, res) => {
+    try {
+      const { userId } = req.params;
+      const userProfile = await storage.getUserProfile(userId);
+      
+      const analysis = await RealtimeDataService.generateMarketAnalysis(userProfile);
+      res.json(analysis);
+    } catch (error) {
+      console.error('Market analysis error:', error);
+      res.status(500).json({ message: 'Failed to generate market analysis' });
+    }
+  });
+
+  app.get('/api/realtime/tax-optimization/:userId', async (req, res) => {
+    try {
+      const { userId } = req.params;
+      const userProfile = await storage.getUserProfile(userId);
+      
+      const optimization = await RealtimeDataService.generateTaxOptimization(userProfile);
+      res.json(optimization);
+    } catch (error) {
+      console.error('Tax optimization error:', error);
+      res.status(500).json({ message: 'Failed to generate tax optimization' });
+    }
+  });
+
+  app.get('/api/realtime/market-data', async (req, res) => {
+    try {
+      const { symbols } = req.query;
+      const symbolList = symbols ? (symbols as string).split(',') : ['BTC', 'ETH', 'SPY', 'QQQ'];
+      
+      const marketData = await RealtimeDataService.getMarketData(symbolList);
+      res.json(marketData);
+    } catch (error) {
+      console.error('Market data error:', error);
+      res.status(500).json({ message: 'Failed to fetch market data' });
+    }
+  });
+
+  app.get('/api/realtime/crypto-sentiment', async (req, res) => {
+    try {
+      const sentiment = await RealtimeDataService.getCryptoSentiment();
+      res.json(sentiment);
+    } catch (error) {
+      console.error('Crypto sentiment error:', error);
+      res.status(500).json({ message: 'Failed to fetch crypto sentiment' });
+    }
+  });
+
+  app.get('/api/realtime/tax-regulations', async (req, res) => {
+    try {
+      const regulations = await RealtimeDataService.getTaxRegulations();
+      res.json(regulations);
+    } catch (error) {
+      console.error('Tax regulations error:', error);
+      res.status(500).json({ message: 'Failed to fetch tax regulations' });
+    }
+  });
+
+  app.get('/api/realtime/economic-indicators', async (req, res) => {
+    try {
+      const indicators = await RealtimeDataService.getEconomicIndicators();
+      res.json(indicators);
+    } catch (error) {
+      console.error('Economic indicators error:', error);
+      res.status(500).json({ message: 'Failed to fetch economic indicators' });
+    }
+  });
+
+  // Gaming System Routes
+  app.get('/api/gaming/user-profile/:userId', async (req, res) => {
+    try {
+      const { userId } = req.params;
+      
+      // Mock gaming profile data - in real app, this would come from database
+      const gameProfile = {
+        level: 12 + Math.floor(Math.random() * 20),
+        xp: 2450 + Math.floor(Math.random() * 10000),
+        xpToNext: 550 + Math.floor(Math.random() * 500),
+        totalXp: 12450 + Math.floor(Math.random() * 50000),
+        streak: 1 + Math.floor(Math.random() * 30),
+        badges: Math.floor(Math.random() * 25),
+        rank: 1 + Math.floor(Math.random() * 1000),
+        cryptoEarned: Math.random() * 0.1,
+        lastActive: new Date().toISOString()
+      };
+      
+      res.json(gameProfile);
+    } catch (error) {
+      console.error('Gaming profile error:', error);
+      res.status(500).json({ message: 'Failed to fetch gaming profile' });
+    }
+  });
+
+  app.post('/api/gaming/start-challenge', async (req, res) => {
+    try {
+      const { challengeId, userId } = req.body;
+      
+      // Simulate challenge start
+      const challengeSession = {
+        id: `session-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        challengeId,
+        userId: userId || 'current-user',
+        startTime: new Date().toISOString(),
+        status: 'in_progress',
+        progress: 0
+      };
+      
+      res.json({ success: true, session: challengeSession });
+    } catch (error) {
+      console.error('Start challenge error:', error);
+      res.status(500).json({ message: 'Failed to start challenge' });
+    }
+  });
+
+  app.post('/api/gaming/complete-challenge', async (req, res) => {
+    try {
+      const { sessionId, score, timeSpent } = req.body;
+      
+      // Calculate rewards based on performance
+      const baseXP = 100;
+      const bonusXP = Math.floor(score * 2);
+      const cryptoReward = 0.001 + (score / 100) * 0.004;
+      
+      const completion = {
+        sessionId,
+        completedAt: new Date().toISOString(),
+        score,
+        timeSpent,
+        xpEarned: baseXP + bonusXP,
+        cryptoEarned: cryptoReward,
+        newBadges: score > 85 ? ['High Achiever'] : []
+      };
+      
+      res.json({ success: true, completion });
+    } catch (error) {
+      console.error('Complete challenge error:', error);
+      res.status(500).json({ message: 'Failed to complete challenge' });
+    }
+  });
+
+  app.get('/api/gaming/challenges', async (req, res) => {
+    try {
+      const { ageGroup = 'all', category = 'all' } = req.query;
+      
+      // Return age-appropriate challenges
+      const challenges = [
+        {
+          id: '1',
+          title: ageGroup === 'young' ? 'Budget Basics Quest' : 'Advanced Tax Optimization',
+          description: ageGroup === 'young' 
+            ? 'Learn to create your first budget through an interactive game'
+            : 'Solve complex tax scenarios using 2025 reforms and spectrum analysis',
+          difficulty: ageGroup === 'young' ? 2 : 8,
+          xpReward: ageGroup === 'young' ? 100 : 500,
+          cryptoReward: ageGroup === 'young' ? 0.001 : 0.01,
+          timeLimit: ageGroup === 'young' ? 15 : 60,
+          ageGroup,
+          category: ageGroup === 'young' ? 'Budgeting' : 'Tax Planning',
+          status: 'available'
+        }
+      ];
+      
+      res.json(challenges);
+    } catch (error) {
+      console.error('Challenges error:', error);
+      res.status(500).json({ message: 'Failed to fetch challenges' });
     }
   });
 

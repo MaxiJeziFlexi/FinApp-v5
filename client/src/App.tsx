@@ -15,6 +15,8 @@ import { AdminDashboard } from "@/pages/admin-dashboard";
 import MandatorySignIn from "@/pages/mandatory-signin";
 import CryptoMarketplace from "@/pages/crypto-marketplace";
 import AdvancedAIDashboard from "@/pages/advanced-ai-dashboard";
+import GamingHub from "@/pages/gaming-hub";
+import EnhancedCryptoMarketplace from "@/pages/enhanced-crypto-marketplace";
 
 function Router() {
   return (
@@ -30,6 +32,8 @@ function Router() {
       <Route path="/test" component={ComprehensiveTest} />
       <Route path="/admin" component={AdminDashboard} />
       <Route path="/ai-dashboard" component={AdvancedAIDashboard} />
+      <Route path="/gaming" component={GamingHub} />
+      <Route path="/enhanced-crypto" component={EnhancedCryptoMarketplace} />
       <Route component={NotFound} />
     </Switch>
   );

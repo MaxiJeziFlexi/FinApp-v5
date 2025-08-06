@@ -18,11 +18,13 @@ import {
 } from "lucide-react";
 import type { User } from "@shared/schema";
 
+type UserType = User;
+
 interface AuthModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onUserRegistered?: (user: User) => void;
-  defaultTab?: 'signin' | 'signup' | 'premium';
+  onUserRegistered?: (user: UserType) => void;
+  defaultTab?: 'social' | 'signin' | 'signup' | 'premium';
 }
 
 export default function AuthModal({ 
@@ -34,7 +36,7 @@ export default function AuthModal({
   const [currentTab, setCurrentTab] = useState(defaultTab);
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleRegistrationSuccess = (user: User) => {
+  const handleRegistrationSuccess = (user: UserType) => {
     setIsLoading(false);
     onUserRegistered?.(user);
     onClose();
@@ -65,7 +67,14 @@ export default function AuthModal({
         </DialogHeader>
 
         <Tabs value={currentTab} onValueChange={setCurrentTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-4">
+            <TabsTrigger 
+              value="social" 
+              className="flex items-center gap-2"
+            >
+              <Zap className="w-4 h-4" />
+              Quick Access
+            </TabsTrigger>
             <TabsTrigger 
               value="signin" 
               className="flex items-center gap-2"

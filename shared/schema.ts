@@ -8,7 +8,9 @@ import {
   timestamp,
   jsonb,
   decimal,
-  uuid
+  uuid,
+  date,
+  numeric
 } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
@@ -17,8 +19,8 @@ import { relations } from "drizzle-orm";
 // Users table with modern authentication and premium features
 export const users = pgTable("users", {
   id: varchar("id", { length: 255 }).primaryKey(),
-  name: varchar("name", { length: 255 }).notNull(),
-  email: varchar("email", { length: 255 }).unique().notNull(),
+  name: varchar("name", { length: 255 }),
+  email: varchar("email", { length: 255 }).unique(), // Made nullable for social auth
   username: varchar("username", { length: 100 }).unique(),
   firstName: varchar("first_name", { length: 100 }),
   lastName: varchar("last_name", { length: 100 }),
@@ -29,13 +31,26 @@ export const users = pgTable("users", {
   city: varchar("city", { length: 100 }),
   occupation: varchar("occupation", { length: 100 }),
   
+  // User role and permissions
+  role: varchar("role", { enum: ['user', 'moderator', 'admin'] }).default('user'),
+  
+  // Social authentication providers
+  googleId: varchar("google_id", { length: 255 }),
+  facebookId: varchar("facebook_id", { length: 255 }),
+  githubId: varchar("github_id", { length: 255 }),
+  discordId: varchar("discord_id", { length: 255 }),
+  
   // Premium subscription fields
-  subscriptionTier: varchar("subscription_tier", { enum: ['free', 'premium', 'pro'] }).default('free'),
+  subscriptionTier: varchar("subscription_tier", { enum: ['free', 'pro', 'max'] }).default('free'),
   subscriptionStatus: varchar("subscription_status", { enum: ['active', 'cancelled', 'expired'] }).default('active'),
   subscriptionStartDate: timestamp("subscription_start_date"),
   subscriptionEndDate: timestamp("subscription_end_date"),
   stripeCustomerId: varchar("stripe_customer_id", { length: 255 }),
   stripeSubscriptionId: varchar("stripe_subscription_id", { length: 255 }),
+  
+  // API usage tracking
+  apiUsageThisMonth: decimal("api_usage_this_month", { precision: 10, scale: 4 }).default('0'),
+  apiUsageResetDate: timestamp("api_usage_reset_date").defaultNow(),
   
   // User preferences and settings
   preferences: jsonb("preferences").default({
@@ -126,42 +141,40 @@ export const chatMessages = pgTable("chat_messages", {
   sessionId: varchar("session_id", { length: 255 }).references(() => advisorSessions.id).notNull(),
   userId: varchar("user_id", { length: 255 }).references(() => users.id).notNull(),
   advisorId: varchar("advisor_id", { length: 50 }).references(() => advisors.id).notNull(),
-  role: varchar("role", { length: 20 }).notNull(), // user, assistant, system
-  content: text("content").notNull(),
-  sentiment: varchar("sentiment", { length: 20 }), // positive, negative, neutral
-  confidence: decimal("confidence", { precision: 3, scale: 2 }),
-  modelUsed: varchar("model_used", { length: 50 }),
-  responseTimeMs: integer("response_time_ms"),
+  message: text("message").notNull(),
+  sender: varchar("sender", { enum: ['user', 'advisor'] }).notNull(),
+  messageType: varchar("message_type", { enum: ['text', 'image', 'file', 'system'] }).default('text'),
   metadata: jsonb("metadata").default({}),
-  emotionalTone: varchar("emotional_tone", { length: 20 }),
-  topicTags: jsonb("topic_tags").default([]),
-  learningObjectives: jsonb("learning_objectives").default([]),
-  comprehensionScore: integer("comprehension_score"),
+  sentimentScore: decimal("sentiment_score", { precision: 3, scale: 2 }),
+  importance: varchar("importance", { enum: ['low', 'medium', 'high'] }).default('medium'),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
-// Decision tree progress
+// Decision tree progress tracking
 export const decisionTreeProgress = pgTable("decision_tree_progress", {
   id: varchar("id", { length: 255 }).primaryKey(),
   userId: varchar("user_id", { length: 255 }).references(() => users.id).notNull(),
   advisorId: varchar("advisor_id", { length: 50 }).references(() => advisors.id).notNull(),
-  decisionPath: jsonb("decision_path").default([]),
-  currentStep: integer("current_step").default(0),
-  completed: boolean("completed").default(false),
+  treeType: varchar("tree_type", { length: 100 }).notNull(), // investment, savings, debt, etc.
+  currentNode: varchar("current_node", { length: 100 }).notNull(),
   progress: integer("progress").default(0),
-  finalRecommendation: jsonb("final_recommendation"),
+  responses: jsonb("responses").default([]),
+  recommendations: jsonb("recommendations").default([]),
+  completedAt: timestamp("completed_at"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
-// Achievements
+// Achievements system
 export const achievements = pgTable("achievements", {
-  id: varchar("id", { length: 50 }).primaryKey(),
-  title: varchar("title", { length: 255 }).notNull(),
+  id: varchar("id", { length: 255 }).primaryKey(),
+  name: varchar("name", { length: 255 }).notNull(),
   description: text("description").notNull(),
-  icon: varchar("icon", { length: 100 }).notNull(),
+  category: varchar("category", { length: 100 }).notNull(), // learning, engagement, milestones
+  type: varchar("type", { enum: ['bronze', 'silver', 'gold', 'platinum'] }).notNull(),
+  criteria: jsonb("criteria").notNull(),
   points: integer("points").default(0),
-  category: varchar("category", { length: 100 }).notNull(),
+  icon: varchar("icon", { length: 100 }),
   isActive: boolean("is_active").default(true),
   createdAt: timestamp("created_at").defaultNow(),
 });
@@ -170,116 +183,102 @@ export const achievements = pgTable("achievements", {
 export const userAchievements = pgTable("user_achievements", {
   id: varchar("id", { length: 255 }).primaryKey(),
   userId: varchar("user_id", { length: 255 }).references(() => users.id).notNull(),
-  achievementId: varchar("achievement_id", { length: 50 }).references(() => achievements.id).notNull(),
-  earnedAt: timestamp("earned_at").defaultNow(),
+  achievementId: varchar("achievement_id", { length: 255 }).references(() => achievements.id).notNull(),
+  unlockedAt: timestamp("unlocked_at").defaultNow(),
+  progress: integer("progress").default(0),
+  isCompleted: boolean("is_completed").default(false),
 });
 
-// Learning Analytics
+// Learning analytics for AI improvement
 export const learningAnalytics = pgTable("learning_analytics", {
   id: varchar("id", { length: 255 }).primaryKey(),
   userId: varchar("user_id", { length: 255 }).references(() => users.id).notNull(),
-  sessionId: varchar("session_id", { length: 255 }),
-  eventType: varchar("event_type", { length: 100 }).notNull(), // page_view, interaction, completion
+  eventType: varchar("event_type", { length: 100 }).notNull(),
   eventData: jsonb("event_data").default({}),
-  timeSpent: integer("time_spent"), // in seconds
-  interactionCount: integer("interaction_count").default(0),
-  completionRate: integer("completion_rate"), // percentage
-  difficultyLevel: varchar("difficulty_level", { length: 20 }),
-  learningPath: varchar("learning_path", { length: 100 }),
-  createdAt: timestamp("created_at").defaultNow(),
+  sessionContext: jsonb("session_context").default({}),
+  timestamp: timestamp("timestamp").defaultNow(),
+  processingStatus: varchar("processing_status", { enum: ['pending', 'processed', 'failed'] }).default('pending'),
 });
 
-// Behavioral Patterns
-export const behaviorPatterns = pgTable("behavior_patterns", {
-  id: varchar("id", { length: 255 }).primaryKey(),
-  userId: varchar("user_id", { length: 255 }).references(() => users.id).notNull(),
-  patternType: varchar("pattern_type", { length: 100 }).notNull(), // engagement, learning_style, risk_preference
-  patternData: jsonb("pattern_data").notNull(),
-  confidence: decimal("confidence", { precision: 3, scale: 2 }),
-  predictiveScore: integer("predictive_score"), // 0-100
-  lastUpdated: timestamp("last_updated").defaultNow(),
-  isActive: boolean("is_active").default(true),
-});
-
-// AI Model Performance
-export const aiModelPerformance = pgTable("ai_model_performance", {
-  id: varchar("id", { length: 255 }).primaryKey(),
-  modelVersion: varchar("model_version", { length: 100 }).notNull(),
-  promptType: varchar("prompt_type", { length: 100 }), // financial_advice, education, support
-  requestData: jsonb("request_data").notNull(),
-  responseData: jsonb("response_data").notNull(),
-  userFeedback: integer("user_feedback"), // 1-5 rating
-  responseTime: integer("response_time_ms"),
-  tokenUsage: integer("token_usage"),
-  accuracy: decimal("accuracy", { precision: 3, scale: 2 }),
-  relevanceScore: integer("relevance_score"), // 0-100
-  userEngagement: jsonb("user_engagement").default({}),
-  createdAt: timestamp("created_at").defaultNow(),
-});
-
-// Financial Education Content
-export const educationContent = pgTable("education_content", {
-  id: varchar("id", { length: 255 }).primaryKey(),
-  title: varchar("title", { length: 255 }).notNull(),
-  contentType: varchar("content_type", { length: 50 }).notNull(), // article, video, interactive, quiz
-  category: varchar("category", { length: 100 }).notNull(),
-  difficultyLevel: varchar("difficulty_level", { length: 20 }).notNull(),
-  content: text("content").notNull(),
-  metadata: jsonb("metadata").default({}),
-  tags: jsonb("tags").default([]),
-  prerequisites: jsonb("prerequisites").default([]),
-  learningObjectives: jsonb("learning_objectives").default([]),
-  estimatedDuration: integer("estimated_duration"), // in minutes
-  interactionCount: integer("interaction_count").default(0),
-  averageRating: decimal("average_rating", { precision: 3, scale: 2 }),
-  completionRate: integer("completion_rate").default(0),
-  isActive: boolean("is_active").default(true),
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
-});
-
-// Subscription plans table
+// Subscription plans configuration
 export const subscriptionPlans = pgTable("subscription_plans", {
   id: varchar("id", { length: 50 }).primaryKey(),
   name: varchar("name", { length: 100 }).notNull(),
   description: text("description"),
-  price: integer("price").notNull(), // in cents
+  price: decimal("price", { precision: 10, scale: 2 }).notNull(),
   currency: varchar("currency", { length: 3 }).default('USD'),
   interval: varchar("interval", { enum: ['month', 'year'] }).notNull(),
-  features: jsonb("features").default({
-    aiAdvisors: 3,
-    analysisReports: 10,
-    portfolioTracking: true,
-    premiumSupport: false,
-    advancedAnalytics: false,
-    apiAccess: false,
-    customDashboards: false,
-    priorityLearning: false
-  }),
+  features: jsonb("features").default([]),
+  apiLimit: decimal("api_limit", { precision: 10, scale: 4 }), // In dollars
+  maxAdvisorAccess: integer("max_advisor_access").default(1),
+  decisionTreeAccess: boolean("decision_tree_access").default(false),
+  isActive: boolean("is_active").default(true),
   stripePriceId: varchar("stripe_price_id", { length: 255 }),
-  active: boolean("active").default(true),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
-// User verification codes for email/phone
+// User behavior patterns for AI learning
+export const behaviorPatterns = pgTable("behavior_patterns", {
+  id: varchar("id", { length: 255 }).primaryKey(),
+  userId: varchar("user_id", { length: 255 }).references(() => users.id).notNull(),
+  patternType: varchar("pattern_type", { length: 100 }).notNull(),
+  confidence: decimal("confidence", { precision: 3, scale: 2 }),
+  data: jsonb("data").default({}),
+  lastUpdated: timestamp("last_updated").defaultNow(),
+  isValid: boolean("is_valid").default(true),
+});
+
+// AI model performance tracking
+export const aiModelPerformance = pgTable("ai_model_performance", {
+  id: varchar("id", { length: 255 }).primaryKey(),
+  modelVersion: varchar("model_version", { length: 50 }).notNull(),
+  requestType: varchar("request_type", { length: 100 }).notNull(),
+  responseTime: integer("response_time"), // in milliseconds
+  tokenCount: integer("token_count"),
+  cost: decimal("cost", { precision: 10, scale: 6 }),
+  successRate: decimal("success_rate", { precision: 5, scale: 4 }),
+  timestamp: timestamp("timestamp").defaultNow(),
+  metadata: jsonb("metadata").default({}),
+});
+
+// User activity log for compliance and analytics
+export const userActivityLog = pgTable("user_activity_log", {
+  id: varchar("id", { length: 255 }).primaryKey(),
+  userId: varchar("user_id", { length: 255 }).references(() => users.id).notNull(),
+  action: varchar("action", { length: 100 }).notNull(),
+  resource: varchar("resource", { length: 100 }),
+  ipAddress: varchar("ip_address", { length: 45 }),
+  userAgent: text("user_agent"),
+  timestamp: timestamp("timestamp").defaultNow(),
+  success: boolean("success").default(true),
+  metadata: jsonb("metadata").default({}),
+});
+
+// Education content for structured learning
+export const educationContent = pgTable("education_content", {
+  id: varchar("id", { length: 255 }).primaryKey(),
+  title: varchar("title", { length: 255 }).notNull(),
+  type: varchar("type", { enum: ['article', 'video', 'interactive', 'quiz'] }).notNull(),
+  category: varchar("category", { length: 100 }).notNull(),
+  difficulty: varchar("difficulty", { enum: ['beginner', 'intermediate', 'advanced'] }).notNull(),
+  content: text("content"),
+  metadata: jsonb("metadata").default({}),
+  estimatedTime: integer("estimated_time"), // in minutes
+  prerequisites: jsonb("prerequisites").default([]),
+  isPublished: boolean("is_published").default(false),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Verification codes for email/phone verification
 export const verificationCodes = pgTable("verification_codes", {
-  id: varchar("id", { length: 255 }).primaryKey().default(sql`gen_random_uuid()`),
+  id: varchar("id", { length: 255 }).primaryKey(),
   userId: varchar("user_id", { length: 255 }).references(() => users.id).notNull(),
   code: varchar("code", { length: 10 }).notNull(),
   type: varchar("type", { enum: ['email', 'phone', 'password_reset'] }).notNull(),
   expiresAt: timestamp("expires_at").notNull(),
-  used: boolean("used").default(false),
-  createdAt: timestamp("created_at").defaultNow(),
-});
-
-// User activity log
-export const userActivityLog = pgTable("user_activity_log", {
-  id: varchar("id", { length: 255 }).primaryKey().default(sql`gen_random_uuid()`),
-  userId: varchar("user_id", { length: 255 }).references(() => users.id).notNull(),
-  action: varchar("action", { length: 100 }).notNull(),
-  details: jsonb("details"),
-  ipAddress: varchar("ip_address", { length: 45 }),
-  userAgent: text("user_agent"),
+  isUsed: boolean("is_used").default(false),
+  attempts: integer("attempts").default(0),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -291,8 +290,11 @@ export const usersRelations = relations(users, ({ one, many }) => ({
   }),
   sessions: many(advisorSessions),
   messages: many(chatMessages),
-  decisionProgress: many(decisionTreeProgress),
-  userAchievements: many(userAchievements),
+  achievements: many(userAchievements),
+  analytics: many(learningAnalytics),
+  behaviors: many(behaviorPatterns),
+  activities: many(userActivityLog),
+  verificationCodes: many(verificationCodes),
 }));
 
 export const userProfilesRelations = relations(userProfiles, ({ one }) => ({
@@ -305,7 +307,6 @@ export const userProfilesRelations = relations(userProfiles, ({ one }) => ({
 export const advisorsRelations = relations(advisors, ({ many }) => ({
   sessions: many(advisorSessions),
   messages: many(chatMessages),
-  decisionProgress: many(decisionTreeProgress),
 }));
 
 export const advisorSessionsRelations = relations(advisorSessions, ({ one, many }) => ({
@@ -335,17 +336,6 @@ export const chatMessagesRelations = relations(chatMessages, ({ one }) => ({
   }),
 }));
 
-export const decisionTreeProgressRelations = relations(decisionTreeProgress, ({ one }) => ({
-  user: one(users, {
-    fields: [decisionTreeProgress.userId],
-    references: [users.id],
-  }),
-  advisor: one(advisors, {
-    fields: [decisionTreeProgress.advisorId],
-    references: [advisors.id],
-  }),
-}));
-
 export const achievementsRelations = relations(achievements, ({ many }) => ({
   userAchievements: many(userAchievements),
 }));
@@ -361,21 +351,39 @@ export const userAchievementsRelations = relations(userAchievements, ({ one }) =
   }),
 }));
 
-export const learningAnalyticsRelations = relations(learningAnalytics, ({ one }) => ({
-  user: one(users, {
-    fields: [learningAnalytics.userId],
-    references: [users.id],
-  }),
-}));
+// Types
+export type User = typeof users.$inferSelect;
+export type NewUser = typeof users.$inferInsert;
+export type UserProfile = typeof userProfiles.$inferSelect;
+export type NewUserProfile = typeof userProfiles.$inferInsert;
+export type Advisor = typeof advisors.$inferSelect;
+export type NewAdvisor = typeof advisors.$inferInsert;
+export type AdvisorSession = typeof advisorSessions.$inferSelect;
+export type NewAdvisorSession = typeof advisorSessions.$inferInsert;
+export type ChatMessage = typeof chatMessages.$inferSelect;
+export type NewChatMessage = typeof chatMessages.$inferInsert;
+export type DecisionTreeProgress = typeof decisionTreeProgress.$inferSelect;
+export type NewDecisionTreeProgress = typeof decisionTreeProgress.$inferInsert;
+export type Achievement = typeof achievements.$inferSelect;
+export type NewAchievement = typeof achievements.$inferInsert;
+export type UserAchievement = typeof userAchievements.$inferSelect;
+export type NewUserAchievement = typeof userAchievements.$inferInsert;
+export type LearningAnalytics = typeof learningAnalytics.$inferSelect;
+export type NewLearningAnalytics = typeof learningAnalytics.$inferInsert;
+export type SubscriptionPlan = typeof subscriptionPlans.$inferSelect;
+export type NewSubscriptionPlan = typeof subscriptionPlans.$inferInsert;
+export type BehaviorPattern = typeof behaviorPatterns.$inferSelect;
+export type NewBehaviorPattern = typeof behaviorPatterns.$inferInsert;
+export type AIModelPerformance = typeof aiModelPerformance.$inferSelect;
+export type NewAIModelPerformance = typeof aiModelPerformance.$inferInsert;
+export type UserActivityLog = typeof userActivityLog.$inferSelect;
+export type NewUserActivityLog = typeof userActivityLog.$inferInsert;
+export type EducationContent = typeof educationContent.$inferSelect;
+export type NewEducationContent = typeof educationContent.$inferInsert;
+export type VerificationCode = typeof verificationCodes.$inferSelect;
+export type NewVerificationCode = typeof verificationCodes.$inferInsert;
 
-export const behaviorPatternsRelations = relations(behaviorPatterns, ({ one }) => ({
-  user: one(users, {
-    fields: [behaviorPatterns.userId],
-    references: [users.id],
-  }),
-}));
-
-// Insert schemas
+// Insert schemas with validation
 export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
   createdAt: true,
@@ -383,16 +391,6 @@ export const insertUserSchema = createInsertSchema(users).omit({
 });
 
 export const insertUserProfileSchema = createInsertSchema(userProfiles).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-});
-
-export const insertAdvisorSchema = createInsertSchema(advisors).omit({
-  createdAt: true,
-});
-
-export const insertAdvisorSessionSchema = createInsertSchema(advisorSessions).omit({
   id: true,
   createdAt: true,
   updatedAt: true,
@@ -409,41 +407,20 @@ export const insertDecisionTreeProgressSchema = createInsertSchema(decisionTreeP
   updatedAt: true,
 });
 
-export const insertAchievementSchema = createInsertSchema(achievements).omit({
+export const insertLearningAnalyticsSchema = createInsertSchema(learningAnalytics).omit({
+  id: true,
+  timestamp: true,
+});
+
+export const insertVerificationCodeSchema = createInsertSchema(verificationCodes).omit({
+  id: true,
   createdAt: true,
 });
 
-export const insertUserAchievementSchema = createInsertSchema(userAchievements).omit({
-  id: true,
-  earnedAt: true,
-});
-
-// Types
-export type User = typeof users.$inferSelect;
+// Insert types
 export type InsertUser = z.infer<typeof insertUserSchema>;
-export type UserProfile = typeof userProfiles.$inferSelect;
 export type InsertUserProfile = z.infer<typeof insertUserProfileSchema>;
-export type Advisor = typeof advisors.$inferSelect;
-export type InsertAdvisor = z.infer<typeof insertAdvisorSchema>;
-export type AdvisorSession = typeof advisorSessions.$inferSelect;
-export type InsertAdvisorSession = z.infer<typeof insertAdvisorSessionSchema>;
-export type ChatMessage = typeof chatMessages.$inferSelect;
 export type InsertChatMessage = z.infer<typeof insertChatMessageSchema>;
-export type DecisionTreeProgress = typeof decisionTreeProgress.$inferSelect;
 export type InsertDecisionTreeProgress = z.infer<typeof insertDecisionTreeProgressSchema>;
-export type Achievement = typeof achievements.$inferSelect;
-export type InsertAchievement = z.infer<typeof insertAchievementSchema>;
-export type UserAchievement = typeof userAchievements.$inferSelect;
-export type InsertUserAchievement = z.infer<typeof insertUserAchievementSchema>;
-export type LearningAnalytics = typeof learningAnalytics.$inferSelect;
-export type InsertLearningAnalytics = typeof learningAnalytics.$inferInsert;
-export type BehaviorPattern = typeof behaviorPatterns.$inferSelect;
-export type InsertBehaviorPattern = typeof behaviorPatterns.$inferInsert;
-export type AIModelPerformance = typeof aiModelPerformance.$inferSelect;
-export type InsertAIModelPerformance = typeof aiModelPerformance.$inferInsert;
-export type EducationContent = typeof educationContent.$inferSelect;
-export type InsertEducationContent = typeof educationContent.$inferInsert;
-export type SubscriptionPlan = typeof subscriptionPlans.$inferSelect;
-export type InsertSubscriptionPlan = typeof subscriptionPlans.$inferInsert;
-export type VerificationCode = typeof verificationCodes.$inferSelect;
-export type InsertVerificationCode = typeof verificationCodes.$inferInsert;
+export type InsertLearningAnalytics = z.infer<typeof insertLearningAnalyticsSchema>;
+export type InsertVerificationCode = z.infer<typeof insertVerificationCodeSchema>;

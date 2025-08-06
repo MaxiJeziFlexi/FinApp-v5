@@ -89,7 +89,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         user = await storage.createUser({
           id: userId,
           name: profileData.name || 'User',
-          email: profileData.email || null
+          email: profileData.email || `${profileData.name || 'user'}@finapp.demo`,
+          subscriptionTier: 'free',
+          accountStatus: 'pending',
+          role: 'user',
+          apiUsageThisMonth: '0',
+          apiUsageResetDate: new Date(),
+          createdAt: new Date(),
+          updatedAt: new Date(),
         });
       }
 
@@ -540,71 +547,71 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(plans);
     } catch (error) {
       console.error('Error fetching subscription plans:', error);
-      // Return default plans if database fails
+      // Return updated plans if database fails
       res.json([
         {
           id: 'free',
           name: 'Free',
-          description: 'Perfect for getting started with AI financial education',
+          description: 'Basic financial guidance to get you started',
           price: 0,
           currency: 'USD',
           interval: 'month',
-          features: {
-            aiAdvisors: 1,
-            analysisReports: 3,
-            portfolioTracking: false,
-            premiumSupport: false,
-            advancedAnalytics: false,
-            apiAccess: false,
-            customDashboards: false,
-            priorityLearning: false,
-          },
-          stripePriceId: null,
-          active: true,
-          createdAt: new Date(),
-        },
-        {
-          id: 'premium',
-          name: 'Premium',
-          description: 'Enhanced AI learning with advanced analytics',
-          price: 1999,
-          currency: 'USD',
-          interval: 'month',
-          features: {
-            aiAdvisors: 5,
-            analysisReports: 25,
-            portfolioTracking: true,
-            premiumSupport: true,
-            advancedAnalytics: true,
-            apiAccess: false,
-            customDashboards: true,
-            priorityLearning: true,
-          },
-          stripePriceId: 'price_premium',
-          active: true,
-          createdAt: new Date(),
+          apiLimit: '$0.20',
+          maxAdvisorAccess: 1,
+          decisionTreeAccess: false,
+          features: [
+            'Access to 1 AI Financial Advisor only',
+            'Basic chat with advisor (no decision trees)',
+            'Up to $0.20 worth of API usage per month',
+            'Community support',
+            'Basic financial education content',
+            'Limited conversation history'
+          ]
         },
         {
           id: 'pro',
           name: 'Pro',
-          description: 'Complete AI financial education platform',
-          price: 4999,
+          description: 'Enhanced AI guidance with 65% of advanced features',
+          price: 20,
           currency: 'USD',
           interval: 'month',
-          features: {
-            aiAdvisors: 999,
-            analysisReports: 999,
-            portfolioTracking: true,
-            premiumSupport: true,
-            advancedAnalytics: true,
-            apiAccess: true,
-            customDashboards: true,
-            priorityLearning: true,
-          },
-          stripePriceId: 'price_pro',
-          active: true,
-          createdAt: new Date(),
+          apiLimit: '$1.30 (65% of $2.00)',
+          maxAdvisorAccess: 3,
+          decisionTreeAccess: true,
+          features: [
+            'Access to 3 specialized AI Financial Advisors',
+            'Interactive decision trees included',
+            'Up to $1.30 worth of API usage (65% of max)',
+            'Personalized financial planning',
+            'Priority support',
+            'Premium educational content',
+            'Advanced conversation history',
+            'Basic analytics dashboard'
+          ]
         },
+        {
+          id: 'max',
+          name: 'Max',
+          description: 'Unlimited access to all FinApp features',
+          price: 80,
+          currency: 'USD',
+          interval: 'month',
+          apiLimit: 'Up to $5.00 (unlimited within limit)',
+          maxAdvisorAccess: 999,
+          decisionTreeAccess: true,
+          features: [
+            'Access to ALL AI Financial Advisors',
+            'Unlimited decision trees and conversations',
+            'Up to $5.00 worth of API usage per month',
+            'Advanced portfolio analysis',
+            'Custom financial models and scenarios',
+            'Dedicated priority support',
+            'Advanced analytics and reporting',
+            'Export and integration capabilities',
+            'Early access to new features',
+            'Custom advisor training options'
+          ]
+        }
       ]);
     }
   });

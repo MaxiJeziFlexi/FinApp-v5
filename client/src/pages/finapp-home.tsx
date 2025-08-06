@@ -25,6 +25,8 @@ import {
 } from "lucide-react";
 
 import AuthModal from "@/components/auth/AuthModal";
+import AuthenticatedOnboarding from "@/components/auth/AuthenticatedOnboarding";
+import RoleBasedAccess, { useUserPermissions } from "@/components/auth/RoleBasedAccess";
 import UserProfileDropdown from "@/components/auth/UserProfileDropdown";
 import UserSettingsModal from "@/components/settings/UserSettingsModal";
 import PremiumSubscriptionPlans from "@/components/premium/PremiumSubscriptionPlans";
@@ -52,7 +54,8 @@ export default function FinAppHome() {
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [showPremiumModal, setShowPremiumModal] = useState(false);
-  const [authModalTab, setAuthModalTab] = useState<'signin' | 'signup' | 'premium'>('signup');
+  const [showOnboarding, setShowOnboarding] = useState(false);
+  const [authModalTab, setAuthModalTab] = useState<'social' | 'signin' | 'signup' | 'premium'>('social');
 
   // Track user engagement analytics
   useEffect(() => {
@@ -167,6 +170,23 @@ export default function FinAppHome() {
   const handleUserRegistered = (user: UserType) => {
     setCurrentUser(user);
     setShowAuthModal(false);
+    
+    // Show onboarding for new users
+    if (user.accountStatus === 'pending' || !user.emailVerified) {
+      setShowOnboarding(true);
+    }
+  };
+
+  const handleOnboardingComplete = () => {
+    setShowOnboarding(false);
+    if (currentUser) {
+      // Update user status to active
+      setCurrentUser({
+        ...currentUser,
+        accountStatus: 'active',
+        emailVerified: true
+      });
+    }
   };
 
   const handleLogout = () => {
@@ -175,7 +195,7 @@ export default function FinAppHome() {
     setSelectedAdvisor(null);
   };
 
-  const handleOpenAuth = (tab: 'signin' | 'signup' | 'premium' = 'signup') => {
+  const handleOpenAuth = (tab: 'social' | 'signin' | 'signup' | 'premium' = 'social') => {
     setAuthModalTab(tab);
     setShowAuthModal(true);
   };
@@ -357,13 +377,25 @@ export default function FinAppHome() {
                     <strong>Interactive Decision Trees:</strong> Gamified financial decision-making with real-time feedback, learning analytics, and personalized pathways.
                   </AlertDescription>
                 </Alert>
-                {selectedAdvisor && (
-                  <DecisionTreeView
-                    userId={userId}
-                    advisorId={selectedAdvisor}
-                    onComplete={handleDecisionTreeComplete}
-                  />
-                )}
+                {selectedAdvisor && currentUser ? (
+                  <RoleBasedAccess 
+                    user={currentUser}
+                    requiredTier="pro"
+                    onUpgrade={handleOpenPremium}
+                  >
+                    <DecisionTreeView
+                      userId={userId}
+                      advisorId={selectedAdvisor}
+                      onComplete={handleDecisionTreeComplete}
+                    />
+                  </RoleBasedAccess>
+                ) : selectedAdvisor ? (
+                  <Alert className="border-orange-200 bg-orange-50">
+                    <AlertDescription>
+                      Please sign in to access decision trees. Free users get basic advisor chat only.
+                    </AlertDescription>
+                  </Alert>
+                ) : null}
               </TabsContent>
 
               <TabsContent value="chat" className="space-y-6">
@@ -474,6 +506,28 @@ export default function FinAppHome() {
           userId={currentUser.id}
           onSuccess={() => setShowPremiumModal(false)}
           onClose={() => setShowPremiumModal(false)}
+        />
+      )}
+
+      {/* Authenticated Onboarding Modal */}
+      {showOnboarding && currentUser && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg max-w-4xl max-h-[90vh] overflow-y-auto w-full">
+            <div className="p-6">
+              <AuthenticatedOnboarding
+                user={currentUser}
+                onComplete={handleOnboardingComplete}
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Achievement Notifications */}
+      {showAchievement && (
+        <AchievementNotification
+          achievement={showAchievement}
+          onClose={() => setShowAchievement(null)}
         />
       )}
     </div>

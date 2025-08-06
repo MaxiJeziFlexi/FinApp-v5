@@ -5,11 +5,19 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/not-found";
 import FinAppHome from "@/pages/finapp-home";
+import Privacy from "@/pages/privacy";
+import Security from "@/pages/security";
+import AnalyticsDashboard from "@/pages/analytics-dashboard";
+import LearningProgress from "@/pages/learning-progress";
 
 function Router() {
   return (
     <Switch>
       <Route path="/" component={FinAppHome} />
+      <Route path="/privacy" component={Privacy} />
+      <Route path="/security" component={Security} />
+      <Route path="/analytics" component={AnalyticsDashboard} />
+      <Route path="/learning-progress" component={LearningProgress} />
       <Route component={NotFound} />
     </Switch>
   );

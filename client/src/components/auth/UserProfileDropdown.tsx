@@ -52,7 +52,7 @@ export default function UserProfileDropdown({
         ? `${nameParts[0].charAt(0)}${nameParts[1].charAt(0)}`.toUpperCase()
         : name.substring(0, 2).toUpperCase();
     }
-    return user.email.substring(0, 2).toUpperCase();
+    return user.email ? user.email.substring(0, 2).toUpperCase() : 'DU';
   };
 
   // Get subscription tier info

@@ -1231,6 +1231,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Health check endpoint
+  app.get("/api/health", async (req, res) => {
+    try {
+      // Test database connection
+      await storage.getUser('health-check-test');
+      
+      // Test OpenAI API (basic check)
+      const openaiHealthy = !!process.env.OPENAI_API_KEY;
+      
+      res.json({
+        status: 'healthy',
+        database: true,
+        openai: openaiHealthy,
+        timestamp: new Date().toISOString()
+      });
+    } catch (error) {
+      console.error("Health check failed:", error);
+      res.status(503).json({
+        status: 'unhealthy',
+        database: false,
+        openai: !!process.env.OPENAI_API_KEY,
+        timestamp: new Date().toISOString()
+      });
+    }
+  });
+
+  // Admin routes
+  app.get("/api/admin/users", async (req, res) => {
+    try {
+      // Note: In a real app, you'd add admin authentication middleware here
+      const users = await storage.getAllUsers();
+      res.json(users);
+    } catch (error) {
+      console.error("Error fetching users:", error);
+      res.status(500).json({ message: "Failed to fetch users" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

@@ -10,6 +10,7 @@ import Security from "@/pages/security";
 import AnalyticsDashboard from "@/pages/analytics-dashboard";
 import LearningProgress from "@/pages/learning-progress";
 import ComprehensiveTest from "@/pages/comprehensive-test";
+import { AdminDashboard } from "@/pages/admin-dashboard";
 
 function Router() {
   return (
@@ -20,6 +21,7 @@ function Router() {
       <Route path="/analytics" component={AnalyticsDashboard} />
       <Route path="/learning-progress" component={LearningProgress} />
       <Route path="/test" component={ComprehensiveTest} />
+      <Route path="/admin" component={AdminDashboard} />
       <Route component={NotFound} />
     </Switch>
   );

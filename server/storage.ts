@@ -633,6 +633,10 @@ export class DatabaseStorage implements IStorage {
   async getUserAdvisorSessions(userId: string): Promise<any[]> {
     return Array.from(this.advisorSessionsMap.values()).filter(session => session.userId === userId);
   }
+
+  async getAllUsers(): Promise<User[]> {
+    return await db.select().from(users).limit(100); // Limit for performance
+  }
 }
 
 export const storage = new DatabaseStorage();

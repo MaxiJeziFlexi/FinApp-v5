@@ -5,6 +5,8 @@ import { openAIService } from "./services/openai";
 import { decisionTreeService } from "./services/decisionTree";
 import { speechRecognitionService } from "./services/speechRecognition";
 import { plaidService } from "./services/plaidService";
+import { translationService } from "./services/translationService";
+import { legalAIService } from "./services/legalAIService";
 import { 
   insertUserSchema, 
   insertUserProfileSchema, 
@@ -846,6 +848,143 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error: any) {
       console.error('Error disconnecting bank account:', error);
       res.status(500).json({ message: 'Failed to disconnect bank account' });
+    }
+  });
+
+  // Translation API Routes
+  app.post('/api/translate', async (req, res) => {
+    try {
+      const { text, fromLanguage, toLanguage, context } = req.body;
+      
+      if (!text || !fromLanguage || !toLanguage) {
+        return res.status(400).json({ message: 'Text, fromLanguage, and toLanguage are required' });
+      }
+      
+      const translation = await translationService.translateText({
+        text,
+        fromLanguage,
+        toLanguage,
+        context
+      });
+      
+      res.json(translation);
+    } catch (error: any) {
+      console.error('Translation error:', error);
+      res.status(500).json({ message: 'Translation failed' });
+    }
+  });
+
+  app.post('/api/translate/bulk', async (req, res) => {
+    try {
+      const { texts, fromLanguage, toLanguage, context } = req.body;
+      
+      if (!texts || !Array.isArray(texts) || !fromLanguage || !toLanguage) {
+        return res.status(400).json({ message: 'Invalid request format' });
+      }
+      
+      const translations = await translationService.translateBulk(texts, fromLanguage, toLanguage, context);
+      res.json({ translations });
+    } catch (error: any) {
+      console.error('Bulk translation error:', error);
+      res.status(500).json({ message: 'Bulk translation failed' });
+    }
+  });
+
+  app.post('/api/translate/detect', async (req, res) => {
+    try {
+      const { text } = req.body;
+      
+      if (!text) {
+        return res.status(400).json({ message: 'Text is required' });
+      }
+      
+      const detectedLanguage = await translationService.detectLanguage(text);
+      res.json({ language: detectedLanguage });
+    } catch (error: any) {
+      console.error('Language detection error:', error);
+      res.status(500).json({ message: 'Language detection failed' });
+    }
+  });
+
+  app.get('/api/translate/languages', async (req, res) => {
+    try {
+      const languages = translationService.getSupportedLanguages();
+      res.json(languages);
+    } catch (error: any) {
+      console.error('Get languages error:', error);
+      res.status(500).json({ message: 'Failed to get supported languages' });
+    }
+  });
+
+  // Legal AI API Routes
+  app.post('/api/legal/query', async (req, res) => {
+    try {
+      const { question, jurisdiction, category, language } = req.body;
+      
+      if (!question || !jurisdiction || !category) {
+        return res.status(400).json({ message: 'Question, jurisdiction, and category are required' });
+      }
+      
+      const response = await legalAIService.queryLegalInformation({
+        question,
+        jurisdiction,
+        category,
+        language: language || 'en'
+      });
+      
+      res.json(response);
+    } catch (error: any) {
+      console.error('Legal query error:', error);
+      res.status(500).json({ message: 'Legal query failed' });
+    }
+  });
+
+  app.get('/api/legal/regulation-summary/:jurisdiction/:category', async (req, res) => {
+    try {
+      const { jurisdiction, category } = req.params;
+      const { language } = req.query;
+      
+      const summary = await legalAIService.getRegulationSummary(
+        jurisdiction,
+        category,
+        language as string || 'en'
+      );
+      
+      res.json(summary);
+    } catch (error: any) {
+      console.error('Regulation summary error:', error);
+      res.status(500).json({ message: 'Failed to get regulation summary' });
+    }
+  });
+
+  app.post('/api/legal/compliance-check', async (req, res) => {
+    try {
+      const { description, jurisdiction, language } = req.body;
+      
+      if (!description || !jurisdiction) {
+        return res.status(400).json({ message: 'Description and jurisdiction are required' });
+      }
+      
+      const complianceCheck = await legalAIService.checkCompliance(
+        description,
+        jurisdiction,
+        language || 'en'
+      );
+      
+      res.json(complianceCheck);
+    } catch (error: any) {
+      console.error('Compliance check error:', error);
+      res.status(500).json({ message: 'Compliance check failed' });
+    }
+  });
+
+  app.get('/api/legal/jurisdictions', async (req, res) => {
+    try {
+      const jurisdictions = legalAIService.getSupportedJurisdictions();
+      res.json(jurisdictions);
+    } catch (error: any) {
+      console.error('Get jurisdictions error:', error);
+      res.status(500).json({ message: 'Failed to get supported jurisdictions' });
     }
   });
 

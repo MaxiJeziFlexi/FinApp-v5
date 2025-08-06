@@ -396,7 +396,6 @@ export class DatabaseStorage implements IStorage {
   // Subscription methods
   async getSubscriptionPlans(): Promise<any[]> {
     try {
-      // Return default plans for now
       return [
         {
           id: 'free',
@@ -405,6 +404,7 @@ export class DatabaseStorage implements IStorage {
           price: 0,
           currency: 'USD',
           interval: 'month',
+          apiLimit: 0.20, // $0.20 API limit
           features: {
             aiAdvisors: 1,
             analysisReports: 3,
@@ -414,8 +414,64 @@ export class DatabaseStorage implements IStorage {
             apiAccess: false,
             customDashboards: false,
             priorityLearning: false,
+            multiLanguage: false,
+            legalAI: false,
+            bankIntegration: false,
           },
           stripePriceId: null,
+          active: true,
+          createdAt: new Date(),
+        },
+        {
+          id: 'pro',
+          name: 'Pro',
+          description: 'Advanced AI financial education with premium features',
+          price: 20,
+          currency: 'USD',
+          interval: 'month',
+          apiLimit: 1.30, // 65% of $2 = $1.30 API limit
+          features: {
+            aiAdvisors: 5,
+            analysisReports: 25,
+            portfolioTracking: true,
+            premiumSupport: true,
+            advancedAnalytics: true,
+            apiAccess: true,
+            customDashboards: true,
+            priorityLearning: true,
+            multiLanguage: true,
+            legalAI: true,
+            bankIntegration: true,
+          },
+          stripePriceId: 'price_pro_monthly',
+          active: true,
+          createdAt: new Date(),
+        },
+        {
+          id: 'max',
+          name: 'Max',
+          description: 'Ultimate AI financial education experience with unlimited access',
+          price: 80,
+          currency: 'USD',
+          interval: 'month',
+          apiLimit: 5.00, // Up to $5 API limit
+          features: {
+            aiAdvisors: 'unlimited',
+            analysisReports: 'unlimited',
+            portfolioTracking: true,
+            premiumSupport: true,
+            advancedAnalytics: true,
+            apiAccess: true,
+            customDashboards: true,
+            priorityLearning: true,
+            multiLanguage: true,
+            legalAI: true,
+            bankIntegration: true,
+            personalAdvisor: true,
+            whiteLabel: true,
+            apiIntegration: true,
+          },
+          stripePriceId: 'price_max_monthly',
           active: true,
           createdAt: new Date(),
         }

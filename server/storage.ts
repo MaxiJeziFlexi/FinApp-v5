@@ -63,6 +63,12 @@ export interface IStorage {
   getOrCreateSession(userId: string, advisorId: string): Promise<AdvisorSession>;
   getSession(sessionId: string): Promise<AdvisorSession | undefined>;
   
+  // Advisor session operations for new advisor service
+  createAdvisorSession(session: any): Promise<any>;
+  getAdvisorSession(sessionId: string): Promise<any>;
+  updateAdvisorSession(session: any): Promise<any>;
+  getUserAdvisorSessions(userId: string): Promise<any[]>;
+  
   // Chat message operations
   getChatHistory(userId: string, advisorId: string): Promise<ChatMessage[]>;
   saveChatMessage(message: InsertChatMessage): Promise<ChatMessage>;
@@ -599,6 +605,27 @@ export class DatabaseStorage implements IStorage {
       .where(eq(bankConnections.id, connectionId))
       .returning();
     return updated;
+  }
+
+  // Advisor session methods for new advisor service (in-memory for now)
+  private advisorSessionsMap: Map<string, any> = new Map();
+
+  async createAdvisorSession(session: any): Promise<any> {
+    this.advisorSessionsMap.set(session.id, session);
+    return session;
+  }
+
+  async getAdvisorSession(sessionId: string): Promise<any> {
+    return this.advisorSessionsMap.get(sessionId) || null;
+  }
+
+  async updateAdvisorSession(session: any): Promise<any> {
+    this.advisorSessionsMap.set(session.id, session);
+    return session;
+  }
+
+  async getUserAdvisorSessions(userId: string): Promise<any[]> {
+    return Array.from(this.advisorSessionsMap.values()).filter(session => session.userId === userId);
   }
 }
 

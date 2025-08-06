@@ -7,6 +7,7 @@ import { speechRecognitionService } from "./services/speechRecognition";
 import { plaidService } from "./services/plaidService";
 import { translationService } from "./services/translationService";
 import { legalAIService } from "./services/legalAIService";
+import { advisorService } from "./services/advisorService";
 import { 
   insertUserSchema, 
   insertUserProfileSchema, 
@@ -985,6 +986,78 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error: any) {
       console.error('Get jurisdictions error:', error);
       res.status(500).json({ message: 'Failed to get supported jurisdictions' });
+    }
+  });
+
+  // AI Advisor routes
+  app.get('/api/advisors', async (req, res) => {
+    try {
+      const advisors = await advisorService.getAvailableAdvisors();
+      console.log('Advisors:', advisors);
+      res.json({ advisors });
+    } catch (error) {
+      console.error('Error fetching advisors:', error);
+      res.status(500).json({ message: 'Failed to fetch advisors' });
+    }
+  });
+
+  app.post('/api/advisors/recommend', async (req, res) => {
+    try {
+      const { query, userId } = req.body;
+      const recommendedAdvisorId = await advisorService.recommendAdvisor(userId, query);
+      const advisor = await advisorService.getAdvisorById(recommendedAdvisorId);
+      res.json({ recommendedAdvisor: advisor });
+    } catch (error) {
+      console.error('Error recommending advisor:', error);
+      res.status(500).json({ message: 'Failed to recommend advisor' });
+    }
+  });
+
+  app.post('/api/advisors/sessions', async (req, res) => {
+    try {
+      const { userId, advisorId, initialMessage } = req.body;
+      const session = await advisorService.createAdvisorSession(userId, advisorId, initialMessage);
+      res.json({ session });
+    } catch (error) {
+      console.error('Error creating advisor session:', error);
+      res.status(500).json({ message: 'Failed to create advisor session' });
+    }
+  });
+
+  app.post('/api/advisors/sessions/:sessionId/messages', async (req, res) => {
+    try {
+      const { sessionId } = req.params;
+      const { message } = req.body;
+      const response = await advisorService.sendMessage(sessionId, message);
+      res.json({ message: response });
+    } catch (error) {
+      console.error('Error sending message:', error);
+      res.status(500).json({ message: 'Failed to send message' });
+    }
+  });
+
+  app.get('/api/advisors/sessions/:sessionId', async (req, res) => {
+    try {
+      const { sessionId } = req.params;
+      const session = await advisorService.getSessionHistory(sessionId);
+      if (!session) {
+        return res.status(404).json({ message: 'Session not found' });
+      }
+      res.json({ session });
+    } catch (error) {
+      console.error('Error fetching session:', error);
+      res.status(500).json({ message: 'Failed to fetch session' });
+    }
+  });
+
+  app.get('/api/advisors/users/:userId/sessions', async (req, res) => {
+    try {
+      const { userId } = req.params;
+      const sessions = await advisorService.getUserSessions(userId);
+      res.json({ sessions });
+    } catch (error) {
+      console.error('Error fetching user sessions:', error);
+      res.status(500).json({ message: 'Failed to fetch user sessions' });
     }
   });
 

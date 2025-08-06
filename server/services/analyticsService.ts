@@ -10,7 +10,7 @@ import {
   type InsertBehaviorPattern,
   type InsertAIModelPerformance
 } from "@shared/schema";
-import { eq, desc, avg, count, sum } from "drizzle-orm";
+import { eq, desc, avg, count, sum, gte } from "drizzle-orm";
 
 export interface LearningEvent {
   userId: string;
@@ -121,42 +121,47 @@ export class AnalyticsService {
 
   // Advanced Analytics Methods
   private async analyzeEngagementPattern(userId: string): Promise<any> {
-    const recentAnalytics = await db
-      .select()
-      .from(learningAnalytics)
-      .where(eq(learningAnalytics.userId, userId))
-      .orderBy(desc(learningAnalytics.createdAt))
-      .limit(20);
+    try {
+      const recentAnalytics = await db
+        .select()
+        .from(learningAnalytics)
+        .where(eq(learningAnalytics.userId, userId))
+        .orderBy(desc(learningAnalytics.createdAt))
+        .limit(20);
 
-    if (recentAnalytics.length === 0) {
-      return { score: 50, confidence: 0.5, pattern: 'new_user' };
-    }
-
-    const totalTime = recentAnalytics.reduce((sum, record) => sum + (record.timeSpent || 0), 0);
-    const totalInteractions = recentAnalytics.reduce((sum, record) => sum + (record.interactionCount || 0), 0);
-    const avgCompletionRate = recentAnalytics
-      .filter(record => record.completionRate !== null)
-      .reduce((sum, record) => sum + (record.completionRate || 0), 0) / recentAnalytics.length;
-
-    // Calculate engagement score (0-100)
-    const engagementScore = Math.min(100, Math.max(0, 
-      (totalTime / 60 * 0.3) + // Time spent factor
-      (totalInteractions * 0.4) + // Interaction factor
-      (avgCompletionRate * 0.3) // Completion factor
-    ));
-
-    return {
-      score: Math.round(engagementScore),
-      confidence: Math.min(1.0, recentAnalytics.length / 20),
-      pattern: engagementScore > 70 ? 'highly_engaged' : 
-               engagementScore > 40 ? 'moderately_engaged' : 'low_engagement',
-      details: {
-        totalTime,
-        totalInteractions,
-        avgCompletionRate,
-        sessionCount: recentAnalytics.length
+      if (recentAnalytics.length === 0) {
+        return { score: 50, confidence: 0.5, pattern: 'new_user' };
       }
-    };
+
+      const totalTime = recentAnalytics.reduce((sum, record) => sum + (record.timeSpent || 0), 0);
+      const totalInteractions = recentAnalytics.reduce((sum, record) => sum + (record.interactionCount || 0), 0);
+      const avgCompletionRate = recentAnalytics
+        .filter(record => record.completionRate !== null)
+        .reduce((sum, record) => sum + (record.completionRate || 0), 0) / recentAnalytics.length;
+
+      // Calculate engagement score (0-100)
+      const engagementScore = Math.min(100, Math.max(0, 
+        (totalTime / 60 * 0.3) + // Time spent factor
+        (totalInteractions * 0.4) + // Interaction factor
+        (avgCompletionRate * 0.3) // Completion factor
+      ));
+
+      return {
+        score: Math.round(engagementScore),
+        confidence: Math.min(1.0, recentAnalytics.length / 20),
+        pattern: engagementScore > 70 ? 'highly_engaged' : 
+                 engagementScore > 40 ? 'moderately_engaged' : 'low_engagement',
+        details: {
+          totalTime,
+          totalInteractions,
+          avgCompletionRate,
+          sessionCount: recentAnalytics.length
+        }
+      };
+    } catch (error) {
+      console.error('Error analyzing engagement pattern:', error);
+      return { score: 50, confidence: 0.5, pattern: 'error' };
+    }
   }
 
   private async detectLearningStyle(userId: string): Promise<string> {
@@ -267,74 +272,96 @@ export class AnalyticsService {
 
   // Get AI model performance insights
   async getModelPerformanceInsights(): Promise<any> {
-    const performances = await db
-      .select()
-      .from(aiModelPerformance)
-      .orderBy(desc(aiModelPerformance.createdAt))
-      .limit(1000);
+    try {
+      const performances = await db
+        .select()
+        .from(aiModelPerformance)
+        .orderBy(desc(aiModelPerformance.createdAt))
+        .limit(1000);
 
-    const byModel = performances.reduce((acc, perf) => {
-      if (!acc[perf.modelVersion]) {
-        acc[perf.modelVersion] = [];
-      }
-      acc[perf.modelVersion].push(perf);
-      return acc;
-    }, {} as Record<string, typeof performances>);
-
-    const insights = Object.entries(byModel).map(([model, perfs]) => ({
-      model,
-      totalRequests: perfs.length,
-      avgResponseTime: perfs.reduce((sum, p) => sum + (p.responseTime || 0), 0) / perfs.length,
-      avgTokenUsage: perfs.reduce((sum, p) => sum + (p.tokenUsage || 0), 0) / perfs.length,
-      avgUserFeedback: perfs
-        .filter(p => p.userFeedback !== null)
-        .reduce((sum, p) => sum + (p.userFeedback || 0), 0) / perfs.filter(p => p.userFeedback !== null).length,
-      avgRelevanceScore: perfs
-        .filter(p => p.relevanceScore !== null)
-        .reduce((sum, p) => sum + (p.relevanceScore || 0), 0) / perfs.filter(p => p.relevanceScore !== null).length
-    }));
-
-    return {
-      totalRequests: performances.length,
-      modelInsights: insights,
-      promptTypeDistribution: performances.reduce((acc, perf) => {
-        acc[perf.promptType || 'unknown'] = (acc[perf.promptType || 'unknown'] || 0) + 1;
+      const byModel = performances.reduce((acc, perf) => {
+        if (!acc[perf.modelVersion]) {
+          acc[perf.modelVersion] = [];
+        }
+        acc[perf.modelVersion].push(perf);
         return acc;
-      }, {} as Record<string, number>)
-    };
+      }, {} as Record<string, typeof performances>);
+
+      const insights = Object.entries(byModel).map(([model, perfs]) => ({
+        model,
+        totalRequests: perfs.length,
+        avgResponseTime: perfs.reduce((sum, p) => sum + (p.responseTime || 0), 0) / perfs.length,
+        avgTokenUsage: perfs.reduce((sum, p) => sum + (p.tokenUsage || 0), 0) / perfs.length,
+        avgUserFeedback: perfs
+          .filter(p => p.userFeedback !== null)
+          .reduce((sum, p) => sum + (p.userFeedback || 0), 0) / perfs.filter(p => p.userFeedback !== null).length,
+        avgRelevanceScore: perfs
+          .filter(p => p.relevanceScore !== null)
+          .reduce((sum, p) => sum + (p.relevanceScore || 0), 0) / perfs.filter(p => p.relevanceScore !== null).length
+      }));
+
+      return {
+        totalRequests: performances.length,
+        modelInsights: insights,
+        promptTypeDistribution: performances.reduce((acc, perf) => {
+          acc[perf.promptType || 'unknown'] = (acc[perf.promptType || 'unknown'] || 0) + 1;
+          return acc;
+        }, {} as Record<string, number>)
+      };
+    } catch (error) {
+      console.error('Error getting model performance insights:', error);
+      return {
+        totalRequests: 0,
+        modelInsights: [],
+        promptTypeDistribution: {}
+      };
+    }
   }
 
   // Real-time learning analytics
   async getRealTimeLearningInsights(): Promise<any> {
     const last24Hours = new Date(Date.now() - 24 * 60 * 60 * 1000);
     
-    const recentEvents = await db
-      .select()
-      .from(learningAnalytics)
-      .where(eq(learningAnalytics.createdAt, last24Hours))
-      .orderBy(desc(learningAnalytics.createdAt));
+    try {
+      const recentEvents = await db
+        .select()
+        .from(learningAnalytics)
+        .where(gte(learningAnalytics.createdAt, last24Hours))
+        .orderBy(desc(learningAnalytics.createdAt));
 
-    const eventTypes = recentEvents.reduce((acc, event) => {
-      acc[event.eventType] = (acc[event.eventType] || 0) + 1;
-      return acc;
-    }, {} as Record<string, number>);
+      const eventTypes = recentEvents.reduce((acc, event) => {
+        acc[event.eventType] = (acc[event.eventType] || 0) + 1;
+        return acc;
+      }, {} as Record<string, number>);
 
-    const learningPaths = recentEvents.reduce((acc, event) => {
-      if (event.learningPath) {
-        acc[event.learningPath] = (acc[event.learningPath] || 0) + 1;
-      }
-      return acc;
-    }, {} as Record<string, number>);
+      const learningPaths = recentEvents.reduce((acc, event) => {
+        if (event.learningPath) {
+          acc[event.learningPath] = (acc[event.learningPath] || 0) + 1;
+        }
+        return acc;
+      }, {} as Record<string, number>);
 
-    return {
-      last24Hours: {
-        totalEvents: recentEvents.length,
-        uniqueUsers: new Set(recentEvents.map(e => e.userId)).size,
-        eventTypeDistribution: eventTypes,
-        popularLearningPaths: learningPaths,
-        avgEngagement: recentEvents.reduce((sum, e) => sum + (e.interactionCount || 0), 0) / recentEvents.length
-      }
-    };
+      return {
+        last24Hours: {
+          totalEvents: recentEvents.length,
+          uniqueUsers: new Set(recentEvents.map(e => e.userId)).size,
+          eventTypeDistribution: eventTypes,
+          popularLearningPaths: learningPaths,
+          avgEngagement: recentEvents.length > 0 ? recentEvents.reduce((sum, e) => sum + (e.interactionCount || 0), 0) / recentEvents.length : 0
+        }
+      };
+    } catch (error) {
+      console.error('Error getting real-time learning insights:', error);
+      return {
+        last24Hours: {
+          totalEvents: 0,
+          uniqueUsers: 0,
+          eventTypeDistribution: {},
+          popularLearningPaths: {},
+          avgEngagement: 0
+        }
+      };
+    }
   }
 }
 

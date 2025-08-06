@@ -55,7 +55,7 @@ export default function FinAppHome() {
   const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [showPremiumModal, setShowPremiumModal] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
-  const [authModalTab, setAuthModalTab] = useState<'social' | 'signin' | 'signup' | 'premium'>('social');
+  const [authModalTab, setAuthModalTab] = useState<'signin' | 'signup' | 'premium'>('signin');
 
   // Track user engagement analytics
   useEffect(() => {
@@ -195,7 +195,7 @@ export default function FinAppHome() {
     setSelectedAdvisor(null);
   };
 
-  const handleOpenAuth = (tab: 'social' | 'signin' | 'signup' | 'premium' = 'social') => {
+  const handleOpenAuth = (tab: 'signin' | 'signup' | 'premium' = 'signin') => {
     setAuthModalTab(tab);
     setShowAuthModal(true);
   };
@@ -351,10 +351,18 @@ export default function FinAppHome() {
                     <strong>AI-Enhanced Onboarding:</strong> Our advanced profiling system analyzes your responses to create a personalized learning experience with behavioral pattern recognition.
                   </AlertDescription>
                 </Alert>
-                <OnboardingForm 
-                  userId={userId} 
-                  onComplete={() => handleFlowChange('advisor-selection')} 
-                />
+                {currentUser ? (
+                  <OnboardingForm 
+                    userId={userId} 
+                    onComplete={() => handleFlowChange('advisor-selection')} 
+                  />
+                ) : (
+                  <Alert className="border-blue-200 bg-blue-50">
+                    <AlertDescription>
+                      Please sign in to complete your profile. <Button variant="link" onClick={() => handleOpenAuth('signin')} className="p-0 h-auto">Sign in here</Button>
+                    </AlertDescription>
+                  </Alert>
+                )}
               </TabsContent>
 
               <TabsContent value="advisor-selection" className="space-y-6">
@@ -364,10 +372,18 @@ export default function FinAppHome() {
                     <strong>AI Advisor Ecosystem:</strong> Choose from specialized financial education modules powered by advanced AI models and real-time learning analytics.
                   </AlertDescription>
                 </Alert>
-                <AdvisorSelection 
-                  userId={userId} 
-                  onAdvisorSelected={handleAdvisorSelected} 
-                />
+                {currentUser ? (
+                  <AdvisorSelection 
+                    userId={userId} 
+                    onAdvisorSelected={handleAdvisorSelected} 
+                  />
+                ) : (
+                  <Alert className="border-blue-200 bg-blue-50">
+                    <AlertDescription>
+                      Please sign in to access AI advisors. <Button variant="link" onClick={() => handleOpenAuth('signin')} className="p-0 h-auto">Sign in here</Button>
+                    </AlertDescription>
+                  </Alert>
+                )}
               </TabsContent>
 
               <TabsContent value="decision-tree" className="space-y-6">

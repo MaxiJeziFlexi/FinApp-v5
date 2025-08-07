@@ -390,17 +390,29 @@ export class DatabaseStorage implements IStorage {
   async saveDecisionTreeProgress(progress: InsertDecisionTreeProgress & { id?: string }): Promise<DecisionTreeProgress> {
     const existing = await this.getDecisionTreeProgress(progress.userId, progress.advisorId);
     
+    // Clean and ensure all numeric fields are proper integers
+    const cleanProgress = {
+      ...progress,
+      progress: Math.round(Number(progress.progress || 0))
+    };
+    
+    console.log('Saving progress with cleaned values:', {
+      ...cleanProgress,
+      responses: 'json array',
+      recommendations: 'json object'
+    });
+    
     if (existing) {
       const [updated] = await db
         .update(decisionTreeProgress)
-        .set({ ...progress, updatedAt: new Date() })
+        .set({ ...cleanProgress, updatedAt: new Date() })
         .where(eq(decisionTreeProgress.id, existing.id))
         .returning();
       return updated;
     } else {
       const progressWithId = {
-        ...progress,
-        id: progress.id || generateId('progress')
+        ...cleanProgress,
+        id: cleanProgress.id || generateId('progress')
       };
       const [newProgress] = await db
         .insert(decisionTreeProgress)

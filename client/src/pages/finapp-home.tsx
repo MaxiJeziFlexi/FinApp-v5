@@ -34,6 +34,7 @@ import UserSettingsModal from "@/components/settings/UserSettingsModal";
 import OnboardingForm from "@/components/financial/OnboardingForm";
 import AdvisorSelection from "@/components/financial/AdvisorSelection";
 import DecisionTreeView from "@/components/financial/DecisionTreeView";
+import { PersonalizedDecisionTreeView } from "@/components/financial/PersonalizedDecisionTreeView";
 import ChatWindow from "@/components/financial/ChatWindow";
 import AchievementNotification from "@/components/financial/AchievementNotification";
 import { FinancialVisualizations3D } from "@/components/financial/FinancialVisualizations3D";
@@ -383,14 +384,17 @@ export default function FinAppHome() {
                   </AlertDescription>
                 </Alert>
                 {selectedAdvisor ? (
-                  // Show based on user subscription
+                  // Show based on user subscription - Enhanced personalized tree for all users
                   isAdmin || (currentUser as any)?.subscriptionTier === 'max' || (currentUser as any)?.subscriptionTier === 'pro' ? (
-                    <DecisionTreeView
-                      advisor={selectedAdvisor}
+                    <PersonalizedDecisionTreeView
+                      advisorId={selectedAdvisor.id}
                       userId={userId}
-                      userProfile={userProfile}
-                      onComplete={handleDecisionTreeComplete}
-                      onBackToAdvisors={() => setCurrentFlow('advisor-selection')}
+                      advisor={selectedAdvisor}
+                      onComplete={(insights) => {
+                        console.log('Personalized insights generated:', insights);
+                        handleDecisionTreeComplete();
+                      }}
+                      onBackToAdvisor={() => setCurrentFlow('advisor-selection')}
                     />
                   ) : (
                     <Alert className="border-orange-200 bg-orange-50">

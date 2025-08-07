@@ -367,7 +367,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           completed: false,
           decision_path: [],
           progress: 0,
-          current_step: 0
+          current_step: 0,
+          personalized: false
         });
       }
       
@@ -376,11 +377,71 @@ export async function registerRoutes(app: Express): Promise<Server> {
         decision_path: progress.responses || [],
         progress: progress.progress || 0,
         current_step: progress.currentNode || 'start',
-        final_recommendation: progress.recommendations || null
+        final_recommendation: progress.recommendations || null,
+        personalized: progress.treeType === 'personalized'
       });
     } catch (error) {
       console.error('Error fetching decision tree status:', error);
       res.status(500).json({ message: 'Failed to fetch decision tree status' });
+    }
+  });
+
+  // Enhanced personalized decision tree endpoints
+  app.get('/api/personalized-tree/:advisorId', async (req, res) => {
+    try {
+      const { advisorId } = req.params;
+      const { personalizedDecisionTreeService } = await import('./services/personalizedDecisionTreeService');
+      
+      const tree = personalizedDecisionTreeService.getPersonalizedTree(advisorId);
+      if (!tree) {
+        return res.status(404).json({ message: 'Personalized tree not found for advisor' });
+      }
+      
+      res.json(tree);
+    } catch (error) {
+      console.error('Error getting personalized tree:', error);
+      res.status(500).json({ message: 'Failed to get personalized tree' });
+    }
+  });
+
+  app.post('/api/personalized-tree/respond', async (req, res) => {
+    try {
+      const { userId, advisorId, questionId, answer, additionalData } = req.body;
+      
+      if (!userId || !advisorId || !questionId || answer === undefined) {
+        return res.status(400).json({ message: 'Missing required fields' });
+      }
+
+      const { personalizedDecisionTreeService } = await import('./services/personalizedDecisionTreeService');
+      
+      const result = await personalizedDecisionTreeService.processPersonalizedResponse(
+        userId, advisorId, questionId, answer, additionalData
+      );
+
+      // Share data with AI models when completed
+      if (result.completed && result.insights) {
+        try {
+          const { analyticsService } = await import('./services/analyticsService');
+          await analyticsService.trackAIModelPerformance('personalized_tree', {
+            type: 'decision_tree_completion',
+            userId,
+            data: result.insights.data_for_ai_models,
+            personalization_score: result.insights.ai_recommendations.personalization_score,
+            timestamp: new Date().toISOString()
+          });
+        } catch (analyticsError) {
+          console.warn('AI data sharing failed:', analyticsError);
+        }
+      }
+
+      res.json({
+        success: true,
+        ...result,
+        ai_integrated: !!result.insights
+      });
+    } catch (error) {
+      console.error('Error processing personalized response:', error);
+      res.status(500).json({ message: 'Failed to process response' });
     }
   });
 

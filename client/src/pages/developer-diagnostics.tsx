@@ -218,38 +218,64 @@ export default function DeveloperDiagnostics() {
     refetchInterval: autoRefresh ? 120000 : false,
   });
 
-  // Mock data for demonstration
-  const mockSystemHealth: SystemHealth = systemHealth || {
-    overall: 'warning',
-    score: 78,
-    components: [
-      {
-        name: 'API Response Time',
-        status: 'healthy',
-        metrics: { current: 145, threshold: 200, unit: 'ms' }
-      },
-      {
-        name: 'Error Rate',
-        status: 'warning',
-        metrics: { current: 2.3, threshold: 1, unit: '%' }
-      },
-      {
-        name: 'Memory Usage',
-        status: 'healthy',
-        metrics: { current: 67, threshold: 70, unit: '%' }
-      },
-      {
-        name: 'Database Connections',
-        status: 'healthy',
-        metrics: { current: 45, threshold: 100, unit: 'connections' }
-      }
-    ],
-    recommendations: [
-      'Investigate error spikes in user authentication module',
-      'Consider implementing response caching for frequently accessed endpoints',
-      'Monitor database query performance during peak hours'
-    ]
-  };
+  // Convert API response to expected format or use mock data
+  const mockSystemHealth: SystemHealth = (() => {
+    if (systemHealth && systemHealth.components && Array.isArray(systemHealth.components)) {
+      return systemHealth;
+    }
+    
+    // If systemHealth has different structure, convert it
+    if (systemHealth && systemHealth.components && typeof systemHealth.components === 'object') {
+      const componentsArray = Object.entries(systemHealth.components).map(([key, value]: [string, any]) => ({
+        name: key.charAt(0).toUpperCase() + key.slice(1),
+        status: value.status || 'healthy',
+        metrics: { 
+          current: value.responseTime || 0, 
+          threshold: 200, 
+          unit: 'ms' 
+        }
+      }));
+      
+      return {
+        ...systemHealth,
+        components: componentsArray,
+        recommendations: systemHealth.recommendations || []
+      };
+    }
+    
+    // Fallback to mock data
+    return {
+      overall: 'warning',
+      score: 78,
+      components: [
+        {
+          name: 'API Response Time',
+          status: 'healthy',
+          metrics: { current: 145, threshold: 200, unit: 'ms' }
+        },
+        {
+          name: 'Error Rate',
+          status: 'warning',
+          metrics: { current: 2.3, threshold: 1, unit: '%' }
+        },
+        {
+          name: 'Memory Usage',
+          status: 'healthy',
+          metrics: { current: 67, threshold: 70, unit: '%' }
+        },
+        {
+          name: 'Database Connections',
+          status: 'healthy',
+          metrics: { current: 45, threshold: 100, unit: 'connections' }
+        }
+      ],
+      recommendations: [
+        'Investigate error spikes in user authentication module',
+        'Consider implementing response caching for frequently accessed endpoints',
+        'Monitor database query performance during peak hours'
+      ]
+    };
+  })();
 
   const mockInsights: DiagnosticInsight[] = insights || [
     {
@@ -492,7 +518,7 @@ export default function DeveloperDiagnostics() {
                 <div>
                   <h4 className="font-semibold mb-3">Top Recommendations</h4>
                   <div className="space-y-2">
-                    {mockSystemHealth.recommendations.map((rec, index) => (
+                    {(mockSystemHealth.recommendations || []).map((rec, index) => (
                       <div key={index} className="p-2 bg-blue-50 rounded text-sm text-blue-800">
                         • {rec}
                       </div>

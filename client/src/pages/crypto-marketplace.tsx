@@ -29,6 +29,8 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useAuth } from '@/hooks/useAuth';
+import { Link } from 'wouter';
 import FloatingElements, { Card3D } from '@/components/3d/FloatingElements';
 
 interface CryptoTransaction {
@@ -73,6 +75,61 @@ export default function CryptoMarketplace() {
     bounty: 50
   });
   const { toast } = useToast();
+  const { user, isAdmin } = useAuth();
+
+  // Check if user has access to crypto marketplace (Pro/Max plans or admin)
+  const hasAccess = isAdmin || user?.subscriptionTier === 'pro' || user?.subscriptionTier === 'max';
+
+  if (!hasAccess) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800">
+        <div className="container mx-auto px-4 py-16">
+          <div className="max-w-2xl mx-auto text-center">
+            <Bitcoin className="w-16 h-16 mx-auto mb-6 text-orange-500" />
+            <h1 className="text-3xl font-bold mb-4">Premium Crypto Marketplace</h1>
+            <p className="text-lg text-gray-600 dark:text-gray-400 mb-8">
+              Access to the advanced crypto marketplace with peer-to-peer trading requires a Pro or Max plan. 
+              Unlock real-time market data, sentiment analysis, competitive bidding, and sophisticated portfolio analytics.
+            </p>
+            <div className="bg-white dark:bg-gray-800 rounded-lg p-6 mb-8 shadow-lg">
+              <h3 className="text-xl font-semibold mb-4">Crypto Marketplace Features:</h3>
+              <ul className="text-left space-y-2 text-gray-600 dark:text-gray-400">
+                <li className="flex items-center gap-2">
+                  <TrendingUp className="w-4 h-4 text-green-500" />
+                  Real-time market data and sentiment analysis
+                </li>
+                <li className="flex items-center gap-2">
+                  <Users className="w-4 h-4 text-blue-500" />
+                  Peer-to-peer financial advice trading
+                </li>
+                <li className="flex items-center gap-2">
+                  <Trophy className="w-4 h-4 text-purple-500" />
+                  Competitive bidding and leaderboards
+                </li>
+                <li className="flex items-center gap-2">
+                  <Brain className="w-4 h-4 text-orange-500" />
+                  Sophisticated portfolio analytics
+                </li>
+              </ul>
+            </div>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Link href="/checkout">
+                <Button className="bg-gradient-to-r from-orange-500 to-yellow-500 hover:from-orange-600 hover:to-yellow-600 text-white font-semibold px-8 py-3">
+                  <Crown className="w-4 h-4 mr-2" />
+                  Upgrade to Pro Plan
+                </Button>
+              </Link>
+              <Link href="/finapp-home">
+                <Button variant="outline" className="px-8 py-3">
+                  Return to Dashboard
+                </Button>
+              </Link>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
   const queryClient = useQueryClient();
 
   // Fetch user stats

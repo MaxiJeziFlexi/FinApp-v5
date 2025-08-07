@@ -299,7 +299,7 @@ export default function FinAppHome() {
                     user={currentUser}
                     onLogout={handleLogout}
                     onOpenSettings={() => setShowSettingsModal(true)}
-                    onOpenSubscription={handleOpenPremium}
+                    onOpenSubscription={() => window.location.href = '/checkout'}
                   />
                 </div>
               </div>

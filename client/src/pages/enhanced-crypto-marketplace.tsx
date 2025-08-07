@@ -32,6 +32,8 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useAuth } from '@/hooks/useAuth';
+import { Link } from 'wouter';
 import FloatingElements, { Card3D } from '@/components/3d/FloatingElements';
 
 interface MarketStats {
@@ -97,6 +99,61 @@ export default function EnhancedCryptoMarketplace() {
   const [sortBy, setSortBy] = useState('newest');
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { user, isAdmin } = useAuth();
+
+  // Check if user has access to enhanced crypto marketplace (Pro/Max plans or admin)
+  const hasAccess = isAdmin || user?.subscriptionTier === 'pro' || user?.subscriptionTier === 'max';
+
+  if (!hasAccess) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800">
+        <div className="container mx-auto px-4 py-16">
+          <div className="max-w-2xl mx-auto text-center">
+            <Crown className="w-16 h-16 mx-auto mb-6 text-blue-500" />
+            <h1 className="text-3xl font-bold mb-4">Enhanced Crypto Trading Platform</h1>
+            <p className="text-lg text-gray-600 dark:text-gray-400 mb-8">
+              Access to the enhanced crypto marketplace with advanced analytics and competitive trading requires a Pro or Max plan. 
+              Unlock real-time data feeds, sentiment analysis, competitive bidding systems, and quantum mathematical predictions.
+            </p>
+            <div className="bg-white dark:bg-gray-800 rounded-lg p-6 mb-8 shadow-lg">
+              <h3 className="text-xl font-semibold mb-4">Enhanced Marketplace Features:</h3>
+              <ul className="text-left space-y-2 text-gray-600 dark:text-gray-400">
+                <li className="flex items-center gap-2">
+                  <Activity className="w-4 h-4 text-green-500" />
+                  Real-time market feeds and sentiment analysis
+                </li>
+                <li className="flex items-center gap-2">
+                  <BarChart3 className="w-4 h-4 text-blue-500" />
+                  Advanced portfolio analytics and predictions
+                </li>
+                <li className="flex items-center gap-2">
+                  <Trophy className="w-4 h-4 text-purple-500" />
+                  Competitive bidding and leaderboard systems
+                </li>
+                <li className="flex items-center gap-2">
+                  <Zap className="w-4 h-4 text-orange-500" />
+                  Quantum mathematical models for price prediction
+                </li>
+              </ul>
+            </div>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Link href="/checkout">
+                <Button className="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white font-semibold px-8 py-3">
+                  <Crown className="w-4 h-4 mr-2" />
+                  Upgrade to Pro Plan
+                </Button>
+              </Link>
+              <Link href="/finapp-home">
+                <Button variant="outline" className="px-8 py-3">
+                  Return to Dashboard
+                </Button>
+              </Link>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   // Fetch data with React Query
   const { data: userStats } = useQuery<UserStats>({

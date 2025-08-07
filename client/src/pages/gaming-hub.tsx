@@ -28,6 +28,8 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useAuth } from '@/hooks/useAuth';
+import { Link } from 'wouter';
 import FloatingElements, { Card3D } from '@/components/3d/FloatingElements';
 
 interface UserGameProfile {
@@ -79,6 +81,61 @@ export default function GamingHub() {
   const [userAge, setUserAge] = useState(22); // This would come from user profile
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { user, isAdmin } = useAuth();
+
+  // Check if user has access to gaming hub (Pro/Max plans or admin)
+  const hasAccess = isAdmin || user?.subscriptionTier === 'pro' || user?.subscriptionTier === 'max';
+
+  if (!hasAccess) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800">
+        <div className="container mx-auto px-4 py-16">
+          <div className="max-w-2xl mx-auto text-center">
+            <Crown className="w-16 h-16 mx-auto mb-6 text-purple-500" />
+            <h1 className="text-3xl font-bold mb-4">Premium Gaming Hub</h1>
+            <p className="text-lg text-gray-600 dark:text-gray-400 mb-8">
+              Access to the multi-generational gaming experience requires a Pro or Max plan. 
+              Unlock age-appropriate financial games, XP systems, crypto rewards, and competitive challenges.
+            </p>
+            <div className="bg-white dark:bg-gray-800 rounded-lg p-6 mb-8 shadow-lg">
+              <h3 className="text-xl font-semibold mb-4">Gaming Hub Features:</h3>
+              <ul className="text-left space-y-2 text-gray-600 dark:text-gray-400">
+                <li className="flex items-center gap-2">
+                  <Target className="w-4 h-4 text-green-500" />
+                  Age-appropriate challenges (13-25 and 25+ tracks)
+                </li>
+                <li className="flex items-center gap-2">
+                  <Coins className="w-4 h-4 text-yellow-500" />
+                  Cryptocurrency rewards and XP systems
+                </li>
+                <li className="flex items-center gap-2">
+                  <Trophy className="w-4 h-4 text-purple-500" />
+                  Leaderboards and achievement badges
+                </li>
+                <li className="flex items-center gap-2">
+                  <Brain className="w-4 h-4 text-blue-500" />
+                  Gamified financial education modules
+                </li>
+              </ul>
+            </div>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Link href="/checkout">
+                <Button className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-semibold px-8 py-3">
+                  <Crown className="w-4 h-4 mr-2" />
+                  Upgrade to Pro Plan
+                </Button>
+              </Link>
+              <Link href="/finapp-home">
+                <Button variant="outline" className="px-8 py-3">
+                  Return to Dashboard
+                </Button>
+              </Link>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   // Determine age group
   const ageGroup = userAge <= 25 ? 'young' : 'experienced';

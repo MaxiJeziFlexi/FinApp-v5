@@ -519,6 +519,228 @@ export const insertVerificationCodeSchema = createInsertSchema(verificationCodes
   createdAt: true,
 });
 
+// Enhanced Analytics Tables for Comprehensive Data Collection
+export const userSessions = pgTable("user_sessions", {
+  id: varchar("id", { length: 255 }).primaryKey(),
+  userId: varchar("user_id", { length: 255 }).references(() => users.id),
+  sessionToken: varchar("session_token", { length: 255 }).unique(),
+  startTime: timestamp("start_time").defaultNow(),
+  endTime: timestamp("end_time"),
+  duration: integer("duration"), // in seconds
+  pagesVisited: integer("pages_visited").default(0),
+  actionsPerformed: integer("actions_performed").default(0),
+  deviceType: varchar("device_type", { length: 100 }),
+  browser: varchar("browser", { length: 100 }),
+  operatingSystem: varchar("operating_system", { length: 100 }),
+  screenResolution: varchar("screen_resolution", { length: 50 }),
+  ipAddress: varchar("ip_address", { length: 45 }),
+  geolocation: jsonb("geolocation"),
+  referrer: text("referrer"),
+  exitPage: varchar("exit_page", { length: 500 }),
+  bounceRate: numeric("bounce_rate", { precision: 5, scale: 2 }),
+  engagementScore: integer("engagement_score"),
+  conversionEvents: jsonb("conversion_events").default([]),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const pageAnalytics = pgTable("page_analytics", {
+  id: varchar("id", { length: 255 }).primaryKey(),
+  sessionId: varchar("session_id", { length: 255 }).references(() => userSessions.id),
+  userId: varchar("user_id", { length: 255 }).references(() => users.id),
+  pagePath: varchar("page_path", { length: 500 }).notNull(),
+  pageTitle: varchar("page_title", { length: 255 }),
+  timestamp: timestamp("timestamp").defaultNow(),
+  timeOnPage: integer("time_on_page"), // in seconds
+  scrollDepth: numeric("scroll_depth", { precision: 5, scale: 2 }), // percentage
+  clickCount: integer("click_count").default(0),
+  exitPage: boolean("exit_page").default(false),
+  loadTime: integer("load_time"), // in milliseconds
+  performanceMetrics: jsonb("performance_metrics"),
+  heatmapData: jsonb("heatmap_data"),
+});
+
+export const userInteractionEvents = pgTable("user_interaction_events", {
+  id: varchar("id", { length: 255 }).primaryKey(),
+  sessionId: varchar("session_id", { length: 255 }).references(() => userSessions.id),
+  userId: varchar("user_id", { length: 255 }).references(() => users.id),
+  eventType: varchar("event_type", { length: 100 }).notNull(), // click, hover, scroll, form_submit, etc.
+  eventCategory: varchar("event_category", { length: 100 }), // financial_tool, navigation, learning, etc.
+  eventAction: varchar("event_action", { length: 100 }),
+  eventLabel: varchar("event_label", { length: 255 }),
+  elementId: varchar("element_id", { length: 255 }),
+  elementClass: varchar("element_class", { length: 255 }),
+  elementText: text("element_text"),
+  pagePath: varchar("page_path", { length: 500 }),
+  coordinates: jsonb("coordinates"), // x, y coordinates for clicks
+  timestamp: timestamp("timestamp").defaultNow(),
+  metadata: jsonb("metadata"),
+  conversionValue: numeric("conversion_value", { precision: 10, scale: 2 }),
+  funnelStep: varchar("funnel_step", { length: 100 }),
+});
+
+export const financialDataCollection = pgTable("financial_data_collection", {
+  id: varchar("id", { length: 255 }).primaryKey(),
+  userId: varchar("user_id", { length: 255 }).references(() => users.id).notNull(),
+  dataType: varchar("data_type", { length: 100 }).notNull(), // income, expenses, assets, liabilities, goals
+  dataSource: varchar("data_source", { length: 100 }), // manual_input, bank_sync, ai_inference, import
+  originalData: jsonb("original_data").notNull(),
+  processedData: jsonb("processed_data"),
+  confidence: numeric("confidence", { precision: 5, scale: 2 }), // 0-100
+  verified: boolean("verified").default(false),
+  category: varchar("category", { length: 100 }),
+  subcategory: varchar("subcategory", { length: 100 }),
+  amount: numeric("amount", { precision: 15, scale: 2 }),
+  currency: varchar("currency", { length: 3 }).default('USD'),
+  reportingPeriod: varchar("reporting_period", { length: 50 }), // monthly, quarterly, yearly
+  tags: jsonb("tags").default([]),
+  aiInsights: jsonb("ai_insights"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const toolUsageAnalytics = pgTable("tool_usage_analytics", {
+  id: varchar("id", { length: 255 }).primaryKey(),
+  userId: varchar("user_id", { length: 255 }).references(() => users.id),
+  toolName: varchar("tool_name", { length: 100 }).notNull(),
+  featureName: varchar("feature_name", { length: 100 }),
+  sessionId: varchar("session_id", { length: 255 }).references(() => userSessions.id),
+  startTime: timestamp("start_time").defaultNow(),
+  endTime: timestamp("end_time"),
+  timeSpent: integer("time_spent"), // in seconds
+  actionsPerformed: integer("actions_performed").default(0),
+  inputData: jsonb("input_data"),
+  outputData: jsonb("output_data"),
+  completionStatus: varchar("completion_status", { length: 50 }), // completed, abandoned, error
+  userSatisfaction: integer("user_satisfaction"), // 1-5 scale
+  errorCount: integer("error_count").default(0),
+  helpRequested: boolean("help_requested").default(false),
+  sharingBehavior: jsonb("sharing_behavior"),
+  conversionMetrics: jsonb("conversion_metrics"),
+});
+
+export const aiInteractionAnalytics = pgTable("ai_interaction_analytics", {
+  id: varchar("id", { length: 255 }).primaryKey(),
+  userId: varchar("user_id", { length: 255 }).references(() => users.id),
+  sessionId: varchar("session_id", { length: 255 }).references(() => advisorSessions.id),
+  advisorType: varchar("advisor_type", { length: 100 }),
+  messageId: varchar("message_id", { length: 255 }).references(() => chatMessages.id),
+  userInput: text("user_input"),
+  aiResponse: text("ai_response"),
+  responseTime: integer("response_time"), // in milliseconds
+  tokenUsage: integer("token_usage"),
+  cost: numeric("cost", { precision: 10, scale: 6 }),
+  userSatisfaction: integer("user_satisfaction"), // 1-5 scale
+  helpfulness: integer("helpfulness"), // 1-5 scale
+  accuracy: integer("accuracy"), // 1-5 scale
+  followUpQuestions: integer("follow_up_questions").default(0),
+  actionsTaken: jsonb("actions_taken"),
+  sentimentAnalysis: jsonb("sentiment_analysis"),
+  intentRecognition: jsonb("intent_recognition"),
+  personalizationFactors: jsonb("personalization_factors"),
+  improvementSuggestions: text("improvement_suggestions"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const communityEngagementAnalytics = pgTable("community_engagement_analytics", {
+  id: varchar("id", { length: 255 }).primaryKey(),
+  userId: varchar("user_id", { length: 255 }).references(() => users.id).notNull(),
+  engagementType: varchar("engagement_type", { length: 100 }), // post, comment, like, share, view
+  contentId: varchar("content_id", { length: 255 }),
+  contentType: varchar("content_type", { length: 100 }),
+  engagementQuality: numeric("engagement_quality", { precision: 5, scale: 2 }),
+  timeSpent: integer("time_spent"), // in seconds
+  reactionType: varchar("reaction_type", { length: 50 }),
+  sharingBehavior: jsonb("sharing_behavior"),
+  influenceScore: numeric("influence_score", { precision: 5, scale: 2 }),
+  networkEffects: jsonb("network_effects"),
+  topicAffinity: jsonb("topic_affinity"),
+  expertiseLevel: varchar("expertise_level", { length: 50 }),
+  helpfulnessRating: integer("helpfulness_rating"), // 1-5 scale
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const gamificationAnalytics = pgTable("gamification_analytics", {
+  id: varchar("id", { length: 255 }).primaryKey(),
+  userId: varchar("user_id", { length: 255 }).references(() => users.id).notNull(),
+  gameElement: varchar("game_element", { length: 100 }), // points, badges, leaderboard, challenges
+  actionType: varchar("action_type", { length: 100 }),
+  pointsEarned: integer("points_earned").default(0),
+  levelAchieved: integer("level_achieved"),
+  badgesUnlocked: jsonb("badges_unlocked"),
+  challengeCompleted: varchar("challenge_completed", { length: 255 }),
+  difficultyLevel: integer("difficulty_level"),
+  timeToComplete: integer("time_to_complete"), // in seconds
+  motivationImpact: integer("motivation_impact"), // 1-5 scale
+  engagementBoost: numeric("engagement_boost", { precision: 5, scale: 2 }),
+  socialSharing: boolean("social_sharing").default(false),
+  competitiveRanking: integer("competitive_ranking"),
+  achievementMetadata: jsonb("achievement_metadata"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const errorTrackingAnalytics = pgTable("error_tracking_analytics", {
+  id: varchar("id", { length: 255 }).primaryKey(),
+  userId: varchar("user_id", { length: 255 }).references(() => users.id),
+  sessionId: varchar("session_id", { length: 255 }).references(() => userSessions.id),
+  errorType: varchar("error_type", { length: 100 }),
+  errorCode: varchar("error_code", { length: 50 }),
+  errorMessage: text("error_message"),
+  stackTrace: text("stack_trace"),
+  pagePath: varchar("page_path", { length: 500 }),
+  userAgent: text("user_agent"),
+  reproductionSteps: jsonb("reproduction_steps"),
+  userImpact: varchar("user_impact", { length: 100 }), // low, medium, high, critical
+  frequency: integer("frequency").default(1),
+  resolved: boolean("resolved").default(false),
+  resolutionTime: integer("resolution_time"), // in minutes
+  workaroundProvided: boolean("workaround_provided").default(false),
+  userFeedback: text("user_feedback"),
+  automaticRecovery: boolean("automatic_recovery").default(false),
+  createdAt: timestamp("created_at").defaultNow(),
+  resolvedAt: timestamp("resolved_at"),
+});
+
+export const reportingAnalytics = pgTable("reporting_analytics", {
+  id: varchar("id", { length: 255 }).primaryKey(),
+  userId: varchar("user_id", { length: 255 }).references(() => users.id),
+  reportType: varchar("report_type", { length: 100 }),
+  reportCategory: varchar("report_category", { length: 100 }),
+  generationTime: integer("generation_time"), // in milliseconds
+  dataPointsIncluded: integer("data_points_included"),
+  timeRange: jsonb("time_range"),
+  filters: jsonb("filters"),
+  customizations: jsonb("customizations"),
+  exportFormat: varchar("export_format", { length: 50 }),
+  downloadCount: integer("download_count").default(0),
+  shareCount: integer("share_count").default(0),
+  viewTime: integer("view_time"), // in seconds
+  userRating: integer("user_rating"), // 1-5 scale
+  feedback: text("feedback"),
+  actionsTaken: jsonb("actions_taken"),
+  businessImpact: jsonb("business_impact"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const predictiveAnalytics = pgTable("predictive_analytics", {
+  id: varchar("id", { length: 255 }).primaryKey(),
+  userId: varchar("user_id", { length: 255 }).references(() => users.id).notNull(),
+  predictionType: varchar("prediction_type", { length: 100 }), // financial_goal, behavior, risk, opportunity
+  modelVersion: varchar("model_version", { length: 50 }),
+  inputFeatures: jsonb("input_features"),
+  prediction: jsonb("prediction"),
+  confidence: numeric("confidence", { precision: 5, scale: 2 }), // 0-100
+  timeHorizon: integer("time_horizon"), // prediction window in days
+  actualOutcome: jsonb("actual_outcome"),
+  accuracy: numeric("accuracy", { precision: 5, scale: 2 }),
+  businessValue: numeric("business_value", { precision: 10, scale: 2 }),
+  actionRecommendations: jsonb("action_recommendations"),
+  riskFactors: jsonb("risk_factors"),
+  monitoringMetrics: jsonb("monitoring_metrics"),
+  feedbackLoop: jsonb("feedback_loop"),
+  createdAt: timestamp("created_at").defaultNow(),
+  validatedAt: timestamp("validated_at"),
+});
+
 // Insert types
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type InsertUserProfile = z.infer<typeof insertUserProfileSchema>;

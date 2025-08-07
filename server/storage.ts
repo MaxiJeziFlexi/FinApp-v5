@@ -220,6 +220,9 @@ export class DatabaseStorage implements IStorage {
 
   // Session operations
   async getOrCreateSession(userId: string, advisorId: string): Promise<AdvisorSession> {
+    // Ensure user exists first
+    await this.ensureUserExists(userId);
+    
     // Check for existing active session
     const [existingSession] = await db
       .select()
@@ -252,6 +255,34 @@ export class DatabaseStorage implements IStorage {
     return newSession;
   }
 
+  // Helper method to ensure user exists
+  private async ensureUserExists(userId: string): Promise<void> {
+    const [existingUser] = await db
+      .select()
+      .from(users)
+      .where(eq(users.id, userId));
+    
+    if (!existingUser) {
+      try {
+        await db
+          .insert(users)
+          .values({
+            id: userId,
+            username: `guest_${userId.substring(0, 20)}`,
+            email: `${userId}@guest.local`,
+            role: 'user',
+            accountStatus: 'pending',
+            subscriptionTier: 'free',
+            subscriptionStatus: 'expired',
+          })
+          .onConflictDoNothing();
+      } catch (error) {
+        console.error('Error creating guest user:', error);
+        throw error;
+      }
+    }
+  }
+
   async getSession(sessionId: string): Promise<AdvisorSession | undefined> {
     const [session] = await db
       .select()
@@ -275,6 +306,11 @@ export class DatabaseStorage implements IStorage {
   }
 
   async saveChatMessage(message: InsertChatMessage & { id?: string }): Promise<ChatMessage> {
+    // Ensure user exists first
+    if (message.userId) {
+      await this.ensureUserExists(message.userId);
+    }
+    
     const messageWithId = {
       ...message,
       id: message.id || generateId('msg')

@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Link } from "wouter";
 import { 
   User, 
   MessageSquare, 
@@ -18,18 +19,17 @@ import {
   Globe,
   Users,
   BookOpen,
-  LogIn,
-  UserPlus,
   Crown,
-  Settings
+  Settings,
+  ShieldCheck,
+  LogOut
 } from "lucide-react";
 
-import AuthModal from "@/components/auth/AuthModal";
-import AuthenticatedOnboarding from "@/components/auth/AuthenticatedOnboarding";
+import { useAuth } from "@/hooks/useAuth";
 import RoleBasedAccess, { useUserPermissions } from "@/components/auth/RoleBasedAccess";
 import UserProfileDropdown from "@/components/auth/UserProfileDropdown";
 import UserSettingsModal from "@/components/settings/UserSettingsModal";
-import PremiumSubscriptionPlans from "@/components/premium/PremiumSubscriptionPlans";
+
 
 import OnboardingForm from "@/components/financial/OnboardingForm";
 import AdvisorSelection from "@/components/financial/AdvisorSelection";
@@ -48,14 +48,17 @@ export default function FinAppHome() {
   const [selectedAdvisor, setSelectedAdvisor] = useState<string | null>(null);
   const [userId] = useState(() => `user-${Math.random().toString(36).substring(2, 15)}-${Math.random().toString(36).substring(2, 15)}`);
   const [showAchievement, setShowAchievement] = useState<string | null>(null);
-  
-  // Authentication and user state
-  const [currentUser, setCurrentUser] = useState<UserType | null>(null);
-  const [showAuthModal, setShowAuthModal] = useState(false);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
-  const [showPremiumModal, setShowPremiumModal] = useState(false);
-  const [showOnboarding, setShowOnboarding] = useState(false);
-  const [authModalTab, setAuthModalTab] = useState<'signin' | 'signup' | 'premium'>('signin');
+  
+  // Get authenticated user
+  const { user: currentUser, isLoading: authLoading, isAuthenticated, isAdmin } = useAuth();
+
+  // Redirect to landing page if not authenticated
+  useEffect(() => {
+    if (!authLoading && !isAuthenticated) {
+      window.location.href = '/';
+    }
+  }, [authLoading, isAuthenticated]);
 
   // Track user engagement analytics
   useEffect(() => {
@@ -166,55 +169,33 @@ export default function FinAppHome() {
     setShowAchievement('decision_tree_complete');
   };
 
-  // Authentication handlers
-  const handleUserRegistered = (user: UserType) => {
-    setCurrentUser(user);
-    setShowAuthModal(false);
-    
-    // Show onboarding for new users
-    if (user.accountStatus === 'pending' || !user.emailVerified) {
-      setShowOnboarding(true);
-    }
-  };
-
-  const handleOnboardingComplete = () => {
-    setShowOnboarding(false);
-    if (currentUser) {
-      // Update user status to active
-      setCurrentUser({
-        ...currentUser,
-        accountStatus: 'active',
-        emailVerified: true
-      });
-    }
-  };
-
   const handleLogout = () => {
-    setCurrentUser(null);
-    setCurrentFlow('onboarding');
-    setSelectedAdvisor(null);
+    // Clear authentication data
+    localStorage.removeItem('finapp_admin_auth');
+    localStorage.removeItem('finapp_user_auth');
+    // Redirect to landing page
+    window.location.href = '/';
   };
 
-  const handleOpenAuth = (tab: 'signin' | 'signup' | 'premium' = 'signin') => {
-    setAuthModalTab(tab);
-    setShowAuthModal(true);
-  };
-
-  const handleOpenPremium = () => {
-    if (currentUser) {
-      setShowPremiumModal(true);
-    } else {
-      handleOpenAuth('premium');
-    }
-  };
-
-  if (profileLoading) {
+  if (authLoading || profileLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <Brain className="w-12 h-12 mx-auto mb-4 text-blue-600 animate-pulse" />
           <div className="text-xl font-semibold mb-2">FinApp is Loading</div>
           <div className="text-gray-600">Initializing your personalized financial education experience...</div>
+        </div>
+      </div>
+    );
+  }
+
+  // Show loading if not authenticated (will redirect)
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-xl font-semibold mb-2">Redirecting...</div>
+          <div className="text-gray-600">Please sign in to access FinApp</div>
         </div>
       </div>
     );
@@ -252,26 +233,56 @@ export default function FinAppHome() {
               </div>
             </div>
             
-            {/* Authentication Section for Header */}
-            {!currentUser && (
-              <div className="flex items-center justify-center gap-4 mt-6">
-                <Button
-                  variant="outline"
-                  onClick={() => handleOpenAuth('signin')}
-                  className="bg-white/10 border-white/20 text-white hover:bg-white/20 flex items-center gap-2"
-                >
-                  <LogIn className="w-4 h-4" />
-                  Sign In
-                </Button>
-                <Button
-                  onClick={() => handleOpenAuth('signup')}
-                  className="bg-white text-purple-600 hover:bg-gray-100 font-semibold flex items-center gap-2"
-                >
-                  <UserPlus className="w-4 h-4" />
-                  Join the Experiment
-                </Button>
+            {/* User Status and Navigation */}
+            <div className="flex items-center justify-center gap-4 mt-6">
+              <div className="flex items-center gap-2 bg-white/10 px-4 py-2 rounded-lg">
+                {isAdmin ? (
+                  <ShieldCheck className="w-5 h-5 text-yellow-300" />
+                ) : (
+                  <User className="w-5 h-5" />
+                )}
+                <span className="font-medium">
+                  {isAdmin ? 'Administrator' : 'User'}: {currentUser?.email}
+                </span>
+                <Badge variant="secondary" className="bg-white/20 text-white">
+                  {currentUser?.subscriptionTier === 'max' ? 'Max Plan' : 
+                   currentUser?.subscriptionTier === 'pro' ? 'Pro Plan' : 'Free Plan'}
+                </Badge>
               </div>
-            )}
+              
+              {/* Admin Navigation */}
+              {isAdmin && (
+                <div className="flex items-center gap-2">
+                  <Link href="/admin-dashboard">
+                    <Button
+                      variant="outline"
+                      className="bg-white/10 border-white/20 text-white hover:bg-white/20 flex items-center gap-2"
+                    >
+                      <Settings className="w-4 h-4" />
+                      Admin Panel
+                    </Button>
+                  </Link>
+                  <Link href="/developer-diagnostics">
+                    <Button
+                      variant="outline"
+                      className="bg-white/10 border-white/20 text-white hover:bg-white/20 flex items-center gap-2"
+                    >
+                      <Activity className="w-4 h-4" />
+                      Diagnostics
+                    </Button>
+                  </Link>
+                </div>
+              )}
+
+              <Button
+                onClick={handleLogout}
+                variant="outline"
+                className="bg-white/10 border-white/20 text-white hover:bg-white/20 flex items-center gap-2"
+              >
+                <LogOut className="w-4 h-4" />
+                Logout
+              </Button>
+            </div>
             
             {/* User Profile Section for Header */}
             {currentUser && (
@@ -351,18 +362,10 @@ export default function FinAppHome() {
                     <strong>AI-Enhanced Onboarding:</strong> Our advanced profiling system analyzes your responses to create a personalized learning experience with behavioral pattern recognition.
                   </AlertDescription>
                 </Alert>
-                {currentUser ? (
-                  <OnboardingForm 
-                    userId={userId} 
-                    onComplete={() => handleFlowChange('advisor-selection')} 
-                  />
-                ) : (
-                  <Alert className="border-blue-200 bg-blue-50">
-                    <AlertDescription>
-                      Please sign in to complete your profile. <Button variant="link" onClick={() => handleOpenAuth('signin')} className="p-0 h-auto">Sign in here</Button>
-                    </AlertDescription>
-                  </Alert>
-                )}
+                <OnboardingForm 
+                  userId={userId} 
+                  onComplete={() => handleFlowChange('advisor-selection')} 
+                />
               </TabsContent>
 
               <TabsContent value="advisor-selection" className="space-y-6">
@@ -372,18 +375,10 @@ export default function FinAppHome() {
                     <strong>AI Advisor Ecosystem:</strong> Choose from specialized financial education modules powered by advanced AI models and real-time learning analytics.
                   </AlertDescription>
                 </Alert>
-                {currentUser ? (
-                  <AdvisorSelection 
-                    userId={userId} 
-                    onAdvisorSelected={handleAdvisorSelected} 
-                  />
-                ) : (
-                  <Alert className="border-blue-200 bg-blue-50">
-                    <AlertDescription>
-                      Please sign in to access AI advisors. <Button variant="link" onClick={() => handleOpenAuth('signin')} className="p-0 h-auto">Sign in here</Button>
-                    </AlertDescription>
-                  </Alert>
-                )}
+                <AdvisorSelection 
+                  userId={userId} 
+                  onAdvisorSelected={handleAdvisorSelected} 
+                />
               </TabsContent>
 
               <TabsContent value="decision-tree" className="space-y-6">
@@ -393,25 +388,32 @@ export default function FinAppHome() {
                     <strong>Interactive Decision Trees:</strong> Gamified financial decision-making with real-time feedback, learning analytics, and personalized pathways.
                   </AlertDescription>
                 </Alert>
-                {selectedAdvisor && currentUser ? (
-                  <RoleBasedAccess 
-                    user={currentUser}
-                    requiredTier="pro"
-                    onUpgrade={handleOpenPremium}
-                  >
+                {selectedAdvisor ? (
+                  // Show based on user subscription
+                  isAdmin || currentUser?.subscriptionTier === 'max' || currentUser?.subscriptionTier === 'pro' ? (
                     <DecisionTreeView
                       userId={userId}
                       advisorId={selectedAdvisor}
                       onComplete={handleDecisionTreeComplete}
                     />
-                  </RoleBasedAccess>
-                ) : selectedAdvisor ? (
-                  <Alert className="border-orange-200 bg-orange-50">
+                  ) : (
+                    <Alert className="border-orange-200 bg-orange-50">
+                      <AlertDescription>
+                        <Crown className="w-4 h-4 inline mr-2" />
+                        Decision trees are available for Pro and Max plan users. Free users have access to basic advisor chat.
+                        <Link href="/checkout">
+                          <Button variant="link" className="p-0 h-auto ml-2">Upgrade to Pro</Button>
+                        </Link>
+                      </AlertDescription>
+                    </Alert>
+                  )
+                ) : (
+                  <Alert>
                     <AlertDescription>
-                      Please sign in to access decision trees. Free users get basic advisor chat only.
+                      Please select an advisor first to access decision trees.
                     </AlertDescription>
                   </Alert>
-                ) : null}
+                )}
               </TabsContent>
 
               <TabsContent value="chat" className="space-y-6">
@@ -457,7 +459,7 @@ export default function FinAppHome() {
         )}
 
         {/* Premium Upgrade CTA for non-premium users */}
-        {currentUser && currentUser.subscriptionTier === 'free' && (
+        {currentUser && currentUser.subscriptionTier === 'free' && !isAdmin && (
           <Card className="mt-8 bg-gradient-to-r from-purple-600 to-pink-600 text-white">
             <CardContent className="p-6 text-center">
               <Crown className="w-12 h-12 mx-auto mb-4 text-yellow-300" />
@@ -465,13 +467,12 @@ export default function FinAppHome() {
               <p className="mb-4 opacity-90">
                 Get unlimited AI advisors, advanced analytics, and priority learning features
               </p>
-              <Button
-                onClick={handleOpenPremium}
-                className="bg-white text-purple-600 hover:bg-gray-100 font-semibold"
-              >
-                <Crown className="w-4 h-4 mr-2" />
-                Upgrade to Premium
-              </Button>
+              <Link href="/checkout">
+                <Button className="bg-white text-purple-600 hover:bg-gray-100 font-semibold">
+                  <Crown className="w-4 h-4 mr-2" />
+                  Upgrade to Premium
+                </Button>
+              </Link>
             </CardContent>
           </Card>
         )}
@@ -498,14 +499,6 @@ export default function FinAppHome() {
         </Card>
       </div>
 
-      {/* Authentication Modal */}
-      <AuthModal
-        isOpen={showAuthModal}
-        onClose={() => setShowAuthModal(false)}
-        onUserRegistered={handleUserRegistered}
-        defaultTab={authModalTab}
-      />
-
       {/* User Settings Modal */}
       {currentUser && (
         <UserSettingsModal
@@ -515,34 +508,10 @@ export default function FinAppHome() {
         />
       )}
 
-      {/* Premium Subscription Modal */}
-      {showPremiumModal && currentUser && (
-        <PremiumSubscriptionPlans
-          currentTier={currentUser.subscriptionTier || 'free'}
-          userId={currentUser.id}
-          onSuccess={() => setShowPremiumModal(false)}
-          onClose={() => setShowPremiumModal(false)}
-        />
-      )}
-
-      {/* Authenticated Onboarding Modal */}
-      {showOnboarding && currentUser && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg max-w-4xl max-h-[90vh] overflow-y-auto w-full">
-            <div className="p-6">
-              <AuthenticatedOnboarding
-                user={currentUser}
-                onComplete={handleOnboardingComplete}
-              />
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* Achievement Notifications */}
       {showAchievement && (
         <AchievementNotification
-          achievement={showAchievement}
+          achievementId={showAchievement}
           onClose={() => setShowAchievement(null)}
         />
       )}

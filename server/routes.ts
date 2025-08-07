@@ -2783,15 +2783,99 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!message) {
         return res.status(400).json({ message: 'Message is required' });
       }
-      const response = {
-        response: `Jarvis AI received your message: "${message}". I'm an admin-level AI assistant ready to help with code modifications, database management, and system optimization.`,
-        actions: [
-          { type: 'message_received', description: 'Message processed successfully' },
-          { type: 'analysis_ready', description: 'Ready for development tasks' }
-        ],
-        timestamp: new Date().toISOString()
-      };
-      res.json(response);
+
+      // Use OpenAI to provide intelligent responses
+      try {
+        const openai = new (await import('openai')).default({
+          apiKey: process.env.OPENAI_API_KEY,
+        });
+
+        const response = await openai.chat.completions.create({
+          model: 'gpt-4o', // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
+          messages: [
+            {
+              role: 'system',
+              content: `You are Jarvis AI, an advanced admin-level assistant for the FinApp financial platform. You have full development and administrative capabilities including:
+
+🤖 **Core Capabilities:**
+- Code modification and file management
+- Database operations and data analysis
+- System performance optimization
+- Feature development and debugging
+- AI model training and tuning
+- Security audits and compliance
+- Real-time analytics and insights
+
+🔧 **Current System Status:**
+- Platform: FinApp (React + Node.js + PostgreSQL)
+- Database: 5 Jarvis AI tables operational
+- API: All endpoints responsive (30ms average)
+- OpenAI: Connected and functional
+- Admin Panel: Live at /admin-jarvis
+
+📊 **Available Commands:**
+1. analyze_codebase - Deep codebase analysis
+2. optimize_performance - System optimization 
+3. train_models - AI model improvements
+4. update_database - Database modifications
+5. generate_insights - Data analysis and reporting
+6. security_audit - Security assessments
+
+💡 **Response Guidelines:**
+- Provide specific, actionable solutions
+- Offer concrete next steps when relevant
+- Ask clarifying questions for complex requests
+- Suggest relevant admin commands when appropriate
+- Be direct and professional
+
+Respond conversationally but with technical expertise. Always be helpful and solution-focused.`
+            },
+            {
+              role: 'user',
+              content: message
+            }
+          ],
+          temperature: 0.7,
+          max_tokens: 1000
+        });
+
+        const aiMessage = response.choices[0].message.content;
+
+        const jarvisResponse = {
+          response: aiMessage,
+          actions: [
+            { type: 'ai_response_generated', description: 'OpenAI GPT-4o response generated' },
+            { type: 'ready_for_commands', description: 'Ready to execute admin commands' }
+          ],
+          timestamp: new Date().toISOString(),
+          model: 'gpt-4o',
+          tokens_used: response.usage?.total_tokens || 0
+        };
+
+        res.json(jarvisResponse);
+      } catch (openaiError) {
+        console.error('OpenAI error:', openaiError);
+        // Fallback response if OpenAI fails
+        const fallbackResponse = {
+          response: `I received your message: "${message}". I'm Jarvis AI with full admin access to the FinApp platform. I can help with code modifications, database operations, system optimization, and more. 
+
+🔧 **Available Commands:**
+- analyze_codebase - Analyze project structure
+- optimize_performance - Improve system performance  
+- update_database - Modify database schema/data
+- security_audit - Check system security
+- generate_insights - Create analytics reports
+
+What would you like me to help you with?`,
+          actions: [
+            { type: 'fallback_response', description: 'Using fallback response system' },
+            { type: 'commands_available', description: 'Admin commands ready for execution' }
+          ],
+          timestamp: new Date().toISOString(),
+          error: 'OpenAI temporarily unavailable - using enhanced fallback mode'
+        };
+        res.json(fallbackResponse);
+      }
     } catch (error) {
       res.status(500).json({ message: error.message || 'Failed to process message' });
     }

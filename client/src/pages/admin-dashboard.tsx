@@ -4,7 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { FinancialDashboardWidgets } from '@/components/dashboard/FinancialDashboardWidgets';
-import { Users, MessageCircle, TrendingUp, Settings, Shield, Database, Activity, AlertTriangle, CheckCircle, RefreshCw } from 'lucide-react';
+import { Users, MessageCircle, TrendingUp, Settings, Shield, Database, Activity, AlertTriangle, CheckCircle, RefreshCw, BarChart3, Brain, Bot } from 'lucide-react';
 import { apiRequest } from '@/lib/queryClient';
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '@/hooks/useAuth';
@@ -232,6 +232,66 @@ export function AdminDashboard() {
                   <div className="text-xs opacity-90">
                     All services online
                   </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Admin Quick Access */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <Card className="hover:shadow-lg transition-shadow cursor-pointer">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <BarChart3 className="h-5 w-5 text-blue-500" />
+                    AI Analytics
+                  </CardTitle>
+                  <CardDescription>
+                    Real-time AI performance monitoring
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <Link href="/ai-dashboard">
+                    <Button size="sm" className="w-full">
+                      Access Dashboard
+                    </Button>
+                  </Link>
+                </CardContent>
+              </Card>
+
+              <Card className="hover:shadow-lg transition-shadow cursor-pointer bg-gradient-to-br from-purple-50 to-indigo-50 border-purple-200">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Brain className="h-5 w-5 text-purple-600" />
+                    Jarvis AI Assistant
+                  </CardTitle>
+                  <CardDescription>
+                    Admin AI with full development permissions
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <Link href="/admin-jarvis">
+                    <Button size="sm" className="w-full bg-purple-600 hover:bg-purple-700">
+                      Launch Jarvis
+                    </Button>
+                  </Link>
+                </CardContent>
+              </Card>
+
+              <Card className="hover:shadow-lg transition-shadow cursor-pointer">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Activity className="h-5 w-5 text-green-500" />
+                    Diagnostics
+                  </CardTitle>
+                  <CardDescription>
+                    System health and error monitoring
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <Link href="/developer-diagnostics">
+                    <Button size="sm" className="w-full">
+                      View Diagnostics
+                    </Button>
+                  </Link>
                 </CardContent>
               </Card>
             </div>

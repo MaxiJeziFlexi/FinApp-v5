@@ -87,6 +87,7 @@ function Router() {
           <Route path="/learning-progress" component={LearningProgress} />
           <Route path="/test" component={ComprehensiveTest} />
           <Route path="/admin" component={AdminDashboard} />
+          <Route path="/admin-jarvis" component={AdminJarvis} />
           <Route path="/ai-dashboard" component={AdvancedAIDashboard} />
           <Route path="/gaming" component={GamingHub} />
           <Route path="/enhanced-crypto" component={EnhancedCryptoMarketplace} />

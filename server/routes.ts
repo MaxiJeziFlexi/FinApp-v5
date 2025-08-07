@@ -2784,6 +2784,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: 'Message is required' });
       }
 
+      // Track analytics for Jarvis AI
+      const startTime = Date.now();
+
       // Use OpenAI to provide intelligent responses
       try {
         const openai = new (await import('openai')).default({
@@ -2840,16 +2843,34 @@ Respond conversationally but with technical expertise. Always be helpful and sol
         });
 
         const aiMessage = response.choices[0].message.content;
+        const processingTime = Date.now() - startTime;
+
+        // Connect to AI analytics
+        try {
+          const { analyticsService } = await import('./services/analyticsService');
+          await analyticsService.trackAIModelPerformance('GPT-4o', {
+            type: 'jarvis-admin-chat',
+            tokens: response.usage?.total_tokens || 0,
+            responseTime: processingTime,
+            sessionId: sessionId,
+            success: true,
+            modelName: 'GPT-4o'
+          });
+        } catch (analyticsError) {
+          console.warn('Jarvis AI analytics tracking failed:', analyticsError);
+        }
 
         const jarvisResponse = {
           response: aiMessage,
           actions: [
             { type: 'ai_response_generated', description: 'OpenAI GPT-4o response generated' },
+            { type: 'analytics_tracked', description: 'Connected to AI analytics system' },
             { type: 'ready_for_commands', description: 'Ready to execute admin commands' }
           ],
           timestamp: new Date().toISOString(),
           model: 'gpt-4o',
-          tokens_used: response.usage?.total_tokens || 0
+          tokens_used: response.usage?.total_tokens || 0,
+          processing_time: processingTime
         };
 
         res.json(jarvisResponse);

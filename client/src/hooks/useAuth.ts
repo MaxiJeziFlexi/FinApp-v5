@@ -107,6 +107,6 @@ export function logout() {
   localStorage.removeItem('finapp_admin_auth');
   localStorage.removeItem('finapp_user_auth');
   
-  // Redirect to landing page
-  window.location.href = '/';
+  // Redirect to server logout endpoint which handles proper session termination
+  window.location.href = '/api/logout';
 }

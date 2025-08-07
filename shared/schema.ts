@@ -32,6 +32,11 @@ export const users = pgTable("users", {
   city: varchar("city", { length: 100 }),
   occupation: varchar("occupation", { length: 100 }),
   
+  // Authentication and security
+  passwordHash: varchar("password_hash", { length: 255 }),
+  sessionToken: varchar("session_token", { length: 255 }),
+  lastLogin: timestamp("last_login"),
+  
   // User role and permissions
   role: varchar("role", { enum: ['user', 'moderator', 'admin'] }).default('user'),
   

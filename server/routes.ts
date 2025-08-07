@@ -4,7 +4,7 @@ import { storage } from "./storage";
 import { advancedAI } from "./services/advancedAI";
 import { openAIService } from "./services/openai";
 import { decisionTreeService } from "./services/decisionTree";
-import { speechRecognitionService } from "./services/speechRecognition";
+import { SpeechRecognitionService } from "./services/speechRecognition";
 import { plaidService } from "./services/plaidService";
 import { translationService } from "./services/translationService";
 import { legalAIService } from "./services/legalAIService";
@@ -442,8 +442,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         userId: user_id,
         advisorId: advisor_id,
         sender: 'user',
-        content: message,
-        modelUsed: model || 'gpt-4o'
+        message: message,
+        metadata: { modelUsed: model || 'gpt-4o' }
       });
 
       // Analyze sentiment
@@ -469,11 +469,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         userId: user_id,
         advisorId: advisor_id,
         sender: 'advisor',
-        content: aiResponse.response,
-        sentiment: sentiment.sentiment,
-        confidence: sentiment.confidence,
-        modelUsed: aiResponse.model,
-        responseTimeMs: responseTime
+        message: aiResponse.response,
+        sentimentScore: sentiment.sentiment,
+        metadata: { confidence: sentiment.confidence, modelUsed: aiResponse.model, responseTimeMs: responseTime }
       });
 
       res.json({
@@ -580,8 +578,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: 'Transcript is required' });
       }
 
-      const isValid = speechRecognitionService.validateTranscript(transcript);
-      const cleaned = speechRecognitionService.formatForChat(transcript);
+      const isValid = SpeechRecognitionService.validateTranscript(transcript);
+      const cleaned = SpeechRecognitionService.formatForChat(transcript);
       
       res.json({
         valid: isValid,

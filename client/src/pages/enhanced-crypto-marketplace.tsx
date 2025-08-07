@@ -104,6 +104,45 @@ export default function EnhancedCryptoMarketplace() {
   // Check if user has access to enhanced crypto marketplace (Pro/Max plans or admin)
   const hasAccess = isAdmin || (user as any)?.subscriptionTier === 'pro' || (user as any)?.subscriptionTier === 'max';
 
+  // Fetch data with React Query (always call hooks before any conditional returns)
+  const { data: userStats } = useQuery<UserStats>({
+    queryKey: ['/api/crypto/user-stats'],
+    enabled: hasAccess, // Only fetch when user has access
+  });
+
+  const { data: marketStats } = useQuery<MarketStats>({
+    queryKey: ['/api/crypto/market-stats'],
+    enabled: hasAccess,
+  });
+
+  const { data: adviceRequests } = useQuery<AdviceRequest[]>({
+    queryKey: ['/api/crypto/advice-requests'],
+    enabled: hasAccess,
+  });
+
+  const { data: transactions } = useQuery<CryptoTransaction[]>({
+    queryKey: ['/api/crypto/transactions'],
+    enabled: hasAccess,
+  });
+
+  const { data: sentiment } = useQuery<MarketSentiment>({
+    queryKey: ['/api/realtime/crypto-sentiment'],
+    enabled: hasAccess,
+  });
+
+  const placeBidMutation = useMutation({
+    mutationFn: async (data: { questionId: string; bidAmount: number; bidType: string }) => {
+      return apiRequest('POST', '/api/crypto/place-bid', data);
+    },
+    onSuccess: () => {
+      toast({
+        title: "Bid Placed!",
+        description: "Your bid has been successfully placed.",
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/crypto/advice-requests'] });
+    },
+  });
+
   if (!hasAccess) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800">
@@ -155,40 +194,7 @@ export default function EnhancedCryptoMarketplace() {
     );
   }
 
-  // Fetch data with React Query
-  const { data: userStats } = useQuery<UserStats>({
-    queryKey: ['/api/crypto/user-stats'],
-  });
-
-  const { data: marketStats } = useQuery<MarketStats>({
-    queryKey: ['/api/crypto/market-stats'],
-  });
-
-  const { data: adviceRequests } = useQuery<AdviceRequest[]>({
-    queryKey: ['/api/crypto/advice-requests'],
-  });
-
-  const { data: transactions } = useQuery<CryptoTransaction[]>({
-    queryKey: ['/api/crypto/transactions'],
-  });
-
-  const { data: sentiment } = useQuery<MarketSentiment>({
-    queryKey: ['/api/realtime/crypto-sentiment'],
-  });
-
-  const placeBidMutation = useMutation({
-    mutationFn: async (data: { questionId: string; bidAmount: number; bidType: string }) => {
-      return apiRequest('POST', '/api/crypto/place-bid', data);
-    },
-    onSuccess: () => {
-      toast({
-        title: "Bid Placed!",
-        description: "Your bid has been placed successfully.",
-      });
-      queryClient.invalidateQueries({ queryKey: ['/api/crypto/advice-requests'] });
-    }
-  });
-
+  // Complete the remaining component logic
   const mockUserStats: UserStats = userStats || {
     cryptoBalance: 1.25075,
     totalEarned: 3400.50,

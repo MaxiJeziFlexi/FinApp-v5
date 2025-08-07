@@ -31,7 +31,13 @@ export default function SignIn() {
   const handleSignIn = async () => {
     setIsLoading(true);
     try {
-      // For demo purposes, redirect directly to the app
+      // For demo purposes, store user authentication
+      localStorage.setItem('finapp_user_auth', JSON.stringify({
+        email: formData.email,
+        name: formData.email.split('@')[0],
+        loginTime: new Date().toISOString()
+      }));
+
       toast({
         title: "Welcome to FinApp!",
         description: "Sign in successful. Redirecting to your dashboard...",

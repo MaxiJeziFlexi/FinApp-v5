@@ -39,13 +39,22 @@ export default function AdminLogin() {
         return;
       }
 
+      // Store admin authentication in localStorage for demo purposes
+      localStorage.setItem('finapp_admin_auth', JSON.stringify({
+        isAdmin: true,
+        email: formData.email,
+        name: formData.name,
+        loginTime: new Date().toISOString()
+      }));
+
       toast({
         title: "Admin Access Granted",
         description: "Welcome, Administrator! Redirecting to your dashboard...",
       });
       
       setTimeout(() => {
-        window.location.href = '/finapp-home?admin=true';
+        // Force a page refresh to update authentication state
+        window.location.href = '/finapp-home';
       }, 1500);
     } catch (error) {
       toast({

@@ -122,7 +122,6 @@ export default function AdvancedAIDashboard() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-purple-50 relative overflow-hidden">
       <FloatingElements />
-      
       <div className="container mx-auto px-6 py-8 relative z-10">
         {/* Header */}
         <div className="text-center mb-8">
@@ -294,7 +293,7 @@ export default function AdvancedAIDashboard() {
                     <CardContent>
                       <div className="grid md:grid-cols-3 gap-4">
                         <div>
-                          <div className="text-2xl font-bold text-purple-600">{model.accuracy}%</div>
+                          <div className="text-2xl font-bold text-purple-600 text-center ml-[0px] mr-[0px]">{model.accuracy}%</div>
                           <div className="text-sm text-gray-600">Accuracy</div>
                         </div>
                         <div>

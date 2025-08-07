@@ -1,5 +1,6 @@
 import { storage } from '../storage';
 import crypto from 'crypto';
+import { aiEmotionalAnalysisService, type AIPersonalizationInput } from './aiEmotionalAnalysisService';
 
 function generateId(prefix: string): string {
   return `${prefix}_${crypto.randomUUID()}`;
@@ -74,387 +75,880 @@ export class PersonalizedDecisionTreeService {
   private personalizedTrees: Record<string, PersonalizedTreeDefinition> = {
     budget_planner: {
       advisorId: 'budget_planner',
-      name: 'Personalized Budget Planning Assessment',
-      description: 'Comprehensive assessment to understand your financial situation and create a personalized budget strategy',
-      categories: ['financial_status', 'goals', 'demographics', 'preferences', 'experience'],
+      name: 'Personal Budget Discovery',
+      description: 'Discover your financial personality and create a budget that works with your lifestyle',
+      categories: ['emotional_spending', 'priorities', 'habits', 'goals', 'mindset'],
       ai_learning_objectives: [
-        'Understand spending patterns and priorities',
-        'Assess financial discipline and habits',
-        'Identify optimization opportunities',
-        'Determine appropriate communication style',
-        'Build predictive financial behavior model'
+        'Map emotional spending triggers and patterns',
+        'Identify core financial values and priorities',
+        'Understand money mindset and psychological drivers',
+        'Assess financial discipline and behavioral tendencies',
+        'Build personalized motivation and communication strategy'
       ],
       questions: [
         {
-          id: 'current_income',
-          question: 'What is your current monthly income after taxes?',
-          description: 'Include all sources: salary, freelance, investments, etc.',
-          type: 'range',
-          category: 'financial_status',
-          validation: { required: true, min_value: 0, max_value: 50000 },
-          ai_context: 'Primary indicator of financial capacity and appropriate recommendations'
-        },
-        {
-          id: 'expense_categories',
-          question: 'Which expense categories are most important to you?',
-          description: 'Select all that represent your major spending priorities',
-          type: 'multiple_choice',
-          category: 'preferences',
-          options: [
-            {
-              id: 'housing',
-              value: 'housing',
-              title: 'Housing & Utilities',
-              description: 'Rent, mortgage, utilities, maintenance',
-              ai_weight: 0.9
-            },
-            {
-              id: 'education',
-              value: 'education',
-              title: 'Education & Learning',
-              description: 'Courses, books, professional development',
-              ai_weight: 0.8
-            },
-            {
-              id: 'health',
-              value: 'health',
-              title: 'Health & Wellness',
-              description: 'Healthcare, fitness, nutrition',
-              ai_weight: 0.9
-            },
-            {
-              id: 'entertainment',
-              value: 'entertainment',
-              title: 'Entertainment & Lifestyle',
-              description: 'Dining, travel, hobbies, subscriptions',
-              ai_weight: 0.6
-            },
-            {
-              id: 'family',
-              value: 'family',
-              title: 'Family & Dependents',
-              description: 'Children, elderly care, family support',
-              ai_weight: 0.9
-            },
-            {
-              id: 'savings',
-              value: 'savings',
-              title: 'Savings & Investments',
-              description: 'Emergency fund, retirement, investments',
-              ai_weight: 1.0
-            }
-          ],
-          validation: { required: true },
-          ai_context: 'Reveals personal values and spending priorities for personalized recommendations'
-        },
-        {
-          id: 'financial_stress_triggers',
-          question: 'What causes you the most financial stress?',
+          id: 'money_feeling',
+          question: 'When you think about money, what\'s your first emotion?',
+          description: 'Your gut reaction reveals your money mindset',
           type: 'single_choice',
-          category: 'preferences',
+          category: 'emotional_spending',
           options: [
             {
-              id: 'insufficient_savings',
-              value: 'savings',
-              title: 'Not having enough savings',
-              description: 'Worry about emergency funds and future security',
-              ai_weight: 0.9,
-              follow_up_questions: ['savings_target', 'emergency_fund_goal']
-            },
-            {
-              id: 'overspending',
-              value: 'spending',
-              title: 'Overspending regularly',
-              description: 'Difficulty controlling expenses and impulse purchases',
-              ai_weight: 0.8,
-              follow_up_questions: ['spending_triggers', 'budget_tools_used']
-            },
-            {
-              id: 'debt_burden',
-              value: 'debt',
-              title: 'High debt levels',
-              description: 'Credit cards, loans, or other debt obligations',
-              ai_weight: 0.9,
-              follow_up_questions: ['debt_types', 'debt_priority']
-            },
-            {
-              id: 'income_uncertainty',
-              value: 'income',
-              title: 'Unstable income',
-              description: 'Variable or unpredictable earnings',
-              ai_weight: 0.8,
-              follow_up_questions: ['income_sources', 'income_stability']
-            }
-          ],
-          validation: { required: true },
-          ai_context: 'Primary pain point that determines recommendation focus and communication approach'
-        },
-        {
-          id: 'financial_goals_priority',
-          question: 'What are your top 3 financial priorities for the next 12 months?',
-          description: 'Rank these goals in order of importance to you',
-          type: 'multiple_choice',
-          category: 'goals',
-          options: [
-            {
-              id: 'emergency_fund',
-              value: 'emergency',
-              title: 'Build Emergency Fund',
-              description: '3-6 months of expenses saved',
-              ai_weight: 0.9
-            },
-            {
-              id: 'debt_elimination',
-              value: 'debt',
-              title: 'Eliminate High-Interest Debt',
-              description: 'Pay off credit cards and loans',
-              ai_weight: 0.9
-            },
-            {
-              id: 'home_purchase',
-              value: 'home',
-              title: 'Save for Home Purchase',
-              description: 'Down payment and closing costs',
-              ai_weight: 0.8
-            },
-            {
-              id: 'retirement_boost',
-              value: 'retirement',
-              title: 'Increase Retirement Savings',
-              description: 'Maximize 401k, IRA contributions',
-              ai_weight: 0.7
-            },
-            {
-              id: 'investment_start',
-              value: 'investing',
-              title: 'Start Investment Portfolio',
-              description: 'Begin building wealth through investments',
-              ai_weight: 0.7
-            },
-            {
-              id: 'expense_optimization',
-              value: 'optimization',
-              title: 'Optimize Monthly Expenses',
-              description: 'Reduce unnecessary spending',
-              ai_weight: 0.8
-            }
-          ],
-          validation: { required: true },
-          ai_context: 'Primary goals that shape entire financial strategy and AI recommendations'
-        },
-        {
-          id: 'decision_making_style',
-          question: 'How do you prefer to make financial decisions?',
-          type: 'single_choice',
-          category: 'preferences',
-          options: [
-            {
-              id: 'data_driven',
-              value: 'analytical',
-              title: 'Data & Analysis',
-              description: 'I want detailed numbers, charts, and comparisons',
+              id: 'excited',
+              value: 'opportunity',
+              title: 'Excited & Optimistic',
+              description: 'Money represents opportunities and freedom',
               ai_weight: 1.0
             },
             {
-              id: 'simple_guidance',
-              value: 'guided',
-              title: 'Simple Step-by-Step Guidance',
-              description: 'Give me clear actions without overwhelming details',
+              id: 'stressed',
+              value: 'anxiety',
+              title: 'Stressed & Worried',
+              description: 'Money feels overwhelming and stressful',
               ai_weight: 0.9
             },
             {
-              id: 'collaborative',
-              value: 'discussion',
-              title: 'Discussion & Collaboration',
-              description: 'I like to talk through options and get feedback',
+              id: 'neutral',
+              value: 'practical',
+              title: 'Calm & Practical',
+              description: 'Money is just a tool to manage',
               ai_weight: 0.8
+            }
+          ],
+          validation: { required: true },
+          ai_context: 'Core emotional relationship with money determines communication style and motivation triggers'
+        },
+        {
+          id: 'spending_trigger',
+          question: 'What usually makes you spend money you hadn\'t planned to spend?',
+          description: 'Understanding your triggers helps build better defenses',
+          type: 'single_choice',
+          category: 'emotional_spending',
+          options: [
+            {
+              id: 'social',
+              value: 'social_pressure',
+              title: 'Social Situations',
+              description: 'Friends, family, or social pressure influences spending',
+              ai_weight: 1.0
+            },
+            {
+              id: 'emotional',
+              value: 'emotional_state',
+              title: 'Emotional States',
+              description: 'Stress, celebration, or mood changes trigger spending',
+              ai_weight: 0.9
+            },
+            {
+              id: 'convenience',
+              value: 'convenience',
+              title: 'Convenience & Impulse',
+              description: 'Easy access or attractive deals lead to purchases',
+              ai_weight: 0.8
+            }
+          ],
+          validation: { required: true },
+          ai_context: 'Identifies primary behavioral spending triggers for personalized budgeting strategies'
+        },
+        {
+          id: 'money_priority',
+          question: 'If you had extra $500 right now, what would you most want to do with it?',
+          description: 'This reveals your true financial priorities',
+          type: 'single_choice',
+          category: 'priorities',
+          options: [
+            {
+              id: 'security',
+              value: 'security',
+              title: 'Save for Security',
+              description: 'Build emergency fund or pay down debt',
+              ai_weight: 1.0
+            },
+            {
+              id: 'growth',
+              value: 'growth',
+              title: 'Invest for Growth',
+              description: 'Put it in investments or retirement account',
+              ai_weight: 0.9
+            },
+            {
+              id: 'experience',
+              value: 'experience',
+              title: 'Spend on Experience',
+              description: 'Travel, education, or meaningful purchases',
+              ai_weight: 0.8
+            }
+          ],
+          validation: { required: true },
+          ai_context: 'Core financial priority that drives all budgeting and saving recommendations'
+        },
+        {
+          id: 'budgeting_style',
+          question: 'What\'s your ideal approach to managing your money?',
+          description: 'Different styles work for different personalities',
+          type: 'single_choice',
+          category: 'habits',
+          options: [
+            {
+              id: 'detailed',
+              value: 'detailed_tracker',
+              title: 'Detailed Tracker',
+              description: 'Track every expense and category precisely',
+              ai_weight: 1.0
+            },
+            {
+              id: 'simple',
+              value: 'simple_rules',
+              title: 'Simple Rules',
+              description: 'Follow easy rules like 50/30/20 without detailed tracking',
+              ai_weight: 0.9
             },
             {
               id: 'automated',
-              value: 'automation',
-              title: 'Automated Solutions',
-              description: 'Set it up once and let it run automatically',
-              ai_weight: 0.7
+              value: 'automated',
+              title: 'Set & Forget',
+              description: 'Automate everything and check in occasionally',
+              ai_weight: 0.8
             }
           ],
           validation: { required: true },
-          ai_context: 'Communication style preference that determines how AI should present recommendations'
+          ai_context: 'Budgeting personality determines which systems and tools will actually be used'
         },
         {
-          id: 'financial_experience',
-          question: 'How would you describe your financial knowledge and experience?',
+          id: 'money_mindset',
+          question: 'Complete this sentence: "Money is..."',
+          description: 'Your core belief about money shapes all financial decisions',
           type: 'single_choice',
-          category: 'experience',
+          category: 'mindset',
           options: [
             {
-              id: 'beginner',
-              value: 'beginner',
-              title: 'Beginner',
-              description: 'New to personal finance, need basic guidance',
+              id: 'tool',
+              value: 'tool',
+              title: 'A Tool for Freedom',
+              description: 'Money enables choices and experiences',
               ai_weight: 1.0
             },
             {
-              id: 'some_experience',
-              value: 'intermediate',
-              title: 'Some Experience',
-              description: 'Have basic knowledge, looking to improve',
-              ai_weight: 0.8
+              id: 'security',
+              value: 'security',
+              title: 'Security and Safety',
+              description: 'Money provides protection and peace of mind',
+              ai_weight: 0.9
             },
             {
-              id: 'experienced',
-              value: 'advanced',
-              title: 'Experienced',
-              description: 'Comfortable with financial concepts, want optimization',
-              ai_weight: 0.6
+              id: 'challenge',
+              value: 'challenge',
+              title: 'A Necessary Challenge',
+              description: 'Money is complex but manageable with effort',
+              ai_weight: 0.8
             }
           ],
           validation: { required: true },
-          ai_context: 'Experience level determines complexity of recommendations and educational content needed'
+          ai_context: 'Fundamental money mindset drives motivation, goals, and preferred communication approach'
         }
       ]
     },
 
     investment_specialist: {
       advisorId: 'investment_specialist',
-      name: 'Personalized Investment Assessment',
-      description: 'Deep dive into your investment preferences, risk tolerance, and goals to create a tailored investment strategy',
-      categories: ['risk_tolerance', 'goals', 'experience', 'preferences'],
+      name: 'Investment Psychology Profile',
+      description: 'Discover your investment personality and build a strategy that matches your emotional comfort zone',
+      categories: ['risk_psychology', 'time_perspective', 'loss_reaction', 'opportunity_view', 'investment_values'],
       ai_learning_objectives: [
-        'Assess true risk tolerance vs stated preferences',
-        'Identify investment biases and behavioral patterns',
-        'Understand time horizons and liquidity needs',
-        'Determine appropriate asset allocation',
-        'Build investment personality profile'
+        'Map emotional response to market volatility and losses',
+        'Understand time horizon psychology and patience levels', 
+        'Identify fear vs greed decision-making patterns',
+        'Assess learning style and information processing preferences',
+        'Build personalized investment communication and motivation strategy'
       ],
       questions: [
         {
-          id: 'investment_timeline',
-          question: 'When do you plan to start using this money you want to invest?',
+          id: 'market_reaction',
+          question: 'You check your investment account and see it\'s down 15% this month. Your immediate thought is:',
+          description: 'Your gut reaction reveals your true risk psychology',
           type: 'single_choice',
-          category: 'goals',
+          category: 'risk_psychology',
           options: [
             {
-              id: 'short_term',
-              value: '1-3_years',
-              title: '1-3 years',
-              description: 'Need access relatively soon',
+              id: 'panic',
+              value: 'risk_averse',
+              title: '"I need to sell before it gets worse"',
+              description: 'Focus on preventing further losses',
               ai_weight: 1.0
             },
             {
-              id: 'medium_term',
-              value: '3-10_years',
-              title: '3-10 years',
-              description: 'Medium-term financial goal',
-              ai_weight: 0.8
+              id: 'rational',
+              value: 'moderate_risk',
+              title: '"This is normal market volatility"',
+              description: 'Stay calm and stick to the plan',
+              ai_weight: 0.9
             },
             {
-              id: 'long_term',
-              value: '10_plus_years',
-              title: '10+ years',
-              description: 'Long-term wealth building',
-              ai_weight: 0.6
+              id: 'opportunity',
+              value: 'risk_seeking',
+              title: '"Great, everything is on sale now"',
+              description: 'See downturns as buying opportunities',
+              ai_weight: 0.8
+            }
+          ],
+          validation: { required: true },
+          ai_context: 'Emotional response to losses predicts actual investment behavior better than stated risk tolerance'
+        },
+        {
+          id: 'time_horizon',
+          question: 'When do you imagine you might need this money?',
+          description: 'Your time perspective shapes every investment decision',
+          type: 'single_choice',
+          category: 'time_perspective',
+          options: [
+            {
+              id: 'soon',
+              value: 'short_term',
+              title: 'Within 5 years',
+              description: 'For a house, car, or major purchase',
+              ai_weight: 1.0
+            },
+            {
+              id: 'later',
+              value: 'medium_term',
+              title: '5-15 years from now',
+              description: 'For kids\' college or mid-life goals',
+              ai_weight: 0.9
             },
             {
               id: 'retirement',
-              value: 'retirement',
-              title: 'Retirement (20+ years)',
-              description: 'Retirement planning focused',
-              ai_weight: 0.5
+              value: 'long_term',
+              title: 'For retirement (15+ years)',
+              description: 'Long-term wealth building',
+              ai_weight: 0.8
             }
           ],
           validation: { required: true },
-          ai_context: 'Time horizon is crucial for risk tolerance and asset allocation recommendations'
+          ai_context: 'Time horizon determines appropriate risk level and investment strategy'
         },
         {
-          id: 'risk_scenario',
-          question: 'If your investments dropped 20% in value over 3 months, what would you do?',
+          id: 'loss_comfort',
+          question: 'What\'s the biggest loss you could handle without losing sleep?',
+          description: 'This reveals your true emotional comfort zone',
           type: 'single_choice',
-          category: 'risk_tolerance',
+          category: 'loss_reaction',
           options: [
             {
-              id: 'panic_sell',
-              value: 'conservative',
-              title: 'Sell everything to prevent further losses',
-              description: 'I cannot handle seeing my money decrease',
+              id: 'minimal',
+              value: 'loss_averse',
+              title: 'Less than 5% of my money',
+              description: 'I need stability and predictability',
               ai_weight: 1.0
             },
             {
-              id: 'worry_hold',
-              value: 'moderate_conservative',
-              title: 'Worry but hold my positions',
-              description: 'Very uncomfortable but would not sell',
+              id: 'moderate',
+              value: 'moderate_loss',
+              title: '10-20% loss is manageable',
+              description: 'I understand investing involves ups and downs',
+              ai_weight: 0.9
+            },
+            {
+              id: 'high',
+              value: 'loss_comfortable',
+              title: 'I can handle 30%+ swings',
+              description: 'I focus on long-term growth over short-term comfort',
               ai_weight: 0.8
-            },
-            {
-              id: 'hold_steady',
-              value: 'moderate',
-              title: 'Stay the course with my plan',
-              description: 'Stick to my long-term strategy',
-              ai_weight: 0.6
-            },
-            {
-              id: 'buy_more',
-              value: 'aggressive',
-              title: 'Buy more at lower prices',
-              description: 'See it as an opportunity to invest more',
-              ai_weight: 0.3
             }
           ],
           validation: { required: true },
-          ai_context: 'Real risk tolerance indicator that overrides stated preferences'
+          ai_context: 'Actual loss tolerance determines sustainable investment strategy'
         },
         {
-          id: 'investment_knowledge',
-          question: 'Which investment topics are you comfortable with?',
-          description: 'Select all that you understand well',
-          type: 'multiple_choice',
-          category: 'experience',
+          id: 'success_vision',
+          question: 'Your investment account has grown significantly. What would success mean to you?',
+          description: 'Your definition of success guides all investment choices',
+          type: 'single_choice',
+          category: 'opportunity_view',
           options: [
             {
-              id: 'stocks_basic',
-              value: 'stocks',
-              title: 'Individual Stocks',
-              description: 'Buying shares of companies',
-              ai_weight: 0.6
+              id: 'security',
+              value: 'security_focused',
+              title: 'Financial security and peace of mind',
+              description: 'Knowing I\'m protected and can sleep well',
+              ai_weight: 1.0
             },
             {
-              id: 'etfs_funds',
-              value: 'etfs',
-              title: 'ETFs and Mutual Funds',
-              description: 'Diversified investment funds',
-              ai_weight: 0.7
+              id: 'growth',
+              value: 'growth_focused',
+              title: 'Building serious wealth over time',
+              description: 'Maximizing returns and compounding growth',
+              ai_weight: 0.9
             },
             {
-              id: 'bonds',
-              value: 'bonds',
-              title: 'Bonds and Fixed Income',
-              description: 'Government and corporate bonds',
+              id: 'freedom',
+              value: 'freedom_focused',
+              title: 'Freedom to make different life choices',
+              description: 'Having options to change careers or lifestyle',
               ai_weight: 0.8
-            },
-            {
-              id: 'real_estate',
-              value: 'realestate',
-              title: 'Real Estate Investment',
-              description: 'REITs or direct property investment',
-              ai_weight: 0.7
-            },
-            {
-              id: 'crypto',
-              value: 'cryptocurrency',
-              title: 'Cryptocurrency',
-              description: 'Bitcoin, Ethereum, and other digital assets',
-              ai_weight: 0.4
-            },
-            {
-              id: 'options',
-              value: 'derivatives',
-              title: 'Options and Derivatives',
-              description: 'Advanced trading instruments',
-              ai_weight: 0.2
             }
           ],
-          validation: { required: false },
-          ai_context: 'Knowledge level determines complexity of recommendations and educational needs'
+          validation: { required: true },
+          ai_context: 'Success definition determines investment goals and risk/reward preferences'
+        },
+        {
+          id: 'learning_style',
+          question: 'How do you prefer to learn about investing?',
+          description: 'Your learning style shapes how we\'ll communicate with you',
+          type: 'single_choice',
+          category: 'investment_values',
+          options: [
+            {
+              id: 'simple',
+              value: 'simple_approach',
+              title: 'Keep it simple and automated',
+              description: 'Just tell me what to do, I trust the system',
+              ai_weight: 1.0
+            },
+            {
+              id: 'guided',
+              value: 'guided_learning',
+              title: 'Explain the basics but guide my decisions',
+              description: 'I want to understand but prefer expert guidance',
+              ai_weight: 0.9
+            },
+            {
+              id: 'detailed',
+              value: 'detailed_control',
+              title: 'Give me data and let me decide',
+              description: 'I want to understand everything and stay in control',
+              ai_weight: 0.8
+            }
+          ],
+          validation: { required: true },
+          ai_context: 'Learning preference determines communication style and level of detail needed'
+        }
+      ]
+    },
+
+    retirement_specialist: {
+      advisorId: 'retirement_specialist',
+      name: 'Retirement Dreams & Reality Check',
+      description: 'Explore your retirement vision and create a personalized path to get there',
+      categories: ['retirement_vision', 'current_preparation', 'lifestyle_priorities', 'time_urgency', 'legacy_values'],
+      ai_learning_objectives: [
+        'Understand retirement lifestyle aspirations and fears',
+        'Assess current savings psychology and habits',
+        'Map time pressure and urgency emotions',
+        'Identify family and legacy motivations',
+        'Build personalized retirement savings motivation system'
+      ],
+      questions: [
+        {
+          id: 'retirement_dream',
+          question: 'When you imagine retirement, what excites you most?',
+          description: 'Your retirement vision drives all planning decisions',
+          type: 'single_choice',
+          category: 'retirement_vision',
+          options: [
+            {
+              id: 'freedom',
+              value: 'freedom_lifestyle',
+              title: 'Freedom to do what I want',
+              description: 'Travel, hobbies, no schedule or obligations',
+              ai_weight: 1.0
+            },
+            {
+              id: 'security',
+              value: 'security_focused',
+              title: 'Financial security and stability',
+              description: 'No financial stress, predictable income',
+              ai_weight: 0.9
+            },
+            {
+              id: 'purpose',
+              value: 'purpose_driven',
+              title: 'Meaningful work and contribution',
+              description: 'Volunteering, part-time work, helping others',
+              ai_weight: 0.8
+            }
+          ],
+          validation: { required: true },
+          ai_context: 'Primary retirement motivation determines savings strategy and communication approach'
+        },
+        {
+          id: 'savings_reality',
+          question: 'How do you honestly feel about your current retirement savings?',
+          description: 'Your emotional relationship with savings affects planning',
+          type: 'single_choice',
+          category: 'current_preparation',
+          options: [
+            {
+              id: 'behind',
+              value: 'behind_anxious',
+              title: 'Behind and worried',
+              description: 'I haven\'t saved enough and feel stressed about it',
+              ai_weight: 1.0
+            },
+            {
+              id: 'okay',
+              value: 'making_progress',
+              title: 'Making progress, could do better',
+              description: 'I\'m saving something but know I need to do more',
+              ai_weight: 0.9
+            },
+            {
+              id: 'confident',
+              value: 'on_track',
+              title: 'On track and feeling good',
+              description: 'I\'m saving consistently and feel confident',
+              ai_weight: 0.8
+            }
+          ],
+          validation: { required: true },
+          ai_context: 'Current savings confidence affects motivation strategy and urgency messaging'
+        },
+        {
+          id: 'lifestyle_priority',
+          question: 'In retirement, what matters most to your happiness?',
+          description: 'Your priorities determine how much you need to save',
+          type: 'single_choice',
+          category: 'lifestyle_priorities',
+          options: [
+            {
+              id: 'experiences',
+              value: 'experience_rich',
+              title: 'Rich experiences and adventures',
+              description: 'Travel, dining, entertainment, and new experiences',
+              ai_weight: 1.0
+            },
+            {
+              id: 'comfort',
+              value: 'comfortable_living',
+              title: 'Comfortable home and simple pleasures',
+              description: 'Nice home, good healthcare, time with family',
+              ai_weight: 0.9
+            },
+            {
+              id: 'independence',
+              value: 'self_sufficient',
+              title: 'Complete independence',
+              description: 'Never being a burden, handling any emergency',
+              ai_weight: 0.8
+            }
+          ],
+          validation: { required: true },
+          ai_context: 'Lifestyle priorities determine retirement income needs and savings targets'
+        },
+        {
+          id: 'time_feeling',
+          question: 'When you think about time until retirement, you feel:',
+          description: 'Your time perception affects savings urgency',
+          type: 'single_choice',
+          category: 'time_urgency',
+          options: [
+            {
+              id: 'rushed',
+              value: 'time_pressure',
+              title: 'Rushed - not enough time to save',
+              description: 'Worried there isn\'t enough time to catch up',
+              ai_weight: 1.0
+            },
+            {
+              id: 'motivated',
+              value: 'motivated_action',
+              title: 'Motivated - ready to take action',
+              description: 'Energized to make changes and save more',
+              ai_weight: 0.9
+            },
+            {
+              id: 'comfortable',
+              value: 'time_comfort',
+              title: 'Comfortable - have time to plan',
+              description: 'Feel like there\'s plenty of time to figure it out',
+              ai_weight: 0.8
+            }
+          ],
+          validation: { required: true },
+          ai_context: 'Time urgency perception determines messaging tone and action steps'
+        },
+        {
+          id: 'legacy_importance',
+          question: 'How important is leaving money to family or causes you care about?',
+          description: 'Legacy goals affect how much you need to save',
+          type: 'single_choice',
+          category: 'legacy_values',
+          options: [
+            {
+              id: 'essential',
+              value: 'legacy_focused',
+              title: 'Very important - it\'s part of my purpose',
+              description: 'I want to leave a meaningful financial legacy',
+              ai_weight: 1.0
+            },
+            {
+              id: 'nice',
+              value: 'legacy_bonus',
+              title: 'Nice if possible, but not essential',
+              description: 'I\'d like to leave something if there\'s extra',
+              ai_weight: 0.9
+            },
+            {
+              id: 'minimal',
+              value: 'spend_it_all',
+              title: 'Plan to spend it all and enjoy retirement',
+              description: 'I want to use my money for my own retirement',
+              ai_weight: 0.8
+            }
+          ],
+          validation: { required: true },
+          ai_context: 'Legacy priorities affect retirement savings targets and withdrawal strategies'
+        }
+      ]
+    },
+
+    financial_planner: {
+      advisorId: 'financial_planner',
+      name: 'Life Goals Financial Mapping',
+      description: 'Connect your life dreams to a financial roadmap that actually works for you',
+      categories: ['life_priorities', 'money_challenges', 'goal_timeline', 'success_definition', 'change_readiness'],
+      ai_learning_objectives: [
+        'Map life goals to financial priorities and emotional drivers',
+        'Understand financial stress points and behavioral blockers',
+        'Assess goal-setting psychology and achievement patterns',
+        'Identify success metrics and milestone preferences',
+        'Evaluate readiness for financial behavior change'
+      ],
+      questions: [
+        {
+          id: 'biggest_goal',
+          question: 'What\'s the most important life goal that money could help you achieve?',
+          description: 'Your biggest dream drives all other financial planning',
+          type: 'single_choice',
+          category: 'life_priorities',
+          options: [
+            {
+              id: 'security',
+              value: 'financial_security',
+              title: 'Complete financial security',
+              description: 'Never worry about money or emergencies again',
+              ai_weight: 1.0
+            },
+            {
+              id: 'experience',
+              value: 'life_experiences',
+              title: 'Amazing life experiences',
+              description: 'Travel, adventures, and meaningful experiences',
+              ai_weight: 0.9
+            },
+            {
+              id: 'family',
+              value: 'family_support',
+              title: 'Supporting my family\'s dreams',
+              description: 'Kids\' education, family home, caring for parents',
+              ai_weight: 0.8
+            }
+          ],
+          validation: { required: true },
+          ai_context: 'Primary life goal determines all financial planning priorities and motivation strategies'
+        },
+        {
+          id: 'biggest_challenge',
+          question: 'What\'s your biggest challenge with managing money right now?',
+          description: 'Identifying obstacles helps us build solutions',
+          type: 'single_choice',
+          category: 'money_challenges',
+          options: [
+            {
+              id: 'knowledge',
+              value: 'lack_knowledge',
+              title: 'I don\'t know what I should be doing',
+              description: 'Overwhelmed by options and conflicting advice',
+              ai_weight: 1.0
+            },
+            {
+              id: 'discipline',
+              value: 'lack_discipline',
+              title: 'I know what to do but struggle to stick with it',
+              description: 'Consistency and follow-through are my challenges',
+              ai_weight: 0.9
+            },
+            {
+              id: 'income',
+              value: 'insufficient_income',
+              title: 'There just isn\'t enough money to go around',
+              description: 'My income barely covers necessities',
+              ai_weight: 0.8
+            }
+          ],
+          validation: { required: true },
+          ai_context: 'Primary financial challenge determines solution approach and support needed'
+        },
+        {
+          id: 'timeline_preference',
+          question: 'How do you prefer to think about your financial goals?',
+          description: 'Your planning style shapes how we\'ll work together',
+          type: 'single_choice',
+          category: 'goal_timeline',
+          options: [
+            {
+              id: 'immediate',
+              value: 'short_term_focus',
+              title: 'Focus on this year\'s goals',
+              description: 'I like quick wins and immediate improvements',
+              ai_weight: 1.0
+            },
+            {
+              id: 'balanced',
+              value: 'balanced_timeline',
+              title: 'Balance short and long-term goals',
+              description: 'Mix of immediate needs and future planning',
+              ai_weight: 0.9
+            },
+            {
+              id: 'longterm',
+              value: 'long_term_focus',
+              title: 'Think decades ahead',
+              description: 'I\'m comfortable with long-term planning and delayed gratification',
+              ai_weight: 0.8
+            }
+          ],
+          validation: { required: true },
+          ai_context: 'Time preference determines goal-setting approach and milestone frequency'
+        },
+        {
+          id: 'success_feeling',
+          question: 'You\'ll know your financial plan is working when you feel:',
+          description: 'Success means different things to different people',
+          type: 'single_choice',
+          category: 'success_definition',
+          options: [
+            {
+              id: 'calm',
+              value: 'peace_of_mind',
+              title: 'Calm and in control',
+              description: 'No financial stress, everything handled automatically',
+              ai_weight: 1.0
+            },
+            {
+              id: 'excited',
+              value: 'progress_excitement',
+              title: 'Excited about progress',
+              description: 'Seeing growth and hitting milestones regularly',
+              ai_weight: 0.9
+            },
+            {
+              id: 'proud',
+              value: 'achievement_pride',
+              title: 'Proud of what I\'ve accomplished',
+              description: 'Building something meaningful and substantial',
+              ai_weight: 0.8
+            }
+          ],
+          validation: { required: true },
+          ai_context: 'Success definition determines milestone tracking and celebration strategies'
+        },
+        {
+          id: 'change_readiness',
+          question: 'How ready are you to make significant changes to your financial habits?',
+          description: 'Honest self-assessment helps us pace the changes',
+          type: 'single_choice',
+          category: 'change_readiness',
+          options: [
+            {
+              id: 'ready',
+              value: 'fully_committed',
+              title: 'Fully committed - ready for big changes',
+              description: 'I\'m motivated and ready to do whatever it takes',
+              ai_weight: 1.0
+            },
+            {
+              id: 'cautious',
+              value: 'gradual_changes',
+              title: 'Prefer gradual, manageable changes',
+              description: 'I want to improve but need to go slow',
+              ai_weight: 0.9
+            },
+            {
+              id: 'testing',
+              value: 'small_experiments',
+              title: 'Want to test small changes first',
+              description: 'Let me try a few things and see how they work',
+              ai_weight: 0.8
+            }
+          ],
+          validation: { required: true },
+          ai_context: 'Change readiness determines pace of recommendations and implementation strategy'
+        }
+      ]
+    },
+
+    risk_analyst: {
+      advisorId: 'risk_analyst',
+      name: 'Financial Risk & Protection Profile',
+      description: 'Understand your relationship with financial risk and build protection strategies',
+      categories: ['risk_awareness', 'protection_priorities', 'worry_triggers', 'control_preferences', 'safety_values'],
+      ai_learning_objectives: [
+        'Map financial fears and anxiety triggers',
+        'Understand protection vs growth mindset balance',
+        'Assess control needs and decision-making preferences',
+        'Identify family protection motivations',
+        'Build personalized risk management communication approach'
+      ],
+      questions: [
+        {
+          id: 'risk_worry',
+          question: 'What financial risk keeps you awake at night?',
+          description: 'Your biggest fear shapes your protection priorities',
+          type: 'single_choice',
+          category: 'risk_awareness',
+          options: [
+            {
+              id: 'job_loss',
+              value: 'income_loss',
+              title: 'Losing my job or income',
+              description: 'What if I can\'t earn money anymore?',
+              ai_weight: 1.0
+            },
+            {
+              id: 'market_crash',
+              value: 'investment_loss',
+              title: 'Market crash wiping out my savings',
+              description: 'What if my investments lose all their value?',
+              ai_weight: 0.9
+            },
+            {
+              id: 'health_costs',
+              value: 'health_emergency',
+              title: 'Major health emergency costs',
+              description: 'What if I can\'t afford medical care?',
+              ai_weight: 0.8
+            }
+          ],
+          validation: { required: true },
+          ai_context: 'Primary financial fear determines protection strategy focus and urgency'
+        },
+        {
+          id: 'protection_approach',
+          question: 'When it comes to protecting your money, you prefer to:',
+          description: 'Your protection style guides risk management choices',
+          type: 'single_choice',
+          category: 'protection_priorities',
+          options: [
+            {
+              id: 'insurance_heavy',
+              value: 'insurance_focused',
+              title: 'Buy insurance for everything',
+              description: 'I want comprehensive coverage and guarantees',
+              ai_weight: 1.0
+            },
+            {
+              id: 'diversification',
+              value: 'diversification_focused',
+              title: 'Spread risk across many investments',
+              description: 'Don\'t put all eggs in one basket approach',
+              ai_weight: 0.9
+            },
+            {
+              id: 'cash_safety',
+              value: 'cash_focused',
+              title: 'Keep plenty of cash available',
+              description: 'Cash is king, liquidity provides security',
+              ai_weight: 0.8
+            }
+          ],
+          validation: { required: true },
+          ai_context: 'Protection preference determines recommended risk management tools and strategies'
+        },
+        {
+          id: 'worry_trigger',
+          question: 'What makes you most anxious about your financial future?',
+          description: 'Understanding anxiety helps build targeted solutions',
+          type: 'single_choice',
+          category: 'worry_triggers',
+          options: [
+            {
+              id: 'uncertainty',
+              value: 'unknown_future',
+              title: 'Not knowing what\'s coming',
+              description: 'The uncertainty and unpredictability stress me out',
+              ai_weight: 1.0
+            },
+            {
+              id: 'inadequacy',
+              value: 'not_enough',
+              title: 'Not having enough saved',
+              description: 'Worry that I haven\'t prepared enough',
+              ai_weight: 0.9
+            },
+            {
+              id: 'burden',
+              value: 'family_burden',
+              title: 'Being a burden on family',
+              description: 'Don\'t want to create financial stress for loved ones',
+              ai_weight: 0.8
+            }
+          ],
+          validation: { required: true },
+          ai_context: 'Anxiety triggers determine communication tone and reassurance strategies needed'
+        },
+        {
+          id: 'control_need',
+          question: 'How much control do you need over your financial decisions?',
+          description: 'Your control preferences shape planning approaches',
+          type: 'single_choice',
+          category: 'control_preferences',
+          options: [
+            {
+              id: 'full_control',
+              value: 'high_control',
+              title: 'I want to understand and approve everything',
+              description: 'No financial decisions without my knowledge and consent',
+              ai_weight: 1.0
+            },
+            {
+              id: 'guided_control',
+              value: 'guided_decisions',
+              title: 'Guide my decisions but let me choose',
+              description: 'I want expert advice but final say on choices',
+              ai_weight: 0.9
+            },
+            {
+              id: 'trust_experts',
+              value: 'expert_delegation',
+              title: 'Trust experts to handle the details',
+              description: 'Set the goals, let professionals handle implementation',
+              ai_weight: 0.8
+            }
+          ],
+          validation: { required: true },
+          ai_context: 'Control needs determine level of involvement and decision-making process'
+        },
+        {
+          id: 'safety_priority',
+          question: 'What does "financial safety" mean to you?',
+          description: 'Your safety definition guides all risk management decisions',
+          type: 'single_choice',
+          category: 'safety_values',
+          options: [
+            {
+              id: 'predictability',
+              value: 'predictable_income',
+              title: 'Predictable income I can count on',
+              description: 'Knowing exactly what money I\'ll have each month',
+              ai_weight: 1.0
+            },
+            {
+              id: 'cushion',
+              value: 'large_cushion',
+              title: 'Large cushion for any emergency',
+              description: 'Enough savings to handle any crisis',
+              ai_weight: 0.9
+            },
+            {
+              id: 'flexibility',
+              value: 'options_flexibility',
+              title: 'Multiple options and backup plans',
+              description: 'Various income sources and financial strategies',
+              ai_weight: 0.8
+            }
+          ],
+          validation: { required: true },
+          ai_context: 'Safety definition determines appropriate risk management products and strategies'
         }
       ]
     }

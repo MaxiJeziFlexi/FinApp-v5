@@ -40,6 +40,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Health check endpoint
   app.get('/health', async (req, res) => {
     try {
+      // Test database connection
+      await storage.getUser('health-check-test');
+      
       // Check OpenAI connection
       const models = await openAIService.getAvailableModels();
       
@@ -63,7 +66,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         openai: false,
         chatgpt_available: false,
         database: false,
-        error: 'Service unavailable'
+        error: error instanceof Error ? error.message : 'Service unavailable'
       });
     }
   });
@@ -1989,28 +1992,77 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Health check endpoint
   app.get("/api/health", async (req, res) => {
+    const healthStatus = {
+      status: 'healthy' as 'healthy' | 'unhealthy',
+      database: false,
+      openai: false,
+      environment: process.env.NODE_ENV || 'unknown',
+      timestamp: new Date().toISOString(),
+      services: {} as Record<string, string>,
+      errors: [] as string[]
+    };
+
+    let isHealthy = true;
+
     try {
-      // Test database connection
-      await storage.getUser('health-check-test');
-      
-      // Test OpenAI API (basic check)
-      const openaiHealthy = !!process.env.OPENAI_API_KEY;
-      
-      res.json({
-        status: 'healthy',
-        database: true,
-        openai: openaiHealthy,
-        timestamp: new Date().toISOString()
-      });
-    } catch (error) {
-      console.error("Health check failed:", error);
-      res.status(503).json({
-        status: 'unhealthy',
-        database: false,
-        openai: !!process.env.OPENAI_API_KEY,
-        timestamp: new Date().toISOString()
-      });
+      // Test database connection with actual query
+      console.log('Health check: Testing database connection...');
+      const dbResult = await storage.getUser('health-check-test');
+      healthStatus.database = true;
+      healthStatus.services.database = 'connected';
+      console.log('Health check: Database connection successful');
+    } catch (dbError) {
+      console.error('Health check: Database connection failed:', dbError);
+      healthStatus.database = false;
+      healthStatus.services.database = 'disconnected';
+      healthStatus.errors.push(`Database: ${dbError instanceof Error ? dbError.message : 'Connection failed'}`);
+      isHealthy = false;
     }
+
+    try {
+      // Test OpenAI API
+      if (process.env.OPENAI_API_KEY) {
+        console.log('Health check: Testing OpenAI API...');
+        const models = await openAIService.getAvailableModels();
+        healthStatus.openai = models.length > 0;
+        healthStatus.services.openai = healthStatus.openai ? 'connected' : 'api_key_invalid';
+        console.log(`Health check: OpenAI API ${healthStatus.openai ? 'successful' : 'failed'}`);
+      } else {
+        healthStatus.openai = false;
+        healthStatus.services.openai = 'no_api_key';
+        healthStatus.errors.push('OpenAI: API key not configured');
+        console.log('Health check: OpenAI API key not found');
+      }
+    } catch (openaiError) {
+      console.error('Health check: OpenAI API test failed:', openaiError);
+      healthStatus.openai = false;
+      healthStatus.services.openai = 'error';
+      healthStatus.errors.push(`OpenAI: ${openaiError instanceof Error ? openaiError.message : 'API test failed'}`);
+    }
+
+    // Check critical environment variables
+    const requiredEnvVars = ['DATABASE_URL', 'SESSION_SECRET'];
+    const missingEnvVars = requiredEnvVars.filter(varName => !process.env[varName]);
+    
+    if (missingEnvVars.length > 0) {
+      healthStatus.errors.push(`Missing environment variables: ${missingEnvVars.join(', ')}`);
+      isHealthy = false;
+    }
+
+    // Optional environment variables
+    const optionalEnvVars = ['REPLIT_CLIENT_ID', 'REPLIT_CLIENT_SECRET', 'STRIPE_SECRET_KEY'];
+    const missingOptionalVars = optionalEnvVars.filter(varName => !process.env[varName]);
+    
+    if (missingOptionalVars.length > 0) {
+      healthStatus.services.optional_configs = `Missing: ${missingOptionalVars.join(', ')}`;
+    }
+
+    healthStatus.status = isHealthy ? 'healthy' : 'unhealthy';
+    
+    const statusCode = isHealthy ? 200 : 503;
+    console.log(`Health check completed: ${healthStatus.status} (${statusCode})`);
+    
+    res.status(statusCode).json(healthStatus);
   });
 
   // Admin routes

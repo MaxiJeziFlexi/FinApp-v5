@@ -1,6 +1,7 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
+import { pool } from "./db";
 
 const app = express();
 app.use(express.json());
@@ -36,36 +37,126 @@ app.use((req, res, next) => {
   next();
 });
 
-(async () => {
-  const server = await registerRoutes(app);
-
-  app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
-    const status = err.status || err.statusCode || 500;
-    const message = err.message || "Internal Server Error";
-
-    res.status(status).json({ message });
-    throw err;
-  });
-
-  // importantly only setup vite in development and after
-  // setting up all the other routes so the catch-all route
-  // doesn't interfere with the other routes
-  if (app.get("env") === "development") {
-    await setupVite(app, server);
-  } else {
-    serveStatic(app);
+// Validate required environment variables
+function validateEnvironment() {
+  const requiredEnvVars = [
+    'DATABASE_URL',
+    'OPENAI_API_KEY',
+    'SESSION_SECRET'
+  ];
+  
+  const missing = requiredEnvVars.filter(varName => !process.env[varName]);
+  
+  if (missing.length > 0) {
+    throw new Error(`Missing required environment variables: ${missing.join(', ')}`);
   }
+  
+  log('✓ Environment variables validated');
+}
 
-  // ALWAYS serve the app on the port specified in the environment variable PORT
-  // Other ports are firewalled. Default to 5000 if not specified.
-  // this serves both the API and the client.
-  // It is the only port that is not firewalled.
-  const port = parseInt(process.env.PORT || '5000', 10);
-  server.listen({
-    port,
-    host: "0.0.0.0",
-    reusePort: true,
-  }, () => {
-    log(`serving on port ${port}`);
-  });
-})();
+// Test database connection
+async function validateDatabaseConnection() {
+  try {
+    log('Testing database connection...');
+    
+    // Test basic connectivity
+    const result = await pool.query('SELECT 1 as test');
+    if (!result.rows || result.rows.length === 0) {
+      throw new Error('Database query returned no results');
+    }
+    
+    log('✓ Database connection validated');
+    return true;
+  } catch (error) {
+    log(`✗ Database connection failed: ${error}`);
+    throw new Error(`Database connection validation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
+}
+
+// Enhanced server initialization with proper error handling
+async function initializeServer() {
+  try {
+    log('🚀 Starting server initialization...');
+    
+    // Step 1: Validate environment variables
+    validateEnvironment();
+    
+    // Step 2: Validate database connection
+    await validateDatabaseConnection();
+    
+    // Step 3: Register routes
+    log('Registering routes...');
+    const server = await registerRoutes(app);
+    log('✓ Routes registered successfully');
+
+    // Step 4: Setup error handling middleware
+    app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
+      const status = err.status || err.statusCode || 500;
+      const message = err.message || "Internal Server Error";
+      
+      log(`Error ${status}: ${message}`);
+      res.status(status).json({ message });
+      
+      // Log error but don't throw in production to prevent server crash
+      if (process.env.NODE_ENV !== 'production') {
+        throw err;
+      }
+    });
+
+    // Step 5: Setup Vite or static serving
+    if (app.get("env") === "development") {
+      log('Setting up Vite development server...');
+      await setupVite(app, server);
+      log('✓ Vite development server setup complete');
+    } else {
+      log('Setting up static file serving...');
+      serveStatic(app);
+      log('✓ Static file serving setup complete');
+    }
+
+    // Step 6: Start server
+    const port = parseInt(process.env.PORT || '5000', 10);
+    log(`Starting server on port ${port}...`);
+    
+    return new Promise<void>((resolve, reject) => {
+      const serverInstance = server.listen({
+        port,
+        host: "0.0.0.0",
+        reusePort: true,
+      }, (err?: Error) => {
+        if (err) {
+          log(`✗ Failed to start server: ${err.message}`);
+          reject(err);
+        } else {
+          log(`✓ Server running successfully on port ${port}`);
+          log(`🌐 Server accessible at http://0.0.0.0:${port}`);
+          resolve();
+        }
+      });
+      
+      // Handle server errors
+      serverInstance.on('error', (error: Error) => {
+        log(`✗ Server error: ${error.message}`);
+        reject(error);
+      });
+    });
+    
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown initialization error';
+    log(`✗ Server initialization failed: ${errorMessage}`);
+    
+    // In production, we want to exit gracefully
+    if (process.env.NODE_ENV === 'production') {
+      log('Exiting due to initialization failure...');
+      process.exit(1);
+    } else {
+      throw error;
+    }
+  }
+}
+
+// Initialize server with error handling
+initializeServer().catch((error) => {
+  log(`🔥 Fatal error during server initialization: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  process.exit(1);
+});

@@ -13,7 +13,13 @@ import {
   X,
   User,
   LogOut,
-  Shield
+  Shield,
+  FileText,
+  TrendingUp,
+  Calculator,
+  PiggyBank,
+  BookOpen,
+  Users
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { logout } from '@/hooks/useAuth';
@@ -21,42 +27,83 @@ import { logout } from '@/hooks/useAuth';
 const navigationItems = [
   {
     path: '/',
-    label: 'Strona Główna',
+    label: 'Dashboard',
     icon: Home,
-    description: 'Panel główny FinApp'
+    description: 'Main FinApp Dashboard'
+  },
+  {
+    path: '/ai-report-generator',
+    label: 'AI Reports',
+    icon: FileText,
+    description: 'Generate financial reports with AI',
+    badge: 'AI'
+  },
+  {
+    path: '/investment-consultation',
+    label: 'Investment AI',
+    icon: TrendingUp,
+    description: 'AI-powered investment advice',
+    badge: 'Expert'
+  },
+  {
+    path: '/tax-optimization',
+    label: 'Tax Strategy',
+    icon: Calculator,
+    description: 'Tax optimization & legal strategies',
+    badge: 'Premium'
+  },
+  {
+    path: '/retirement-planning',
+    label: 'Retirement',
+    icon: PiggyBank,
+    description: 'Safe retirement planning tools'
+  },
+  {
+    path: '/learning-hub',
+    label: 'Learning Hub',
+    icon: BookOpen,
+    description: 'Financial education & certifications',
+    badge: 'Popular'
+  },
+  {
+    path: '/community-discussions',
+    label: 'Community',
+    icon: Users,
+    description: 'Expert discussions & crypto rewards'
   },
   {
     path: '/gaming',
     label: 'Gaming Hub',
     icon: Gamepad2,
-    description: 'Gry finansowe i wyzwania',
-    badge: 'Popularne'
+    description: 'Financial games & challenges',
+    badge: 'Fun'
   },
   {
     path: '/enhanced-crypto',
     label: 'Crypto Market',
     icon: Bitcoin,
-    description: 'Rynek kryptowalut i trading',
-    badge: 'Nowe'
+    description: 'Cryptocurrency trading platform',
+    badge: 'Live'
   },
   {
     path: '/ai-dashboard',
-    label: 'AI Dashboard',
+    label: 'AI Analytics',
     icon: Brain,
-    description: 'Analiza AI i prognozy',
-    badge: 'AI'
+    description: 'Advanced AI market analysis',
+    badge: 'Pro'
   },
   {
     path: '/admin',
-    label: 'Panel Admina',
+    label: 'Admin Panel',
     icon: Settings,
-    description: 'Zarządzanie systemem'
+    description: 'System management',
+    restricted: true
   },
   {
     path: '/developer-diagnostics',
-    label: 'Diagnostyka',
+    label: 'Diagnostics',
     icon: BarChart3,
-    description: 'Analityka i diagnostyka',
+    description: 'Developer tools & analytics',
     badge: 'Dev',
     restricted: true
   }

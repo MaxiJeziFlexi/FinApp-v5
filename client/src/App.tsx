@@ -26,6 +26,12 @@ import AdminLogin from "@/pages/admin-login";
 import About from "@/pages/about";
 import Contact from "@/pages/contact";
 import Features from "@/pages/features";
+import AIReportGenerator from "@/pages/ai-report-generator";
+import InvestmentConsultation from "@/pages/investment-consultation";
+import TaxOptimization from "@/pages/tax-optimization";
+import RetirementPlanning from "@/pages/retirement-planning";
+import LearningHub from "@/pages/learning-hub";
+import CommunityDiscussions from "@/pages/community-discussions";
 
 function Router() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -83,6 +89,12 @@ function Router() {
           <Route path="/gaming" component={GamingHub} />
           <Route path="/enhanced-crypto" component={EnhancedCryptoMarketplace} />
           <Route path="/developer-diagnostics" component={DeveloperDiagnostics} />
+          <Route path="/ai-report-generator" component={AIReportGenerator} />
+          <Route path="/investment-consultation" component={InvestmentConsultation} />
+          <Route path="/tax-optimization" component={TaxOptimization} />
+          <Route path="/retirement-planning" component={RetirementPlanning} />
+          <Route path="/learning-hub" component={LearningHub} />
+          <Route path="/community-discussions" component={CommunityDiscussions} />
           <Route component={NotFound} />
         </Switch>
       </main>

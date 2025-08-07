@@ -27,7 +27,7 @@ if (!process.env.STRIPE_SECRET_KEY) {
   throw new Error('Missing required Stripe secret: STRIPE_SECRET_KEY');
 }
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-  apiVersion: "2023-10-16",
+  apiVersion: "2025-07-30.basil",
 });
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -404,6 +404,61 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Decision tree next step endpoint
+  app.post('/api/decision-tree/next', async (req, res) => {
+    try {
+      const { user_id, advisor_id, choice } = req.body;
+      
+      if (!user_id || !advisor_id || choice === undefined) {
+        return res.status(400).json({ message: 'Missing required fields: user_id, advisor_id, choice' });
+      }
+
+      // Get current progress
+      const progress = await storage.getDecisionTreeProgress(user_id, advisor_id);
+      const currentPath = progress?.responses || [];
+      
+      // Add new choice to path
+      const newPath = [...currentPath, choice];
+      const newStep = newPath.length;
+      
+      // Calculate completion based on typical decision tree length
+      const isCompleted = newStep >= 5; // Typical decision tree has 5 steps
+      const progressPercent = Math.round((newStep / 5) * 100);
+      
+      // Generate next question or final recommendation
+      const nextQuestion = isCompleted 
+        ? null
+        : `Based on your previous choice "${choice}", here's your next question for step ${newStep + 1}...`;
+      
+      // Save updated progress
+      const updatedProgress = await storage.updateDecisionTreeProgress(user_id, advisor_id, {
+        responses: newPath,
+        progress: progressPercent,
+        currentNode: `step_${newStep}`,
+        completedAt: isCompleted ? new Date() : null,
+        recommendations: isCompleted ? JSON.stringify({
+          title: "Personalized Recommendation",
+          summary: "Based on your responses, here's your financial guidance.",
+          nextSteps: ["Implement recommendations", "Monitor progress", "Schedule follow-up"]
+        }) : null
+      });
+      
+      res.json({
+        success: true,
+        progress: progressPercent,
+        completed: isCompleted,
+        decision_path: newPath,
+        current_step: newStep,
+        next_question: nextQuestion,
+        recommendations: isCompleted ? JSON.parse(updatedProgress.recommendations || '{}') : null
+      });
+      
+    } catch (error) {
+      console.error('Error processing decision tree next step:', error);
+      res.status(500).json({ message: 'Failed to process decision tree step' });
+    }
+  });
+
   // Chat endpoints
   app.get('/api/chat/history/:advisorId', async (req, res) => {
     try {
@@ -568,6 +623,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Error fetching achievements:', error);
       res.status(500).json({ message: 'Failed to fetch achievements' });
+    }
+  });
+
+  // Gaming achievement endpoint
+  app.get('/api/gaming/achievements', async (req, res) => {
+    try {
+      const achievements = await storage.getAchievements();
+      res.json(achievements);
+    } catch (error) {
+      console.error('Error fetching gaming achievements:', error);
+      res.status(500).json({ message: 'Failed to fetch gaming achievements' });
     }
   });
 

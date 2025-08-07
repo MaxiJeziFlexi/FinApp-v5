@@ -106,6 +106,12 @@ export function AdminDashboard() {
     totalMessages: 15623
   });
 
+  // Fetch live analytics data
+  const { data: liveAnalytics, refetch } = useQuery({
+    queryKey: ['/api/analytics/live'],
+    refetchInterval: 30000, // Refresh every 30 seconds
+  });
+
   const { data: users, isLoading: usersLoading } = useQuery({
     queryKey: ['/api/admin/users'],
     retry: false,

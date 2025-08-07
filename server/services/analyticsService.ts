@@ -10,7 +10,7 @@ import {
   type InsertBehaviorPattern,
   type InsertAIModelPerformance
 } from "@shared/schema";
-import { eq, desc, avg, count, sum, gte } from "drizzle-orm";
+import { eq, desc, avg, count, sum, gte, sql } from "drizzle-orm";
 
 export interface LearningEvent {
   userId: string;
@@ -170,7 +170,7 @@ export class AnalyticsService {
         .select()
         .from(learningAnalytics)
         .where(eq(learningAnalytics.userId, userId))
-        .orderBy(sql`${learningAnalytics.timestamp} DESC`)
+        .orderBy(desc(learningAnalytics.createdAt))
         .limit(10);
 
     // Analyze interaction patterns to determine learning style
@@ -331,8 +331,8 @@ export class AnalyticsService {
       const recentEvents = await db
         .select()
         .from(learningAnalytics)
-        .where(sql`${learningAnalytics.timestamp} >= ${last24Hours}`)
-        .orderBy(sql`${learningAnalytics.timestamp} DESC`);
+        .where(gte(learningAnalytics.createdAt, last24Hours))
+        .orderBy(desc(learningAnalytics.createdAt));
 
       const eventTypes = recentEvents.reduce((acc, event) => {
         acc[event.eventType] = (acc[event.eventType] || 0) + 1;

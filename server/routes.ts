@@ -415,7 +415,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Get current progress
       const progress = await storage.getDecisionTreeProgress(user_id, advisor_id);
-      const currentPath = progress?.responses || [];
+      const currentPath: string[] = Array.isArray(progress?.responses) ? progress.responses : [];
       
       // Add new choice to path
       const newPath = [...currentPath, choice];
@@ -450,7 +450,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         decision_path: newPath,
         current_step: newStep,
         next_question: nextQuestion,
-        recommendations: isCompleted ? JSON.parse(updatedProgress.recommendations || '{}') : null
+        recommendations: isCompleted && updatedProgress.recommendations ? JSON.parse(updatedProgress.recommendations as string) : null
       });
       
     } catch (error) {

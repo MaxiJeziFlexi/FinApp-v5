@@ -1,0 +1,152 @@
+2025-08-07 12:05:56.06
+b47d4f04
+User
+line: '1244',
+2025-08-07 12:05:56.06
+b47d4f04
+User
+routine: 'scanner_yyerror'
+2025-08-07 12:05:56.06
+b47d4f04
+User
+}
+2025-08-07 12:06:01.41
+b47d4f04
+User
+Error analyzing engagement pattern: error: syntax error at or near "desc"
+2025-08-07 12:06:01.41
+b47d4f04
+User
+at file:///home/runner/workspace/node_modules/@neondatabase/serverless/index.mjs:1345:74
+2025-08-07 12:06:01.41
+b47d4f04
+User
+at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+2025-08-07 12:06:01.41
+b47d4f04
+User
+at async NeonPreparedQuery.execute (file:///home/runner/workspace/node_modules/drizzle-orm/neon-serverless/session.js:76:20)
+2025-08-07 12:06:01.41
+b47d4f04
+User
+at async AnalyticsService.analyzeEngagementPattern (file:///home/runner/workspace/dist/index.js:583:35)
+2025-08-07 12:06:01.41
+b47d4f04
+User
+at async Promise.all (index 0)
+2025-08-07 12:06:01.41
+b47d4f04
+User
+at async AnalyticsService.getUserDashboardData (file:///home/runner/workspace/dist/index.js:659:47)
+2025-08-07 12:06:01.41
+b47d4f04
+User
+at async file:///home/runner/workspace/dist/index.js:3702:28 {
+2025-08-07 12:06:01.41
+b47d4f04
+User
+length: 94,
+2025-08-07 12:06:01.41
+b47d4f04
+User
+severity: 'ERROR',
+2025-08-07 12:06:01.41
+b47d4f04
+User
+code: '42601',
+2025-08-07 12:06:01.41
+b47d4f04
+User
+detail: undefined,
+2025-08-07 12:06:01.41
+b47d4f04
+User
+hint: undefined,
+2025-08-07 12:06:01.41
+b47d4f04
+User
+position: '183',
+2025-08-07 12:06:01.41
+b47d4f04
+User
+internalPosition: undefined,
+2025-08-07 12:06:01.41
+b47d4f04
+User
+internalQuery: undefined,
+2025-08-07 12:06:01.41
+b47d4f04
+User
+where: undefined,
+2025-08-07 12:06:01.41
+b47d4f04
+User
+schema: undefined,
+2025-08-07 12:06:01.41
+b47d4f04
+User
+table: undefined,
+2025-08-07 12:06:01.41
+b47d4f04
+User
+column: undefined,
+2025-08-07 12:06:01.41
+b47d4f04
+User
+dataType: undefined,
+2025-08-07 12:06:01.41
+b47d4f04
+User
+constraint: undefined,
+2025-08-07 12:06:01.41
+b47d4f04
+User
+file: 'scan.l',
+2025-08-07 12:06:01.41
+b47d4f04
+User
+line: '1244',
+2025-08-07 12:06:01.41
+b47d4f04
+User
+routine: 'scanner_yyerror'
+2025-08-07 12:06:01.41
+b47d4f04
+User
+}
+2025-08-07 12:06:01.55
+b47d4f04
+User
+Error detecting learning style: ReferenceError: sql is not defined
+2025-08-07 12:06:01.55
+b47d4f04
+User
+at AnalyticsService.detectLearningStyle (file:///home/runner/workspace/dist/index.js:615:118)
+2025-08-07 12:06:01.55
+b47d4f04
+User
+at AnalyticsService.getUserDashboardData (file:///home/runner/workspace/dist/index.js:664:42)
+2025-08-07 12:06:01.55
+b47d4f04
+User
+at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+2025-08-07 12:06:01.55
+b47d4f04
+User
+at async file:///home/runner/workspace/dist/index.js:3702:28
+2025-08-07 12:06:02.34
+b47d4f04
+User
+Error getting real-time learning insights: ReferenceError: sql is not defined
+2025-08-07 12:06:02.34
+b47d4f04
+User
+at AnalyticsService.getRealTimeLearningInsights (file:///home/runner/workspace/dist/index.js:724:73)
+2025-08-07 12:06:02.34
+b47d4f04
+User
+at file:///home/runner/workspace/dist/index.js:3722:52
+2025-08-07 12:06:02.34
+b47d4f04
+User
+at process.processTicksAndRejections (node:internal/process/task_queues:95:5)

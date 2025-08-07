@@ -173,12 +173,14 @@ const useSpeechRecognition = (): UseSpeechRecognitionReturn => {
     return () => {
       if (recognitionRef.current) {
         recognitionRef.current.abort();
+        recognitionRef.current = null;
       }
       if (timeoutRef.current) {
         clearTimeout(timeoutRef.current);
+        timeoutRef.current = null;
       }
     };
-  }, [supported, error]);
+  }, [supported]);
 
   const startListening = useCallback((options: UseSpeechRecognitionOptions = {}) => {
     if (!supported || !recognitionRef.current) {

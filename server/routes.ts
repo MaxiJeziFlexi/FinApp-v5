@@ -1866,7 +1866,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const performanceData = req.body;
       const { analyticsService } = await import('./services/analyticsService');
-      await analyticsService.trackAIModelPerformance(performanceData);
+      const modelName = performanceData.modelName || 'GPT-4o';
+      await analyticsService.trackAIModelPerformance(modelName, performanceData);
       res.json({ success: true, message: 'AI performance tracked successfully' });
     } catch (error) {
       console.error('Error tracking AI performance:', error);

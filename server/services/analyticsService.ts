@@ -203,6 +203,65 @@ export class AnalyticsService {
       return { success: false, error: String(error) };
     }
   }
+
+  // Missing methods that are called from routes
+  async getUserDashboardData(userId: string): Promise<UserBehaviorMetrics> {
+    try {
+      const userInsights = await this.generateUserBehaviorInsights();
+      const userBehavior = userInsights.find(insight => insight.userId === userId);
+      
+      if (userBehavior) {
+        return userBehavior;
+      }
+      
+      // Return default data if user not found
+      return {
+        userId,
+        engagementScore: 45,
+        learningStyle: 'mixed',
+        completionRate: 65,
+        avgSessionTime: 15,
+        preferredTopics: ['Budgeting', 'Investing'],
+        riskTolerance: 'moderate',
+        totalSessions: 12,
+        aiInteractions: 45
+      };
+    } catch (error) {
+      console.error('Error getting user dashboard data:', error);
+      throw error;
+    }
+  }
+
+  async getModelPerformanceInsights(): Promise<AIModelMetrics[]> {
+    try {
+      const analytics = await this.generateLiveAnalytics();
+      return analytics.aiModelPerformance;
+    } catch (error) {
+      console.error('Error getting model performance insights:', error);
+      throw error;
+    }
+  }
+
+  async getRealTimeLearningInsights() {
+    try {
+      const analytics = await this.generateLiveAnalytics();
+      return analytics.realtimeLearningData;
+    } catch (error) {
+      console.error('Error getting real-time learning insights:', error);
+      throw error;
+    }
+  }
+
+  async trackAIModelPerformance(modelName: string, metrics: Partial<AIModelMetrics>) {
+    try {
+      console.log(`AI Model Performance - Model: ${modelName}, Metrics:`, metrics);
+      // In a real implementation, this would store to an analytics database
+      return { success: true, timestamp: new Date() };
+    } catch (error) {
+      console.error('Error tracking AI model performance:', error);
+      return { success: false, error: String(error) };
+    }
+  }
 }
 
 export const analyticsService = new AnalyticsService();

@@ -102,7 +102,7 @@ export default function EnhancedCryptoMarketplace() {
   const { user, isAdmin } = useAuth();
 
   // Check if user has access to enhanced crypto marketplace (Pro/Max plans or admin)
-  const hasAccess = isAdmin || user?.subscriptionTier === 'pro' || user?.subscriptionTier === 'max';
+  const hasAccess = isAdmin || (user as any)?.subscriptionTier === 'pro' || (user as any)?.subscriptionTier === 'max';
 
   if (!hasAccess) {
     return (

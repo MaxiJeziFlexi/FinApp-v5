@@ -17,7 +17,6 @@ interface OnboardingFormProps {
 }
 
 interface FormData {
-  name: string;
   goal: string;
   timeframe: string;
   monthlyIncome: string;
@@ -33,7 +32,6 @@ interface Consents {
 export default function OnboardingForm({ onComplete, userId }: OnboardingFormProps) {
   const { toast } = useToast();
   const [formData, setFormData] = useState<FormData>({
-    name: '',
     goal: '',
     timeframe: '',
     monthlyIncome: '',
@@ -72,10 +70,6 @@ export default function OnboardingForm({ onComplete, userId }: OnboardingFormPro
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
     
-    if (!formData.name.trim()) {
-      newErrors.name = 'Name is required';
-    }
-    
     if (!formData.goal) {
       newErrors.goal = 'Please select a financial goal';
     }
@@ -100,7 +94,6 @@ export default function OnboardingForm({ onComplete, userId }: OnboardingFormPro
     if (!validateForm()) return;
     
     const profileData = {
-      name: formData.name,
       financialGoal: formData.goal,
       timeframe: formData.timeframe,
       monthlyIncome: formData.monthlyIncome,
@@ -124,10 +117,10 @@ export default function OnboardingForm({ onComplete, userId }: OnboardingFormPro
   };
 
   const calculateProgress = (): number => {
-    const fields = [formData.name, formData.goal, formData.timeframe, formData.monthlyIncome];
+    const fields = [formData.goal, formData.timeframe, formData.monthlyIncome];
     const filledFields = fields.filter(field => field.trim() !== '').length;
     const consentProgress = consents.dataProcessing ? 1 : 0;
-    return Math.round(((filledFields + consentProgress) / 5) * 100);
+    return Math.round(((filledFields + consentProgress) / 4) * 100);
   };
 
   const goalOptions = [
@@ -182,18 +175,7 @@ export default function OnboardingForm({ onComplete, userId }: OnboardingFormPro
               <Progress value={calculateProgress()} className="h-3" />
             </div>
 
-            {/* Name Field */}
-            <div className="space-y-2">
-              <Label htmlFor="name" className="text-sm font-semibold">Full Name</Label>
-              <Input
-                id="name"
-                placeholder="Enter your name"
-                value={formData.name}
-                onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-                className={errors.name ? "border-destructive" : ""}
-              />
-              {errors.name && <p className="text-sm text-destructive">{errors.name}</p>}
-            </div>
+            {/* Simplified Profile Setup - No Name Required */}
 
             {/* Financial Goal */}
             <div className="space-y-4">

@@ -101,3 +101,12 @@ export function useAuth() {
     isAdmin: false
   };
 }
+
+export function logout() {
+  // Clear all authentication data
+  localStorage.removeItem('finapp_admin_auth');
+  localStorage.removeItem('finapp_user_auth');
+  
+  // Redirect to landing page
+  window.location.href = '/';
+}

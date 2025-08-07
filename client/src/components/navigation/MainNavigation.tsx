@@ -16,6 +16,7 @@ import {
   Shield
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { logout } from '@/hooks/useAuth';
 
 const navigationItems = [
   {
@@ -159,7 +160,7 @@ export default function MainNavigation() {
               variant="ghost"
               size="sm"
               className="w-full justify-start gap-3 text-gray-600 hover:text-red-600"
-              onClick={() => window.location.href = '/api/logout'}
+              onClick={logout}
             >
               <LogOut className="h-4 w-4" />
               Wyloguj się

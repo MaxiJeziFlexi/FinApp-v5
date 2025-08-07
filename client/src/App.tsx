@@ -20,6 +20,12 @@ import AdvancedAIDashboard from "@/pages/advanced-ai-dashboard";
 import GamingHub from "@/pages/gaming-hub";
 import EnhancedCryptoMarketplace from "@/pages/enhanced-crypto-marketplace";
 import DeveloperDiagnostics from "@/pages/developer-diagnostics";
+import SignIn from "@/pages/signin";
+import Checkout from "@/pages/checkout";
+import AdminLogin from "@/pages/admin-login";
+import About from "@/pages/about";
+import Contact from "@/pages/contact";
+import Features from "@/pages/features";
 
 function Router() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -40,7 +46,14 @@ function Router() {
       <div className="min-h-screen">
         <Switch>
           <Route path="/" component={Landing} />
-          <Route path="/signin" component={MandatorySignIn} />
+          <Route path="/signin" component={SignIn} />
+          <Route path="/checkout" component={Checkout} />
+          <Route path="/admin-login" component={AdminLogin} />
+          <Route path="/about" component={About} />
+          <Route path="/contact" component={Contact} />
+          <Route path="/features" component={Features} />
+          <Route path="/security" component={Security} />
+          <Route path="/mandatory-signin" component={MandatorySignIn} />
           <Route component={Landing} />
         </Switch>
       </div>

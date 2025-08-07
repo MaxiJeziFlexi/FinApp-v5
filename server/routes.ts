@@ -20,6 +20,15 @@ import { AuthUtils } from "./utils/auth";
 import { RealtimeDataService } from "./services/realtimeDataService";
 import { DiagnosticsService } from "./services/diagnosticsService";
 import { setupAuth, isAuthenticated } from "./replitAuth";
+import bcrypt from "bcryptjs";
+import Stripe from "stripe";
+
+if (!process.env.STRIPE_SECRET_KEY) {
+  throw new Error('Missing required Stripe secret: STRIPE_SECRET_KEY');
+}
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
+  apiVersion: "2023-10-16",
+});
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Auth middleware
@@ -1544,6 +1553,56 @@ export async function registerRoutes(app: Express): Promise<Server> {
           ]
         }
       ]);
+    }
+  });
+
+  // Stripe payment routes
+  app.post("/api/create-payment-intent", async (req, res) => {
+    try {
+      const { amount, planType, description } = req.body;
+      const paymentIntent = await stripe.paymentIntents.create({
+        amount: Math.round(amount * 100), // Convert to cents
+        currency: "usd",
+        description: description || `FinApp ${planType} Subscription`,
+        metadata: {
+          planType: planType || 'pro',
+          timestamp: new Date().toISOString()
+        }
+      });
+      res.json({ clientSecret: paymentIntent.client_secret });
+    } catch (error: any) {
+      console.error("Stripe payment intent error:", error);
+      res.status(500).json({ 
+        message: "Error creating payment intent: " + error.message 
+      });
+    }
+  });
+
+  // Admin signin route for demonstration
+  app.post("/api/auth/admin-signin", async (req, res) => {
+    try {
+      const { email, name, role, userType } = req.body;
+
+      // For demo purposes, create a simple admin user
+      const adminUser = {
+        id: crypto.randomUUID(),
+        email: email || 'admin@finapp.demo',
+        name: name || 'Admin User',
+        role: 'admin',
+        userType: 'admin',
+        subscriptionTier: 'max',
+        accountStatus: 'active',
+        createdAt: new Date(),
+        updatedAt: new Date()
+      };
+
+      res.json({ 
+        user: adminUser,
+        message: 'Admin access granted'
+      });
+    } catch (error) {
+      console.error("Admin signin error:", error);
+      res.status(500).json({ message: "Admin signin failed" });
     }
   });
 

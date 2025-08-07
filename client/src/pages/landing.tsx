@@ -49,7 +49,8 @@ import {
   Phone,
   Building2,
   Calendar,
-  User
+  User,
+  Crown
 } from 'lucide-react';
 import { motion, useInView } from 'framer-motion';
 import { useRef } from 'react';
@@ -279,14 +280,99 @@ export default function Landing() {
                 FinApp
               </span>
             </div>
-            <div className="hidden md:flex items-center gap-8">
-              <a href="#features" className="text-gray-600 hover:text-gray-900 transition-colors">Features</a>
-              <a href="#pricing" className="text-gray-600 hover:text-gray-900 transition-colors">Pricing</a>
-              <a href="#about" className="text-gray-600 hover:text-gray-900 transition-colors">About</a>
-              <Link href="/finapp-home">
-                <Button className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
-                  Try FinApp
-                  <ArrowRight className="ml-2 h-4 w-4" />
+            
+            {/* Desktop Navigation */}
+            <div className="hidden lg:flex items-center gap-8">
+              {/* Product Dropdown */}
+              <div className="relative group">
+                <button className="text-gray-600 hover:text-gray-900 transition-colors flex items-center gap-1">
+                  Product <ChevronDown className="h-4 w-4" />
+                </button>
+                <div className="absolute top-full left-0 mt-2 w-48 bg-white dark:bg-gray-800 shadow-xl rounded-lg border opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
+                  <div className="p-2">
+                    <a href="#features" className="block px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded">Features</a>
+                    <a href="#pricing" className="block px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded">Pricing</a>
+                    <Link href="/security">
+                      <span className="block px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded cursor-pointer">Security</span>
+                    </Link>
+                    <Link href="/api">
+                      <span className="block px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded cursor-pointer">API</span>
+                    </Link>
+                  </div>
+                </div>
+              </div>
+
+              {/* Company Dropdown */}
+              <div className="relative group">
+                <button className="text-gray-600 hover:text-gray-900 transition-colors flex items-center gap-1">
+                  Company <ChevronDown className="h-4 w-4" />
+                </button>
+                <div className="absolute top-full left-0 mt-2 w-48 bg-white dark:bg-gray-800 shadow-xl rounded-lg border opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
+                  <div className="p-2">
+                    <Link href="/about">
+                      <span className="block px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded cursor-pointer">About</span>
+                    </Link>
+                    <Link href="/blog">
+                      <span className="block px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded cursor-pointer">Blog</span>
+                    </Link>
+                    <Link href="/careers">
+                      <span className="block px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded cursor-pointer">Careers</span>
+                    </Link>
+                    <Link href="/contact">
+                      <span className="block px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded cursor-pointer">Contact</span>
+                    </Link>
+                  </div>
+                </div>
+              </div>
+
+              {/* Support Dropdown */}
+              <div className="relative group">
+                <button className="text-gray-600 hover:text-gray-900 transition-colors flex items-center gap-1">
+                  Support <ChevronDown className="h-4 w-4" />
+                </button>
+                <div className="absolute top-full left-0 mt-2 w-48 bg-white dark:bg-gray-800 shadow-xl rounded-lg border opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
+                  <div className="p-2">
+                    <Link href="/help">
+                      <span className="block px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded cursor-pointer">Help Center</span>
+                    </Link>
+                    <Link href="/documentation">
+                      <span className="block px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded cursor-pointer">Documentation</span>
+                    </Link>
+                    <Link href="/community">
+                      <span className="block px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded cursor-pointer">Community</span>
+                    </Link>
+                    <Link href="/status">
+                      <span className="block px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded cursor-pointer">Status</span>
+                    </Link>
+                  </div>
+                </div>
+              </div>
+
+              {/* Auth Buttons */}
+              <div className="flex items-center gap-3">
+                <Link href="/signin">
+                  <Button variant="ghost" size="sm">Sign In</Button>
+                </Link>
+                <Link href="/admin-login">
+                  <Button variant="outline" size="sm">
+                    <Shield className="mr-2 h-4 w-4" />
+                    Admin
+                  </Button>
+                </Link>
+                <Link href="/signin">
+                  <Button className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
+                    Get Started
+                    <ArrowRight className="ml-2 h-4 w-4" />
+                  </Button>
+                </Link>
+              </div>
+            </div>
+
+            {/* Mobile Menu Button */}
+            <div className="lg:hidden">
+              <Link href="/signin">
+                <Button size="sm" className="bg-gradient-to-r from-blue-600 to-purple-600">
+                  Get Started
                 </Button>
               </Link>
             </div>
@@ -322,10 +408,42 @@ export default function Landing() {
                 <User className="mr-2 h-5 w-5" />
                 Complete Profile & Start
               </Button>
-              <Button size="lg" variant="outline" className="text-lg px-8 py-3">
-                <MessageSquare className="mr-2 h-5 w-5" />
-                Schedule Demo
-              </Button>
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button size="lg" variant="outline" className="text-lg px-8 py-3">
+                    <Calendar className="mr-2 h-5 w-5" />
+                    Schedule Demo - August 2025
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-md">
+                  <DialogHeader>
+                    <DialogTitle>Schedule Your Personal Demo</DialogTitle>
+                    <DialogDescription>
+                      Book a 30-minute personalized demo with our financial experts. Available slots this week.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="space-y-4">
+                    <div className="text-sm text-gray-600">
+                      <p className="font-semibold">Available Times (CEST):</p>
+                      <div className="mt-2 space-y-1">
+                        <p>• Today, Aug 7 - 2:00 PM, 4:00 PM</p>
+                        <p>• Friday, Aug 8 - 10:00 AM, 3:00 PM</p>
+                        <p>• Monday, Aug 11 - 9:00 AM, 1:00 PM, 5:00 PM</p>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2">
+                      <Button variant="outline" size="sm">Today 2:00 PM</Button>
+                      <Button variant="outline" size="sm">Today 4:00 PM</Button>
+                      <Button variant="outline" size="sm">Fri 10:00 AM</Button>
+                      <Button variant="outline" size="sm">Fri 3:00 PM</Button>
+                    </div>
+                    <Button className="w-full bg-gradient-to-r from-blue-600 to-purple-600">
+                      <Calendar className="mr-2 h-4 w-4" />
+                      Confirm Demo Booking
+                    </Button>
+                  </div>
+                </DialogContent>
+              </Dialog>
             </div>
           </motion.div>
 
@@ -536,7 +654,7 @@ export default function Landing() {
               className="bg-white text-purple-600 hover:bg-gray-100 px-8 py-3 rounded-xl font-semibold"
             >
               <Bitcoin className="mr-2 h-5 w-5" />
-              Start Earning Crypto
+              Start Earning Crypto - August 2025
             </Button>
           </div>
         </div>
@@ -645,116 +763,185 @@ export default function Landing() {
       </section>
 
       {/* Pricing Section */}
-      <section id="pricing" className="py-20 px-6">
+      <section id="pricing" className="py-20 px-6 bg-gradient-to-br from-gray-50 to-blue-50 dark:from-gray-900 dark:to-blue-900">
         <div className="container mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold mb-6">Simple, Transparent Pricing</h2>
-            <p className="text-xl text-gray-600 dark:text-gray-300">
-              Choose the plan that's right for your financial journey
+            <Badge className="mb-4 bg-gradient-to-r from-green-100 to-emerald-100 text-green-900 border-green-200">
+              <DollarSign className="w-3 h-3 mr-1" />
+              August 2025 Special Pricing
+            </Badge>
+            <h2 className="text-4xl md:text-5xl font-bold mb-6 bg-gradient-to-r from-gray-900 to-blue-900 dark:from-white dark:to-blue-100 bg-clip-text text-transparent">
+              Choose Your Plan
+            </h2>
+            <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
+              Transparent pricing with no hidden fees. Launch special: 30% off first 3 months!
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
             {/* Free Plan */}
-            <Card className="relative">
-              <CardHeader>
-                <CardTitle className="text-2xl">Free</CardTitle>
-                <CardDescription>Perfect for getting started</CardDescription>
-                <div className="text-4xl font-bold">$0<span className="text-lg text-gray-500">/month</span></div>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-green-500" />
-                    <span className="text-sm">Basic AI financial advice</span>
+            <Card3D>
+              <Card className="h-full bg-white/90 backdrop-blur-sm border-0 shadow-xl">
+                <CardHeader>
+                  <CardTitle className="text-2xl text-gray-900">Free</CardTitle>
+                  <CardDescription>Perfect to get started</CardDescription>
+                  <div className="text-4xl font-bold text-gray-900">
+                    $0<span className="text-lg text-gray-500">/month</span>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-green-500" />
-                    <span className="text-sm">Portfolio tracking</span>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-2">
+                      <CheckCircle className="h-4 w-4 text-green-500" />
+                      <span className="text-sm">Basic AI financial advice</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <CheckCircle className="h-4 w-4 text-green-500" />
+                      <span className="text-sm">Portfolio tracking</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <CheckCircle className="h-4 w-4 text-green-500" />
+                      <span className="text-sm">Goal setting & progress</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <CheckCircle className="h-4 w-4 text-green-500" />
+                      <span className="text-sm">Community access</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <CheckCircle className="h-4 w-4 text-green-500" />
+                      <span className="text-sm">$0.20 API limit/month</span>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-green-500" />
-                    <span className="text-sm">Goal setting</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-green-500" />
-                    <span className="text-sm">$0.20 API limit/month</span>
-                  </div>
-                </div>
-                <Link href="/finapp-home">
-                  <Button className="w-full" variant="outline">Get Started</Button>
-                </Link>
-              </CardContent>
-            </Card>
+                  <Link href="/signin">
+                    <Button className="w-full" variant="outline">
+                      Get Started Free
+                    </Button>
+                  </Link>
+                </CardContent>
+              </Card>
+            </Card3D>
 
             {/* Pro Plan */}
-            <Card className="relative border-2 border-blue-500 shadow-xl scale-105">
-              <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
-                <Badge className="bg-gradient-to-r from-blue-500 to-purple-600 text-white">Most Popular</Badge>
-              </div>
-              <CardHeader>
-                <CardTitle className="text-2xl">Pro</CardTitle>
-                <CardDescription>For serious investors</CardDescription>
-                <div className="text-4xl font-bold">$20<span className="text-lg text-gray-500">/month</span></div>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-green-500" />
-                    <span className="text-sm">Advanced AI insights</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-green-500" />
-                    <span className="text-sm">Tax optimization</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-green-500" />
-                    <span className="text-sm">Market intelligence</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-green-500" />
-                    <span className="text-sm">$1.30 API limit/month</span>
-                  </div>
+            <Card3D className="scale-105">
+              <Card className="relative h-full bg-white/95 backdrop-blur-sm border-2 border-blue-500 shadow-2xl">
+                <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
+                  <Badge className="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-4 py-1">
+                    Most Popular - 30% Off
+                  </Badge>
                 </div>
-                <Link href="/finapp-home">
-                  <Button className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700">
-                    Start Pro Trial
-                  </Button>
-                </Link>
-              </CardContent>
-            </Card>
+                <CardHeader>
+                  <CardTitle className="text-2xl text-gray-900">Pro</CardTitle>
+                  <CardDescription>For serious investors</CardDescription>
+                  <div className="space-y-1">
+                    <div className="text-4xl font-bold text-gray-900">
+                      $29<span className="text-lg text-gray-500">/month</span>
+                    </div>
+                    <div className="text-sm text-green-600 font-semibold">
+                      Save $12/month until Nov 2025
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-2">
+                      <CheckCircle className="h-4 w-4 text-green-500" />
+                      <span className="text-sm">Advanced AI financial advisor</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <CheckCircle className="h-4 w-4 text-green-500" />
+                      <span className="text-sm">Tax optimization strategies</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <CheckCircle className="h-4 w-4 text-green-500" />
+                      <span className="text-sm">Real-time market intelligence</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <CheckCircle className="h-4 w-4 text-green-500" />
+                      <span className="text-sm">Priority customer support</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <CheckCircle className="h-4 w-4 text-green-500" />
+                      <span className="text-sm">5 AI advisor sessions/month</span>
+                    </div>
+                  </div>
+                  <Link href="/checkout?plan=pro">
+                    <Button className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700">
+                      <CreditCard className="mr-2 h-4 w-4" />
+                      Start Pro - $29/mo
+                    </Button>
+                  </Link>
+                </CardContent>
+              </Card>
+            </Card3D>
 
             {/* Max Plan */}
-            <Card className="relative">
-              <CardHeader>
-                <CardTitle className="text-2xl">Max</CardTitle>
-                <CardDescription>For financial professionals</CardDescription>
-                <div className="text-4xl font-bold">$80<span className="text-lg text-gray-500">/month</span></div>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-green-500" />
-                    <span className="text-sm">Enterprise AI features</span>
+            <Card3D>
+              <Card className="h-full bg-white/90 backdrop-blur-sm border-0 shadow-xl">
+                <CardHeader>
+                  <CardTitle className="text-2xl text-gray-900">Max</CardTitle>
+                  <CardDescription>For financial professionals</CardDescription>
+                  <div className="space-y-1">
+                    <div className="text-4xl font-bold text-gray-900">
+                      $99<span className="text-lg text-gray-500">/month</span>
+                    </div>
+                    <div className="text-sm text-green-600 font-semibold">
+                      Save $30/month until Nov 2025
+                    </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-green-500" />
-                    <span className="text-sm">Advanced analytics</span>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-2">
+                      <CheckCircle className="h-4 w-4 text-green-500" />
+                      <span className="text-sm">Everything in Pro</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <CheckCircle className="h-4 w-4 text-green-500" />
+                      <span className="text-sm">Unlimited AI advisor sessions</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <CheckCircle className="h-4 w-4 text-green-500" />
+                      <span className="text-sm">Custom portfolio management</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <CheckCircle className="h-4 w-4 text-green-500" />
+                      <span className="text-sm">Direct advisor calls</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <CheckCircle className="h-4 w-4 text-green-500" />
+                      <span className="text-sm">White-label options</span>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-green-500" />
-                    <span className="text-sm">White-label options</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-green-500" />
-                    <span className="text-sm">$5.00 API limit/month</span>
-                  </div>
-                </div>
-                <Link href="/finapp-home">
-                  <Button className="w-full" variant="outline">Contact Sales</Button>
-                </Link>
-              </CardContent>
-            </Card>
+                  <Link href="/checkout?plan=max">
+                    <Button className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700">
+                      <Award className="mr-2 h-4 w-4" />
+                      Upgrade to Max - $99/mo
+                    </Button>
+                  </Link>
+                </CardContent>
+              </Card>
+            </Card3D>
+          </div>
+
+          {/* Pricing Footer */}
+          <div className="mt-12 text-center">
+            <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+              All plans include 30-day money-back guarantee • Cancel anytime • Secure payment via Stripe
+            </p>
+            <div className="flex justify-center items-center gap-6 text-xs text-gray-500">
+              <div className="flex items-center gap-1">
+                <Shield className="h-3 w-3" />
+                Bank-level security
+              </div>
+              <div className="flex items-center gap-1">
+                <Lock className="h-3 w-3" />
+                SSL encrypted
+              </div>
+              <div className="flex items-center gap-1">
+                <CreditCard className="h-3 w-3" />
+                Powered by Stripe
+              </div>
+            </div>
           </div>
         </div>
       </section>
@@ -781,10 +968,42 @@ export default function Landing() {
                   Start Your Free Trial
                 </Button>
               </Link>
-              <Button size="lg" variant="outline" className="border-white text-white hover:bg-white hover:text-blue-600 text-lg px-8 py-3">
-                <MessageSquare className="mr-2 h-5 w-5" />
-                Book a Demo
-              </Button>
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button size="lg" variant="outline" className="border-white text-white hover:bg-white hover:text-blue-600 text-lg px-8 py-3">
+                    <Calendar className="mr-2 h-5 w-5" />
+                    Book Demo - August 2025
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-md">
+                  <DialogHeader>
+                    <DialogTitle>Schedule Your Personal Demo</DialogTitle>
+                    <DialogDescription>
+                      Book a 30-minute personalized demo with our financial experts. Available slots this week.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="space-y-4">
+                    <div className="text-sm text-gray-600">
+                      <p className="font-semibold">Available Times (CEST):</p>
+                      <div className="mt-2 space-y-1">
+                        <p>• Today, Aug 7 - 2:00 PM, 4:00 PM</p>
+                        <p>• Friday, Aug 8 - 10:00 AM, 3:00 PM</p>
+                        <p>• Monday, Aug 11 - 9:00 AM, 1:00 PM, 5:00 PM</p>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2">
+                      <Button variant="outline" size="sm">Today 2:00 PM</Button>
+                      <Button variant="outline" size="sm">Today 4:00 PM</Button>
+                      <Button variant="outline" size="sm">Fri 10:00 AM</Button>
+                      <Button variant="outline" size="sm">Fri 3:00 PM</Button>
+                    </div>
+                    <Button className="w-full bg-gradient-to-r from-blue-600 to-purple-600">
+                      <Calendar className="mr-2 h-4 w-4" />
+                      Confirm Demo Booking
+                    </Button>
+                  </div>
+                </DialogContent>
+              </Dialog>
             </div>
           </motion.div>
         </div>

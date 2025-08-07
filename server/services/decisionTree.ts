@@ -521,6 +521,106 @@ export class DecisionTreeService {
     return Math.round((currentStep / tree.totalSteps) * 100);
   }
 
+  // Enhanced decision tree logic with interactive challenges
+  async processInteractiveChallenge(advisorId: string, step: number, userResponse: any): Promise<{
+    isCorrect: boolean;
+    explanation: string;
+    nextStep: number;
+    feedback: string;
+  }> {
+    const question = this.getQuestion(advisorId, step);
+    if (!question) {
+      throw new Error('Invalid step');
+    }
+
+    // Define logic puzzles for each advisor type
+    const challenges = this.getInteractiveChallenges(advisorId);
+    const challenge = challenges[step];
+    
+    if (!challenge) {
+      return {
+        isCorrect: true,
+        explanation: 'No challenge for this step',
+        nextStep: step + 1,
+        feedback: 'Continue to next step'
+      };
+    }
+
+    const isCorrect = this.evaluateChallenge(challenge, userResponse);
+    
+    return {
+      isCorrect,
+      explanation: challenge.explanation,
+      nextStep: isCorrect ? step + 1 : step,
+      feedback: isCorrect ? challenge.successFeedback : challenge.errorFeedback
+    };
+  }
+
+  private getInteractiveChallenges(advisorId: string) {
+    const challenges: Record<string, any> = {
+      budget_planner: [
+        {
+          type: 'calculation',
+          challenge: 'If your monthly expenses are $3,000, how much should you save for a 6-month emergency fund?',
+          correctAnswer: 18000,
+          tolerance: 1000,
+          explanation: 'Emergency fund = Monthly expenses × 6 months = $3,000 × 6 = $18,000',
+          successFeedback: 'Excellent! You understand emergency fund calculations.',
+          errorFeedback: 'Remember: Emergency fund should cover 6 months of expenses.'
+        },
+        {
+          type: 'optimization',
+          challenge: 'Given income $5000, expenses $3500, which savings strategy maximizes emergency fund building?',
+          options: ['Save $500/month', 'Save $1000/month', 'Save $1500/month'],
+          correctAnswer: 1, // Save $1000/month (aggressive but sustainable)
+          explanation: 'Saving $1000/month (20% of income) builds emergency fund in 18 months while maintaining lifestyle.',
+          successFeedback: 'Great choice! This balances aggressive saving with sustainability.',
+          errorFeedback: 'Consider the balance between saving speed and lifestyle maintenance.'
+        }
+      ],
+      debt_expert: [
+        {
+          type: 'strategy',
+          challenge: 'You have Credit Card A ($5000 at 24% APR) and Card B ($3000 at 18% APR). Which to pay first using avalanche method?',
+          correctAnswer: 'A',
+          explanation: 'Avalanche method prioritizes highest interest rate debt first (24% > 18%)',
+          successFeedback: 'Correct! Avalanche method saves the most money in interest.',
+          errorFeedback: 'Avalanche method focuses on highest interest rates to minimize total cost.'
+        }
+      ],
+      savings_strategist: [
+        {
+          type: 'risk_assessment',
+          challenge: 'For a $50,000 goal in 5 years, which investment mix balances growth and risk for moderate tolerance?',
+          options: ['100% stocks', '60% stocks 40% bonds', '30% stocks 70% bonds'],
+          correctAnswer: 1,
+          explanation: '60/40 portfolio provides growth potential while managing volatility for moderate risk tolerance.',
+          successFeedback: 'Perfect! This allocation matches moderate risk tolerance and timeline.',
+          errorFeedback: 'Consider how risk tolerance affects asset allocation for your timeline.'
+        }
+      ]
+    };
+
+    return challenges[advisorId] || [];
+  }
+
+  private evaluateChallenge(challenge: any, userResponse: any): boolean {
+    switch (challenge.type) {
+      case 'calculation':
+        const numericResponse = parseFloat(userResponse);
+        return Math.abs(numericResponse - challenge.correctAnswer) <= (challenge.tolerance || 0);
+      
+      case 'optimization':
+      case 'strategy':
+      case 'risk_assessment':
+        return userResponse === challenge.correctAnswer || 
+               userResponse === challenge.options?.[challenge.correctAnswer];
+      
+      default:
+        return true;
+    }
+  }
+
   async generateReport(advisorId: string, decisionPath: any[], userProfile: any): Promise<FinalRecommendation> {
     const tree = this.decisionTrees[advisorId];
     if (!tree) {

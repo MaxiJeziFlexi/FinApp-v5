@@ -19,6 +19,7 @@ import crypto from "crypto";
 import { AuthUtils } from "./utils/auth";
 import { RealtimeDataService } from "./services/realtimeDataService";
 import { DiagnosticsService } from "./services/diagnosticsService";
+import { analyticsService } from "./services/analyticsService";
 import { setupAuth, isAuthenticated } from "./replitAuth";
 import bcrypt from "bcryptjs";
 import Stripe from "stripe";
@@ -323,6 +324,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Analytics Routes
+  app.get('/api/analytics/live', async (req, res) => {
+    try {
+      const analytics = await analyticsService.generateLiveAnalytics();
+      res.json(analytics);
+    } catch (error) {
+      console.error('Analytics error:', error);
+      res.status(500).json({ message: 'Failed to get analytics data' });
+    }
+  });
+
+  app.get('/api/analytics/diagnostics', async (req, res) => {
+    try {
+      const diagnostics = await analyticsService.getDiagnosticsData();
+      res.json(diagnostics);
+    } catch (error) {
+      console.error('Diagnostics error:', error);
+      res.status(500).json({ message: 'Failed to get diagnostics data' });
+    }
+  });
+
+  app.post('/api/analytics/track-event', async (req, res) => {
+    try {
+      const { userId, eventType, data } = req.body;
+      const result = await analyticsService.trackUserEvent(userId, eventType, data);
+      res.json(result);
+    } catch (error) {
+      console.error('Event tracking error:', error);
+      res.status(500).json({ message: 'Failed to track event' });
+    }
+  });
+
   // Decision tree endpoints
   app.get('/api/decision-tree/status/:userId/:advisorId', async (req, res) => {
     try {
@@ -348,6 +381,45 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Error fetching decision tree status:', error);
       res.status(500).json({ message: 'Failed to fetch decision tree status' });
+    }
+  });
+
+  app.get('/api/decision-tree/next/:advisorId/:step', async (req, res) => {
+    try {
+      const { advisorId, step } = req.params;
+      const currentStep = parseInt(step);
+      
+      const question = decisionTreeService.getQuestion(advisorId, currentStep);
+      if (!question) {
+        return res.status(404).json({ message: 'Question not found' });
+      }
+      
+      res.json({
+        question,
+        options: question.options,
+        progress: decisionTreeService.getProgressPercentage(advisorId, currentStep),
+        isComplete: decisionTreeService.isDecisionTreeComplete(advisorId, [])
+      });
+    } catch (error) {
+      console.error('Decision tree next error:', error);
+      res.status(500).json({ message: 'Failed to get next question' });
+    }
+  });
+
+  app.post('/api/decision-tree/challenge', async (req, res) => {
+    try {
+      const { advisorId, step, userResponse } = req.body;
+      
+      const result = await decisionTreeService.processInteractiveChallenge(
+        advisorId, 
+        parseInt(step), 
+        userResponse
+      );
+      
+      res.json(result);
+    } catch (error) {
+      console.error('Challenge processing error:', error);
+      res.status(500).json({ message: 'Failed to process challenge' });
     }
   });
 

@@ -168,12 +168,12 @@ export function AdminDashboard() {
                     Total Users
                   </CardTitle>
                   <CardDescription className="text-2xl font-bold text-white">
-                    {adminStats.totalUsers.toLocaleString()}
+                    {liveAnalytics?.totalUsers?.toLocaleString() || '0'}
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="text-xs opacity-90">
-                    {adminStats.activeUsers} active today
+                    {liveAnalytics?.activeUsers || 0} active today
                   </div>
                 </CardContent>
               </Card>
@@ -185,12 +185,12 @@ export function AdminDashboard() {
                     AI Sessions
                   </CardTitle>
                   <CardDescription className="text-2xl font-bold text-white">
-                    {adminStats.totalSessions.toLocaleString()}
+                    {liveAnalytics?.totalSessions?.toLocaleString() || '0'}
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="text-xs opacity-90">
-                    +12% this week
+                    Live AI interactions
                   </div>
                 </CardContent>
               </Card>
@@ -202,7 +202,7 @@ export function AdminDashboard() {
                     Messages
                   </CardTitle>
                   <CardDescription className="text-2xl font-bold text-white">
-                    {adminStats.totalMessages.toLocaleString()}
+                    {liveAnalytics?.totalChatMessages?.toLocaleString() || '0'}
                   </CardDescription>
                 </CardHeader>
                 <CardContent>

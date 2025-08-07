@@ -48,7 +48,7 @@ export default function OnboardingForm({ onComplete, userId }: OnboardingFormPro
 
   const updateProfileMutation = useMutation({
     mutationFn: async (profileData: any) => {
-      const response = await apiRequest('PUT', `/api/user/profile/${userId}`, profileData);
+      const response = await apiRequest('POST', `/api/user/profile/${userId}`, profileData);
       return response.json();
     },
     onSuccess: () => {
@@ -58,10 +58,11 @@ export default function OnboardingForm({ onComplete, userId }: OnboardingFormPro
       });
       onComplete();
     },
-    onError: (error) => {
+    onError: (error: any) => {
+      console.error('Profile creation error:', error);
       toast({
         title: "Error",
-        description: "Failed to create profile. Please try again.",
+        description: error?.message || "Failed to create profile. Please try again.",
         variant: "destructive",
       });
     },
@@ -97,8 +98,8 @@ export default function OnboardingForm({ onComplete, userId }: OnboardingFormPro
       financialGoal: formData.goal,
       timeframe: formData.timeframe,
       monthlyIncome: formData.monthlyIncome,
-      currentSavings: formData.currentSavings ? parseFloat(formData.currentSavings.replace(/[^0-9.]/g, '')) : 0,
-      targetAmount: formData.targetAmount ? parseFloat(formData.targetAmount.replace(/[^0-9.]/g, '')) : null,
+      currentSavings: formData.currentSavings || "0",
+      targetAmount: formData.targetAmount || "10000",
       onboardingComplete: true,
       consents: consents,
       financialData: [

@@ -63,6 +63,14 @@ interface FinalRecommendation {
   };
 }
 
+interface TreeStatus {
+  completed?: boolean;
+  final_recommendation?: FinalRecommendation;
+  decision_path?: DecisionStep[];
+  current_step?: number;
+  progress?: number;
+}
+
 export default function DecisionTreeView({ 
   advisor, 
   userId, 
@@ -79,7 +87,7 @@ export default function DecisionTreeView({
   const [isTreeComplete, setIsTreeComplete] = useState(false);
 
   // Fetch current decision tree status
-  const { data: treeStatus, refetch: refetchStatus } = useQuery({
+  const { data: treeStatus, refetch: refetchStatus } = useQuery<TreeStatus>({
     queryKey: ['/api/decision-tree/status', userId, advisor?.id],
     enabled: !!advisor?.id && !!userId,
   });
@@ -111,7 +119,7 @@ export default function DecisionTreeView({
     if (treeStatus && advisor) {
       if (treeStatus.completed) {
         setIsTreeComplete(true);
-        setFinalRecommendation(treeStatus.final_recommendation);
+        setFinalRecommendation(treeStatus.final_recommendation || null);
         setDecisionPath(treeStatus.decision_path || []);
         setProgressValue(100);
       } else {

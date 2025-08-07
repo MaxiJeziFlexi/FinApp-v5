@@ -387,9 +387,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/decision-tree/next/:advisorId/:step', async (req, res) => {
     try {
       const { advisorId, step } = req.params;
-      const currentStep = parseInt(step);
+      const currentStep = parseInt(step) || 0;
       
-      const question = decisionTreeService.getQuestion(advisorId, currentStep);
+      // Import decision tree service from new location
+      const { decisionTreeService: dtService } = require('./services/decisionTreeService');
+      
+      const question = dtService.getQuestion(advisorId, currentStep);
       if (!question) {
         return res.status(404).json({ message: 'Question not found' });
       }
@@ -397,8 +400,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({
         question,
         options: question.options,
-        progress: decisionTreeService.getProgressPercentage(advisorId, currentStep),
-        isComplete: decisionTreeService.isDecisionTreeComplete(advisorId, [])
+        progress: dtService.getProgressPercentage(advisorId, currentStep),
+        isComplete: dtService.isDecisionTreeComplete(advisorId, [])
       });
     } catch (error) {
       console.error('Decision tree next error:', error);
@@ -410,9 +413,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { advisorId, step, userResponse } = req.body;
       
-      const result = await decisionTreeService.processInteractiveChallenge(
+      // Import decision tree service from new location
+      const { decisionTreeService: dtService } = require('./services/decisionTreeService');
+      
+      const result = await dtService.processInteractiveChallenge(
         advisorId, 
-        parseInt(step), 
+        parseInt(step) || 0, 
         userResponse
       );
       
@@ -786,6 +792,174 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Error fetching real-time learning data:', error);
       res.status(500).json({ message: 'Failed to fetch real-time analytics' });
+    }
+  });
+
+  // Financial Services API Routes
+
+  // AI Report Generator
+  app.post('/api/reports/generate', async (req, res) => {
+    try {
+      const { reportType, timeframe, includeAnalysis } = req.body;
+      
+      const report = {
+        id: `report-${Date.now()}`,
+        type: reportType || 'comprehensive',
+        timeframe: timeframe || 'monthly',
+        generatedAt: new Date().toISOString(),
+        data: {
+          portfolioPerformance: {
+            totalValue: 125000,
+            monthlyReturn: 2.3,
+            ytdReturn: 8.7,
+            riskScore: 6.2
+          },
+          assetAllocation: {
+            stocks: 65,
+            bonds: 25,
+            cash: 5,
+            alternatives: 5
+          },
+          analysis: includeAnalysis ? "Your portfolio shows strong diversification with above-average returns. Consider rebalancing towards bonds if approaching retirement." : null,
+          recommendations: [
+            "Increase emergency fund to 6 months expenses",
+            "Consider tax-loss harvesting opportunities",
+            "Review insurance coverage annually"
+          ]
+        }
+      };
+      
+      res.json(report);
+    } catch (error) {
+      console.error('Error generating report:', error);
+      res.status(500).json({ message: 'Failed to generate report' });
+    }
+  });
+
+  // Investment Consultation AI
+  app.post('/api/investment/consultation', async (req, res) => {
+    try {
+      const { riskTolerance, investmentGoals, timeHorizon, amount } = req.body;
+      
+      const consultation = {
+        id: `consultation-${Date.now()}`,
+        recommendations: {
+          portfolio: {
+            aggressive: riskTolerance === 'high' ? 80 : riskTolerance === 'medium' ? 60 : 40,
+            moderate: riskTolerance === 'high' ? 15 : riskTolerance === 'medium' ? 30 : 40,
+            conservative: riskTolerance === 'high' ? 5 : riskTolerance === 'medium' ? 10 : 20
+          },
+          expectedReturn: riskTolerance === 'high' ? 9.2 : riskTolerance === 'medium' ? 7.5 : 5.8,
+          riskScore: riskTolerance === 'high' ? 8.5 : riskTolerance === 'medium' ? 6.0 : 3.5,
+          timeframe: timeHorizon || '5-10 years'
+        },
+        analysis: `Based on your ${riskTolerance} risk tolerance and ${timeHorizon} investment timeline, we recommend a diversified approach.`,
+        actionItems: [
+          "Start with index fund investing",
+          "Set up automatic monthly contributions", 
+          "Review and rebalance quarterly"
+        ]
+      };
+      
+      res.json(consultation);
+    } catch (error) {
+      console.error('Error processing investment consultation:', error);
+      res.status(500).json({ message: 'Failed to process consultation' });
+    }
+  });
+
+  // Community Discussions
+  app.post('/api/community/create-post', async (req, res) => {
+    try {
+      const { title, content, category } = req.body;
+      
+      const post = {
+        id: `post-${Date.now()}`,
+        title,
+        content,
+        category: category || 'general',
+        author: {
+          id: 'current-user',
+          name: 'Community Member',
+          badge: 'Active Member'
+        },
+        createdAt: new Date().toISOString(),
+        likes: 0,
+        replies: 0,
+        status: 'published'
+      };
+      
+      res.json(post);
+    } catch (error) {
+      console.error('Error creating community post:', error);
+      res.status(500).json({ message: 'Failed to create post' });
+    }
+  });
+
+  // Learning Hub Routes
+  app.get('/api/learning/progress', async (req, res) => {
+    try {
+      res.json({
+        overallProgress: 73,
+        completedCourses: 8,
+        totalCourses: 11,
+        studyTime: 47,
+        certifications: 5,
+        knowledgeScore: 892
+      });
+    } catch (error) {
+      console.error('Error fetching learning progress:', error);
+      res.status(500).json({ message: 'Failed to fetch learning progress' });
+    }
+  });
+
+  app.get('/api/learning/courses', async (req, res) => {
+    try {
+      const { level, category } = req.query;
+      
+      const courses = [
+        {
+          id: 'portfolio-theory',
+          title: 'Advanced Portfolio Theory',
+          level: 'advanced',
+          category: 'investing',
+          duration: '6.5 hours',
+          students: 2847,
+          rating: 4.9,
+          progress: 0
+        },
+        {
+          id: 'tax-strategy',
+          title: 'Tax Strategy Fundamentals', 
+          level: 'intermediate',
+          category: 'taxes',
+          duration: '4.2 hours',
+          students: 1523,
+          rating: 4.7,
+          progress: 65
+        }
+      ];
+      
+      res.json(courses);
+    } catch (error) {
+      console.error('Error fetching courses:', error);
+      res.status(500).json({ message: 'Failed to fetch courses' });
+    }
+  });
+
+  app.post('/api/learning/enroll', async (req, res) => {
+    try {
+      const { courseId } = req.body;
+      
+      res.json({
+        success: true,
+        courseId,
+        enrolledAt: new Date().toISOString(),
+        message: 'Successfully enrolled in course'
+      });
+    } catch (error) {
+      console.error('Error enrolling in course:', error);
+      res.status(500).json({ message: 'Failed to enroll in course' });
     }
   });
 

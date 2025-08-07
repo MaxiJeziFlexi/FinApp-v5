@@ -20,7 +20,8 @@ import {
   Users,
   Search,
   Filter,
-  Download
+  Download,
+  Trophy
 } from 'lucide-react';
 
 export default function LearningHub() {

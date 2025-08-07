@@ -24,7 +24,8 @@ import {
   CheckCircle,
   ArrowRight,
   Plus,
-  Search
+  Search,
+  Crown
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';

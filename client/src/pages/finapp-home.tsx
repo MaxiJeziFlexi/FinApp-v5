@@ -242,11 +242,11 @@ export default function FinAppHome() {
                   <User className="w-5 h-5" />
                 )}
                 <span className="font-medium">
-                  {isAdmin ? 'Administrator' : 'User'}: {currentUser?.email}
+                  {isAdmin ? 'Administrator' : 'User'}: {(currentUser as any)?.email || 'User'}
                 </span>
                 <Badge variant="secondary" className="bg-white/20 text-white">
-                  {currentUser?.subscriptionTier === 'max' ? 'Max Plan' : 
-                   currentUser?.subscriptionTier === 'pro' ? 'Pro Plan' : 'Free Plan'}
+                  {(currentUser as any)?.subscriptionTier === 'max' ? 'Max Plan' : 
+                   (currentUser as any)?.subscriptionTier === 'pro' ? 'Pro Plan' : 'Free Plan'}
                 </Badge>
               </div>
               
@@ -289,18 +289,12 @@ export default function FinAppHome() {
               <div className="flex items-center justify-center mt-6">
                 <div className="flex items-center gap-4 bg-white/10 backdrop-blur-sm rounded-lg px-4 py-2">
                   <div className="text-center">
-                    <p className="text-sm font-medium">Welcome back, {currentUser.firstName || 'User'}!</p>
+                    <p className="text-sm font-medium">Welcome back, {(currentUser as any)?.firstName || 'User'}!</p>
                     <p className="text-xs opacity-80">
-                      {currentUser.subscriptionTier === 'free' ? 'Free Plan' : 
-                       currentUser.subscriptionTier === 'pro' ? 'Pro Member' : 'Premium Member'}
+                      {(currentUser as any)?.subscriptionTier === 'free' ? 'Free Plan' : 
+                       (currentUser as any)?.subscriptionTier === 'pro' ? 'Pro Member' : 'Premium Member'}
                     </p>
                   </div>
-                  <UserProfileDropdown
-                    user={currentUser}
-                    onLogout={handleLogout}
-                    onOpenSettings={() => setShowSettingsModal(true)}
-                    onOpenSubscription={() => window.location.href = '/checkout'}
-                  />
                 </div>
               </div>
             )}
@@ -390,7 +384,7 @@ export default function FinAppHome() {
                 </Alert>
                 {selectedAdvisor ? (
                   // Show based on user subscription
-                  isAdmin || currentUser?.subscriptionTier === 'max' || currentUser?.subscriptionTier === 'pro' ? (
+                  isAdmin || (currentUser as any)?.subscriptionTier === 'max' || (currentUser as any)?.subscriptionTier === 'pro' ? (
                     <DecisionTreeView
                       advisor={selectedAdvisor}
                       userId={userId}
@@ -457,13 +451,19 @@ export default function FinAppHome() {
         {/* Achievement Notifications */}
         {showAchievement && (
           <AchievementNotification
-            achievementId={showAchievement}
+            achievement={{
+              name: "Achievement Unlocked",
+              description: "Great job!",
+              icon: "trophy",
+              type: "milestone",
+              xpReward: 100
+            } as any}
             onClose={() => setShowAchievement(null)}
           />
         )}
 
         {/* Premium Upgrade CTA for non-premium users */}
-        {currentUser && currentUser.subscriptionTier === 'free' && !isAdmin && (
+        {currentUser && (currentUser as any)?.subscriptionTier === 'free' && !isAdmin && (
           <Card className="mt-8 bg-gradient-to-r from-purple-600 to-pink-600 text-white">
             <CardContent className="p-6 text-center">
               <Crown className="w-12 h-12 mx-auto mb-4 text-yellow-300" />
@@ -504,18 +504,24 @@ export default function FinAppHome() {
       </div>
 
       {/* User Settings Modal */}
-      {currentUser && (
+      {showSettingsModal && currentUser && (
         <UserSettingsModal
           isOpen={showSettingsModal}
           onClose={() => setShowSettingsModal(false)}
-          user={currentUser}
+          user={currentUser as any}
         />
       )}
 
       {/* Achievement Notifications */}
       {showAchievement && (
         <AchievementNotification
-          achievementId={showAchievement}
+          achievement={{
+            name: "Achievement Unlocked",
+            description: "Great job!",
+            icon: "trophy",
+            type: "milestone",
+            xpReward: 100
+          } as any}
           onClose={() => setShowAchievement(null)}
         />
       )}

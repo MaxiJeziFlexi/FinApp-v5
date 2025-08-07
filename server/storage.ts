@@ -15,6 +15,10 @@ import {
   jarvisAiKnowledge,
   jarvisAiTasks,
   jarvisAiTraining,
+  personalizedDecisionTreeResponses,
+  aiEmotionalProfiles,
+  aiInsights,
+  decisionTreeSessions,
   type User, 
   type InsertUser,
   type UpsertUser,
@@ -147,6 +151,18 @@ export interface IStorage {
   createJarvisTraining(training: InsertJarvisAiTraining): Promise<JarvisAiTraining>;
   getJarvisTraining(): Promise<JarvisAiTraining[]>;
   updateJarvisTraining(trainingId: string, updates: Partial<InsertJarvisAiTraining>): Promise<JarvisAiTraining>;
+  
+  // Decision Tree Response operations
+  saveDecisionTreeResponse(userId: string, advisorId: string, questionId: string, answer: any, additionalData?: any): Promise<void>;
+  getUserDecisionTreeResponses(userId: string, advisorId: string): Promise<any[]>;
+  
+  // AI Emotional Profile operations
+  saveEmotionalProfile(profile: any): Promise<void>;
+  getEmotionalProfile(userId: string, advisorId: string): Promise<any | undefined>;
+  
+  // AI Insights operations
+  saveAIInsights(insights: any): Promise<void>;
+  getUserAIInsights(userId: string, advisorId: string): Promise<any[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -877,10 +893,78 @@ export class DatabaseStorage implements IStorage {
   async updateJarvisTraining(trainingId: string, updates: Partial<InsertJarvisAiTraining>): Promise<JarvisAiTraining> {
     const [updated] = await db
       .update(jarvisAiTraining)
-      .set({ ...updates, updatedAt: new Date() })
+      .set(updates)
       .where(eq(jarvisAiTraining.id, trainingId))
       .returning();
     return updated;
+  }
+
+  // Decision Tree Response operations
+  async saveDecisionTreeResponse(userId: string, advisorId: string, questionId: string, answer: any, additionalData?: any): Promise<void> {
+    await db.insert(personalizedDecisionTreeResponses).values({
+      id: generateId('response'),
+      userId,
+      advisorId,
+      questionId,
+      answer,
+      additionalData: additionalData || {},
+      timestamp: new Date(),
+    });
+  }
+
+  async getUserDecisionTreeResponses(userId: string, advisorId: string): Promise<any[]> {
+    return await db
+      .select()
+      .from(personalizedDecisionTreeResponses)
+      .where(and(
+        eq(personalizedDecisionTreeResponses.userId, userId),
+        eq(personalizedDecisionTreeResponses.advisorId, advisorId)
+      ));
+  }
+
+  // AI Emotional Profile operations
+  async saveEmotionalProfile(profile: any): Promise<void> {
+    await db.insert(aiEmotionalProfiles).values({
+      id: generateId('profile'),
+      ...profile,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    });
+  }
+
+  async getEmotionalProfile(userId: string, advisorId: string): Promise<any | undefined> {
+    const [profile] = await db
+      .select()
+      .from(aiEmotionalProfiles)
+      .where(and(
+        eq(aiEmotionalProfiles.userId, userId),
+        eq(aiEmotionalProfiles.advisorId, advisorId)
+      ))
+      .orderBy(desc(aiEmotionalProfiles.createdAt))
+      .limit(1);
+    return profile;
+  }
+
+  // AI Insights operations
+  async saveAIInsights(insights: any): Promise<void> {
+    await db.insert(aiInsights).values({
+      id: generateId('insight'),
+      ...insights,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    });
+  }
+
+  async getUserAIInsights(userId: string, advisorId: string): Promise<any[]> {
+    return await db
+      .select()
+      .from(aiInsights)
+      .where(and(
+        eq(aiInsights.userId, userId),
+        eq(aiInsights.advisorId, advisorId),
+        eq(aiInsights.isActive, true)
+      ))
+      .orderBy(desc(aiInsights.createdAt));
   }
 }
 

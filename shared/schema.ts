@@ -308,6 +308,138 @@ export const verificationCodes = pgTable("verification_codes", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// Personalized Decision Tree Responses
+export const personalizedDecisionTreeResponses = pgTable("personalized_decision_tree_responses", {
+  id: varchar("id", { length: 255 }).primaryKey(),
+  userId: varchar("user_id", { length: 255 }).references(() => users.id).notNull(),
+  advisorId: varchar("advisor_id", { length: 50 }).references(() => advisors.id).notNull(),
+  questionId: varchar("question_id", { length: 100 }).notNull(),
+  answer: jsonb("answer").notNull(),
+  confidence: decimal("confidence", { precision: 3, scale: 2 }).default('1.0'),
+  additionalData: jsonb("additional_data").default({}),
+  timestamp: timestamp("timestamp").defaultNow(),
+  sessionId: varchar("session_id", { length: 255 }),
+  aiContext: text("ai_context"),
+  aiWeight: decimal("ai_weight", { precision: 3, scale: 2 }).default('1.0'),
+});
+
+// AI Emotional Financial Profiles
+export const aiEmotionalProfiles = pgTable("ai_emotional_profiles", {
+  id: varchar("id", { length: 255 }).primaryKey(),
+  userId: varchar("user_id", { length: 255 }).references(() => users.id).notNull(),
+  advisorId: varchar("advisor_id", { length: 50 }).references(() => advisors.id).notNull(),
+  
+  // Emotional Intelligence Mapping
+  moneyRelationship: varchar("money_relationship", { enum: ['anxiety', 'opportunity', 'practical', 'avoidance'] }),
+  spendingTriggers: varchar("spending_triggers", { enum: ['social_pressure', 'emotional_state', 'convenience', 'planned'] }),
+  lossTolerance: varchar("loss_tolerance", { enum: ['risk_averse', 'moderate_risk', 'risk_seeking'] }),
+  stressResponse: varchar("stress_response", { enum: ['fight', 'flight', 'freeze', 'analysis'] }),
+  decisionStyle: varchar("decision_style", { enum: ['impulsive', 'analytical', 'collaborative', 'avoidant'] }),
+  
+  // Financial Psychology Drivers
+  primaryMotivation: varchar("primary_motivation", { enum: ['security', 'growth', 'freedom', 'legacy', 'status'] }),
+  fearHierarchy: jsonb("fear_hierarchy").default([]),
+  rewardPreferences: varchar("reward_preferences", { enum: ['immediate', 'delayed', 'milestone_based', 'social_recognition'] }),
+  controlNeeds: varchar("control_needs", { enum: ['high_control', 'guided_decisions', 'expert_delegation'] }),
+  changeReadiness: varchar("change_readiness", { enum: ['fully_committed', 'gradual_changes', 'small_experiments'] }),
+  
+  // Behavioral Prediction Models
+  behaviorPredictions: jsonb("behavior_predictions").default({}),
+  
+  // AI Insights and Recommendations
+  personalityArchetype: varchar("personality_archetype", { length: 255 }),
+  financialMaturityStage: varchar("financial_maturity_stage", { enum: ['beginner', 'developing', 'intermediate', 'advanced'] }),
+  learningStyle: varchar("learning_style", { enum: ['visual', 'auditory', 'kinesthetic', 'reading'] }),
+  motivationTriggers: jsonb("motivation_triggers").default([]),
+  potentialBlindSpots: jsonb("potential_blind_spots").default([]),
+  recommendedStrategies: jsonb("recommended_strategies").default([]),
+  
+  // Ideal Money Plan
+  idealMoneyPlan: jsonb("ideal_money_plan").default({}),
+  
+  // Confidence Scores
+  profileAccuracy: decimal("profile_accuracy", { precision: 3, scale: 2 }).default('0.5'),
+  predictionReliability: decimal("prediction_reliability", { precision: 3, scale: 2 }).default('0.5'),
+  recommendationStrength: decimal("recommendation_strength", { precision: 3, scale: 2 }).default('0.5'),
+  
+  // Metadata
+  analysisVersion: varchar("analysis_version", { length: 50 }).default('1.0'),
+  rawData: jsonb("raw_data").default({}),
+  processingStatus: varchar("processing_status", { enum: ['pending', 'processed', 'failed', 'updated'] }).default('pending'),
+  
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// AI Generated Insights and Recommendations
+export const aiInsights = pgTable("ai_insights", {
+  id: varchar("id", { length: 255 }).primaryKey(),
+  userId: varchar("user_id", { length: 255 }).references(() => users.id).notNull(),
+  advisorId: varchar("advisor_id", { length: 50 }).references(() => advisors.id).notNull(),
+  profileId: varchar("profile_id", { length: 255 }).references(() => aiEmotionalProfiles.id),
+  
+  insightType: varchar("insight_type", { enum: ['behavioral', 'emotional', 'financial', 'recommendation', 'warning'] }).notNull(),
+  category: varchar("category", { length: 100 }).notNull(),
+  title: varchar("title", { length: 255 }).notNull(),
+  content: text("content").notNull(),
+  
+  // Personalization Data
+  communicationStrategy: text("communication_strategy"),
+  motivationApproach: text("motivation_approach"),
+  riskConsiderations: jsonb("risk_considerations").default([]),
+  behavioralNudges: jsonb("behavioral_nudges").default([]),
+  
+  // Confidence and Metrics
+  confidence: decimal("confidence", { precision: 3, scale: 2 }).default('0.5'),
+  impact: varchar("impact", { enum: ['low', 'medium', 'high'] }).default('medium'),
+  priority: varchar("priority", { enum: ['low', 'medium', 'high', 'urgent'] }).default('medium'),
+  
+  // User Feedback
+  userRating: integer("user_rating"), // 1-5 stars
+  userFeedback: text("user_feedback"),
+  wasUseful: boolean("was_useful"),
+  
+  // AI Performance Tracking
+  responseTime: integer("response_time"), // milliseconds
+  tokenUsage: integer("token_usage"),
+  processingCost: decimal("processing_cost", { precision: 10, scale: 6 }),
+  
+  isActive: boolean("is_active").default(true),
+  expiresAt: timestamp("expires_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Decision Tree Session Management
+export const decisionTreeSessions = pgTable("decision_tree_sessions", {
+  id: varchar("id", { length: 255 }).primaryKey(),
+  userId: varchar("user_id", { length: 255 }).references(() => users.id).notNull(),
+  advisorId: varchar("advisor_id", { length: 50 }).references(() => advisors.id).notNull(),
+  
+  sessionStatus: varchar("session_status", { enum: ['active', 'completed', 'abandoned', 'paused'] }).default('active'),
+  currentQuestionId: varchar("current_question_id", { length: 100 }),
+  totalQuestions: integer("total_questions").default(0),
+  answeredQuestions: integer("answered_questions").default(0),
+  progressPercentage: decimal("progress_percentage", { precision: 5, scale: 2 }).default('0'),
+  
+  // Session Analytics
+  startedAt: timestamp("started_at").defaultNow(),
+  lastActivityAt: timestamp("last_activity_at").defaultNow(),
+  completedAt: timestamp("completed_at"),
+  timeSpent: integer("time_spent"), // seconds
+  
+  // AI Processing Results
+  emotionalProfileGenerated: boolean("emotional_profile_generated").default(false),
+  insightsGenerated: boolean("insights_generated").default(false),
+  recommendationsReady: boolean("recommendations_ready").default(false),
+  
+  sessionData: jsonb("session_data").default({}),
+  metadata: jsonb("metadata").default({}),
+  
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // Bank Accounts Table - stores connected bank accounts via Plaid
 export const bankAccounts = pgTable("bank_accounts", {
   id: varchar("id", { length: 255 }).primaryKey(),

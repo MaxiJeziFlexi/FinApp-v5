@@ -139,10 +139,12 @@ export default function UserProfileDropdown({
           Account
         </DropdownMenuLabel>
         
-        <DropdownMenuItem onClick={onOpenSettings} className="cursor-pointer">
-          <User className="mr-2 h-4 w-4" />
-          <span>Profile Settings</span>
-        </DropdownMenuItem>
+        <Link href="/profile">
+          <DropdownMenuItem className="cursor-pointer">
+            <User className="mr-2 h-4 w-4" />
+            <span>Profile Settings</span>
+          </DropdownMenuItem>
+        </Link>
 
         <DropdownMenuItem onClick={onOpenSettings} className="cursor-pointer">
           <Settings className="mr-2 h-4 w-4" />

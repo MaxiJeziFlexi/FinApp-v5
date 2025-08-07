@@ -32,6 +32,12 @@ const navigationItems = [
     description: 'Main FinApp Dashboard'
   },
   {
+    path: '/profile',
+    label: 'Profile',
+    icon: User,
+    description: 'User profile and settings'
+  },
+  {
     path: '/ai-report-generator',
     label: 'AI Reports',
     icon: FileText,

@@ -32,6 +32,7 @@ import TaxOptimization from "@/pages/tax-optimization";
 import RetirementPlanning from "@/pages/retirement-planning";
 import LearningHub from "@/pages/learning-hub";
 import CommunityDiscussions from "@/pages/community-discussions";
+import UserProfile from "@/pages/user-profile";
 
 function Router() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -95,6 +96,8 @@ function Router() {
           <Route path="/retirement-planning" component={RetirementPlanning} />
           <Route path="/learning-hub" component={LearningHub} />
           <Route path="/community-discussions" component={CommunityDiscussions} />
+          <Route path="/profile" component={UserProfile} />
+          <Route path="/user-profile" component={UserProfile} />
           <Route component={NotFound} />
         </Switch>
       </main>

@@ -99,23 +99,6 @@ function RealTimeAnalytics() {
 
 export function AdminDashboard() {
   const { user, isAdmin } = useAuth();
-  
-  // Redirect if not admin
-  if (!isAdmin) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <AlertTriangle className="w-12 h-12 mx-auto mb-4 text-red-500" />
-          <h1 className="text-2xl font-bold mb-2">Access Denied</h1>
-          <p className="text-gray-600 mb-4">Administrator privileges required</p>
-          <Link href="/finapp-home">
-            <Button>Return to Dashboard</Button>
-          </Link>
-        </div>
-      </div>
-    );
-  }
-
   const [adminStats] = useState<AdminStats>({
     totalUsers: 1247,
     activeUsers: 342,
@@ -132,6 +115,22 @@ export function AdminDashboard() {
     queryKey: ['/api/health'],
     refetchInterval: 30000,
   });
+
+  // Redirect if not admin
+  if (!isAdmin) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <AlertTriangle className="w-12 h-12 mx-auto mb-4 text-red-500" />
+          <h1 className="text-2xl font-bold mb-2">Access Denied</h1>
+          <p className="text-gray-600 mb-4">Administrator privileges required</p>
+          <Link href="/finapp-home">
+            <Button>Return to Dashboard</Button>
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">

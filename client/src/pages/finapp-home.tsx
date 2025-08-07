@@ -45,7 +45,7 @@ type AppFlow = 'onboarding' | 'advisor-selection' | 'decision-tree' | 'chat' | '
 
 export default function FinAppHome() {
   const [currentFlow, setCurrentFlow] = useState<AppFlow>('onboarding');
-  const [selectedAdvisor, setSelectedAdvisor] = useState<string | null>(null);
+  const [selectedAdvisor, setSelectedAdvisor] = useState<any | null>(null);
   const [userId] = useState(() => `user-${Math.random().toString(36).substring(2, 15)}-${Math.random().toString(36).substring(2, 15)}`);
   const [showAchievement, setShowAchievement] = useState<string | null>(null);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
@@ -159,8 +159,8 @@ export default function FinAppHome() {
     setCurrentFlow(newFlow);
   };
 
-  const handleAdvisorSelected = (advisorId: string) => {
-    setSelectedAdvisor(advisorId);
+  const handleAdvisorSelected = (advisor: any) => {
+    setSelectedAdvisor(advisor);
     setCurrentFlow('decision-tree');
   };
 
@@ -333,7 +333,7 @@ export default function FinAppHome() {
                 <TabsTrigger 
                   value="decision-tree" 
                   className="flex items-center gap-2"
-                  disabled={!selectedAdvisor}
+                  disabled={!selectedAdvisor?.id}
                 >
                   <TrendingUp className="w-4 h-4" />
                   Decision Tree
@@ -341,7 +341,7 @@ export default function FinAppHome() {
                 <TabsTrigger 
                   value="chat" 
                   className="flex items-center gap-2"
-                  disabled={!selectedAdvisor}
+                  disabled={!selectedAdvisor?.id}
                 >
                   <MessageSquare className="w-4 h-4" />
                   AI Chat
@@ -376,8 +376,8 @@ export default function FinAppHome() {
                   </AlertDescription>
                 </Alert>
                 <AdvisorSelection 
-                  userId={userId} 
-                  onAdvisorSelected={handleAdvisorSelected} 
+                  userProfile={userProfile} 
+                  onAdvisorSelect={handleAdvisorSelected} 
                 />
               </TabsContent>
 
@@ -392,9 +392,11 @@ export default function FinAppHome() {
                   // Show based on user subscription
                   isAdmin || currentUser?.subscriptionTier === 'max' || currentUser?.subscriptionTier === 'pro' ? (
                     <DecisionTreeView
+                      advisor={selectedAdvisor}
                       userId={userId}
-                      advisorId={selectedAdvisor}
+                      userProfile={userProfile}
                       onComplete={handleDecisionTreeComplete}
+                      onBackToAdvisors={() => setCurrentFlow('advisor-selection')}
                     />
                   ) : (
                     <Alert className="border-orange-200 bg-orange-50">
@@ -425,9 +427,11 @@ export default function FinAppHome() {
                 </Alert>
                 {selectedAdvisor && (
                   <ChatWindow
+                    advisor={selectedAdvisor}
                     userId={userId}
-                    advisorId={selectedAdvisor}
                     userProfile={userProfile}
+                    onBackToDecisionTree={() => setCurrentFlow('decision-tree')}
+                    onBackToAdvisors={() => setCurrentFlow('advisor-selection')}
                   />
                 )}
               </TabsContent>

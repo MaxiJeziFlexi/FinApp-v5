@@ -363,7 +363,7 @@ export class DatabaseStorage implements IStorage {
       .select()
       .from(userAchievements)
       .where(eq(userAchievements.userId, userId))
-      .orderBy(desc(userAchievements.createdAt));
+      .orderBy(desc(userAchievements.unlockedAt));
   }
 
   async awardAchievement(userId: string, achievementId: string): Promise<UserAchievement> {

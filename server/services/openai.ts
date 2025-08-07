@@ -80,21 +80,23 @@ Your role is to provide personalized, actionable financial advice based on the u
       const contextualMessage = this.buildContextualPrompt(message, context);
 
       const messages: OpenAI.Chat.Completions.ChatCompletionMessageParam[] = [
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: contextualMessage }
+        { role: 'system', content: systemPrompt }
       ];
 
       // Add recent chat history for context (last 5 messages)
       if (context.chatHistory && context.chatHistory.length > 0) {
         const recentHistory = context.chatHistory.slice(-10);
-        const historyMessages = recentHistory.map(msg => ({
-          role: msg.role as 'user' | 'assistant',
-          content: msg.content
-        }));
-        
-        // Insert history before the current message
-        messages.splice(1, 0, ...historyMessages);
+        for (const msg of recentHistory) {
+          if (msg.sender === 'user' && msg.message) {
+            messages.push({ role: 'user', content: msg.message });
+          } else if (msg.sender === 'advisor' && msg.message) {
+            messages.push({ role: 'assistant', content: msg.message });
+          }
+        }
       }
+
+      // Add the current user message
+      messages.push({ role: 'user', content: contextualMessage });
 
       const response = await openai.chat.completions.create({
         model: model,

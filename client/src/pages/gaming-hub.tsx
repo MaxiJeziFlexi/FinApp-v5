@@ -77,11 +77,13 @@ interface LeaderboardEntry {
 }
 
 export default function GamingHub() {
-  const [activeTab, setActiveTab] = useState('challenges');
-  const [userAge, setUserAge] = useState(22); // This would come from user profile
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { user, isAdmin } = useAuth();
+
+  // Always call hooks before any conditional returns
+  const [activeTab, setActiveTab] = useState('challenges');
+  const [userAge, setUserAge] = useState(22); // This would come from user profile
 
   // Check if user has access to gaming hub (Pro/Max plans or admin)
   const hasAccess = isAdmin || (user as any)?.subscriptionTier === 'pro' || (user as any)?.subscriptionTier === 'max';

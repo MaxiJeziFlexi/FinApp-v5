@@ -121,31 +121,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Check if user exists, create if not
       let user = await storage.getUser(userId);
       if (!user) {
-        // Determine if this should be an admin (for demo purposes, check email or name)
-        const isAdmin = profileData.email?.includes('admin') || profileData.name?.toLowerCase().includes('admin');
+        // Create a simple user record with guaranteed unique email
+        const timestamp = Date.now();
+        const uniqueEmail = `user-${userId.slice(-8)}-${timestamp}@finapp.demo`;
         
         try {
           user = await storage.createUser({
             id: userId,
-            name: profileData.name || 'User',
-            email: profileData.email || `${profileData.name || 'user'}@finapp.demo`,
-            subscriptionTier: isAdmin ? 'max' : 'free', // Admin gets Max plan automatically
+            name: `User ${userId.slice(-6)}`,
+            email: uniqueEmail,
+            subscriptionTier: 'free',
             accountStatus: 'active',
-            role: isAdmin ? 'admin' : 'user',
+            role: 'user',
             apiUsageThisMonth: '0',
             apiUsageResetDate: new Date(),
-            emailVerified: true, // Email verification disabled as requested
+            emailVerified: true,
           });
+          console.log(`Created new user ${userId} with email ${uniqueEmail}`);
         } catch (error: any) {
-          // If user creation fails due to duplicate email, try to get existing user
-          if (error.code === '23505') {
-            user = await storage.getUserByEmail(profileData.email || `${profileData.name || 'user'}@finapp.demo`);
-            if (!user) {
-              throw error; // Re-throw if we still can't find the user
-            }
-          } else {
-            throw error;
-          }
+          console.error('Failed to create user during profile setup:', error);
+          return res.status(500).json({ 
+            message: 'Failed to create user account. Please try again.',
+            details: error.message 
+          });
         }
       }
 

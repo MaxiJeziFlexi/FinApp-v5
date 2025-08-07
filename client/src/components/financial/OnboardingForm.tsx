@@ -301,15 +301,27 @@ export default function OnboardingForm({ onComplete, userId }: OnboardingFormPro
               {errors.consents && <p className="text-sm text-destructive">{errors.consents}</p>}
             </div>
 
-            {/* Submit Button */}
-            <Button 
-              onClick={handleSubmit}
-              disabled={updateProfileMutation.isPending}
-              className="w-full bg-gradient-to-r from-primary to-secondary hover:shadow-lg transform hover:-translate-y-1 transition-all duration-300"
-              size="lg"
-            >
-              {updateProfileMutation.isPending ? "Creating Profile..." : "Complete Profile Setup"}
-            </Button>
+            {/* Submit Buttons */}
+            <div className="space-y-3">
+              <Button 
+                onClick={handleSubmit}
+                disabled={updateProfileMutation.isPending}
+                className="w-full bg-gradient-to-r from-primary to-secondary hover:shadow-lg transform hover:-translate-y-1 transition-all duration-300"
+                size="lg"
+              >
+                {updateProfileMutation.isPending ? "Creating Profile..." : "Complete Profile Setup"}
+              </Button>
+              
+              <Button 
+                onClick={() => onComplete()}
+                variant="outline"
+                disabled={updateProfileMutation.isPending}
+                className="w-full"
+                size="lg"
+              >
+                Skip Setup & Continue to AI Advisors
+              </Button>
+            </div>
           </div>
 
           {/* Visualization Section */}

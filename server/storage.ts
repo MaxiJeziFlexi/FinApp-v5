@@ -264,20 +264,34 @@ export class DatabaseStorage implements IStorage {
     
     if (!existingUser) {
       try {
+        // Check if this is an admin user ID
+        const isAdminUser = userId.startsWith('admin-') || userId === 'admin-user';
+        
+        const userData = isAdminUser ? {
+          id: userId,
+          username: `admin_${userId.substring(0, 20)}`,
+          email: `${userId}@admin.local`,
+          name: 'Admin User',
+          role: 'admin',
+          accountStatus: 'active',
+          subscriptionTier: 'max',
+          subscriptionStatus: 'active',
+        } : {
+          id: userId,
+          username: `guest_${userId.substring(0, 20)}`,
+          email: `${userId}@guest.local`,
+          role: 'user',
+          accountStatus: 'pending',
+          subscriptionTier: 'free',
+          subscriptionStatus: 'expired',
+        };
+
         await db
           .insert(users)
-          .values({
-            id: userId,
-            username: `guest_${userId.substring(0, 20)}`,
-            email: `${userId}@guest.local`,
-            role: 'user',
-            accountStatus: 'pending',
-            subscriptionTier: 'free',
-            subscriptionStatus: 'expired',
-          })
+          .values(userData)
           .onConflictDoNothing();
       } catch (error) {
-        console.error('Error creating guest user:', error);
+        console.error('Error creating user:', error);
         throw error;
       }
     }

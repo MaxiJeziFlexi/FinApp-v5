@@ -41,11 +41,8 @@ export default function InvestmentConsultation() {
 
   const consultationMutation = useMutation({
     mutationFn: async (consultation: any) => {
-      const response = await apiRequest('/api/investment/consultation', {
-        method: 'POST',
-        body: JSON.stringify(consultation)
-      });
-      return response;
+      const response = await apiRequest('POST', '/api/investment/consultation', consultation);
+      return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/investment/portfolio-analysis'] });

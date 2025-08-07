@@ -46,11 +46,8 @@ export default function LearningHub() {
 
   const enrollMutation = useMutation({
     mutationFn: async (courseId: string) => {
-      const response = await apiRequest('/api/learning/enroll', {
-        method: 'POST',
-        body: JSON.stringify({ courseId })
-      });
-      return response;
+      const response = await apiRequest('POST', '/api/learning/enroll', { courseId });
+      return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/learning/progress'] });

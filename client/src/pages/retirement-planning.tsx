@@ -44,11 +44,8 @@ export default function RetirementPlanning() {
 
   const planningMutation = useMutation({
     mutationFn: async (planData: any) => {
-      const response = await apiRequest('/api/retirement/create-plan', {
-        method: 'POST',
-        body: JSON.stringify(planData)
-      });
-      return response;
+      const response = await apiRequest('POST', '/api/retirement/create-plan', planData);
+      return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/retirement/analysis'] });

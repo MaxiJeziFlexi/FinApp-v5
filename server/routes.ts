@@ -896,6 +896,103 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Investment Consultation Routes
+  app.post('/api/investment/consultation', async (req, res) => {
+    try {
+      const { type, amount, riskTolerance, timeHorizon } = req.body;
+      
+      const consultation = {
+        id: `consultation-${Date.now()}`,
+        type,
+        amount,
+        riskTolerance,
+        timeHorizon,
+        recommendations: [
+          {
+            type: 'portfolio_allocation',
+            description: 'Diversified portfolio based on your risk tolerance',
+            allocation: {
+              stocks: riskTolerance === 'aggressive' ? 80 : riskTolerance === 'moderate' ? 60 : 40,
+              bonds: riskTolerance === 'aggressive' ? 15 : riskTolerance === 'moderate' ? 30 : 50,
+              alternatives: riskTolerance === 'aggressive' ? 5 : riskTolerance === 'moderate' ? 10 : 10
+            }
+          },
+          {
+            type: 'specific_investments',
+            description: 'Recommended investment vehicles',
+            investments: [
+              'Low-cost index funds',
+              'Target-date funds',
+              'Real estate investment trusts (REITs)'
+            ]
+          }
+        ],
+        expectedReturn: riskTolerance === 'aggressive' ? '8-12%' : riskTolerance === 'moderate' ? '6-8%' : '4-6%',
+        riskAssessment: 'Moderate to high volatility expected',
+        createdAt: new Date().toISOString()
+      };
+      
+      res.json(consultation);
+    } catch (error) {
+      console.error('Error processing investment consultation:', error);
+      res.status(500).json({ message: 'Failed to process consultation' });
+    }
+  });
+
+  // AI Report Generator Routes  
+  app.post('/api/reports/generate', async (req, res) => {
+    try {
+      const { type, analysisDepth } = req.body;
+      
+      const report = {
+        id: `report-${Date.now()}`,
+        type,
+        analysisDepth,
+        generatedAt: new Date().toISOString(),
+        sections: [
+          {
+            title: 'Executive Summary',
+            content: 'Comprehensive financial analysis shows strong growth potential with moderate risk exposure.',
+            insights: [
+              'Portfolio diversification is within optimal ranges',
+              'Emergency fund covers 6 months of expenses',
+              'Investment allocation aligns with long-term goals'
+            ]
+          },
+          {
+            title: 'Investment Performance',
+            content: 'Year-to-date returns outperforming market benchmarks by 2.3%.',
+            metrics: {
+              ytdReturn: '12.8%',
+              benchmark: '10.5%',
+              sharpeRatio: '1.42',
+              maxDrawdown: '-8.2%'
+            }
+          },
+          {
+            title: 'Risk Assessment',
+            content: 'Current risk exposure is appropriate for investor profile and time horizon.',
+            riskMetrics: {
+              volatility: '14.2%',
+              beta: '0.92',
+              var95: '-3.8%'
+            }
+          }
+        ],
+        recommendations: [
+          'Consider rebalancing international exposure',
+          'Increase contributions to tax-advantaged accounts',
+          'Review insurance coverage adequacy'
+        ]
+      };
+      
+      res.json(report);
+    } catch (error) {
+      console.error('Error generating report:', error);
+      res.status(500).json({ message: 'Failed to generate report' });
+    }
+  });
+
   // Learning Hub Routes
   app.get('/api/learning/progress', async (req, res) => {
     try {
@@ -960,6 +1057,69 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Error enrolling in course:', error);
       res.status(500).json({ message: 'Failed to enroll in course' });
+    }
+  });
+
+  // Tax Optimization Routes
+  app.post('/api/tax/optimize', async (req, res) => {
+    try {
+      const { income, deductions, filingStatus } = req.body;
+      
+      const optimization = {
+        id: `tax-opt-${Date.now()}`,
+        currentTax: income * 0.22,
+        optimizedTax: income * 0.18,
+        savings: income * 0.04,
+        strategies: [
+          "Maximize 401(k) contributions",
+          "Consider Roth IRA conversion",
+          "Implement tax-loss harvesting",
+          "Optimize HSA contributions"
+        ],
+        legalLoopholes: [
+          "Augusta Rule for home office rental",
+          "Solo 401(k) for side business",
+          "Dependent care FSA benefits"
+        ]
+      };
+      
+      res.json(optimization);
+    } catch (error) {
+      console.error('Error processing tax optimization:', error);
+      res.status(500).json({ message: 'Failed to process tax optimization' });
+    }
+  });
+
+  // Retirement Planning Routes
+  app.post('/api/retirement/create-plan', async (req, res) => {
+    try {
+      const { currentAge, retirementAge, currentSavings, monthlyContribution } = req.body;
+      
+      const yearsToRetirement = retirementAge - currentAge;
+      const totalContributions = monthlyContribution * 12 * yearsToRetirement;
+      const projectedValue = (currentSavings + totalContributions) * 1.07 ** yearsToRetirement;
+      
+      const plan = {
+        id: `retirement-plan-${Date.now()}`,
+        currentAge,
+        retirementAge,
+        yearsToRetirement,
+        currentSavings,
+        monthlyContribution,
+        projectedValue: Math.round(projectedValue),
+        monthlyRetirementIncome: Math.round(projectedValue * 0.04 / 12),
+        recommendations: [
+          `Increase contribution by $${Math.round(monthlyContribution * 0.1)} monthly`,
+          "Consider Roth IRA for tax diversification",
+          "Review Social Security benefits annually",
+          "Plan for healthcare costs in retirement"
+        ]
+      };
+      
+      res.json(plan);
+    } catch (error) {
+      console.error('Error creating retirement plan:', error);
+      res.status(500).json({ message: 'Failed to create retirement plan' });
     }
   });
 

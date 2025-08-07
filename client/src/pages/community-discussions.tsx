@@ -55,11 +55,8 @@ export default function CommunityDiscussions() {
 
   const createPostMutation = useMutation({
     mutationFn: async (postData: any) => {
-      const response = await apiRequest('/api/community/create-post', {
-        method: 'POST',
-        body: JSON.stringify(postData)
-      });
-      return response;
+      const response = await apiRequest('POST', '/api/community/create-post', postData);
+      return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/community/discussions'] });

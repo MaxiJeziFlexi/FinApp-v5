@@ -37,11 +37,8 @@ export default function TaxOptimization() {
 
   const optimizationMutation = useMutation({
     mutationFn: async (strategy: any) => {
-      const response = await apiRequest('/api/tax/optimize', {
-        method: 'POST',
-        body: JSON.stringify(strategy)
-      });
-      return response;
+      const response = await apiRequest('POST', '/api/tax/optimize', strategy);
+      return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/tax/analysis'] });

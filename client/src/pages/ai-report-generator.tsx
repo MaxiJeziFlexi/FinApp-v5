@@ -32,12 +32,12 @@ export default function AIReportGenerator() {
   const generateReportMutation = useMutation({
     mutationFn: async (type: string) => {
       setIsGenerating(true);
-      const response = await apiRequest(`/api/reports/generate`, {
-        method: 'POST',
-        body: JSON.stringify({ type, analysisDepth: 'comprehensive' })
+      const response = await apiRequest('POST', '/api/reports/generate', { 
+        type, 
+        analysisDepth: 'comprehensive' 
       });
       setIsGenerating(false);
-      return response;
+      return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/reports/financial-analysis'] });

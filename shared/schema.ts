@@ -58,6 +58,15 @@ export const users = pgTable("users", {
   apiUsageThisMonth: decimal("api_usage_this_month", { precision: 10, scale: 4 }).default('0'),
   apiUsageResetDate: timestamp("api_usage_reset_date").defaultNow(),
   
+  // Admin permissions for Jarvis AI
+  jarvisPermissions: jsonb("jarvis_permissions").default({
+    codeModification: false,
+    databaseAccess: false,
+    aiTraining: false,
+    systemAdmin: false,
+    fullAccess: false
+  }),
+  
   // User preferences and settings
   preferences: jsonb("preferences").default({
     theme: 'system',
@@ -741,6 +750,155 @@ export const predictiveAnalytics = pgTable("predictive_analytics", {
   validatedAt: timestamp("validated_at"),
 });
 
+// Jarvis AI Assistant System Tables
+export const jarvisAiSessions = pgTable("jarvis_ai_sessions", {
+  id: varchar("id", { length: 255 }).primaryKey(),
+  userId: varchar("user_id", { length: 255 }).references(() => users.id).notNull(),
+  sessionType: varchar("session_type", { length: 50 }), // development, training, admin, analytics
+  sessionName: varchar("session_name", { length: 255 }),
+  permissions: jsonb("permissions"), // specific permissions for this session
+  status: varchar("status", { length: 50 }).default('active'), // active, paused, completed, terminated
+  goals: jsonb("goals"), // what the user wants to accomplish
+  context: jsonb("context"), // current application context and state
+  taskQueue: jsonb("task_queue"), // queue of pending tasks
+  completedTasks: jsonb("completed_tasks"), // history of completed tasks
+  aiModel: varchar("ai_model", { length: 100 }).default('gpt-4o'),
+  learningData: jsonb("learning_data"), // accumulated learning about the app
+  performanceMetrics: jsonb("performance_metrics"),
+  codeChanges: jsonb("code_changes"), // track all code modifications
+  dataChanges: jsonb("data_changes"), // track all data modifications
+  systemAccess: jsonb("system_access"), // what parts of system Jarvis has accessed
+  errorLog: jsonb("error_log"), // track any errors or issues
+  successMetrics: jsonb("success_metrics"),
+  createdAt: timestamp("created_at").defaultNow(),
+  lastActiveAt: timestamp("last_active_at").defaultNow(),
+  completedAt: timestamp("completed_at"),
+});
+
+export const jarvisAiConversations = pgTable("jarvis_ai_conversations", {
+  id: varchar("id", { length: 255 }).primaryKey(),
+  sessionId: varchar("session_id", { length: 255 }).references(() => jarvisAiSessions.id).notNull(),
+  messageId: varchar("message_id", { length: 255 }).notNull(),
+  role: varchar("role", { length: 20 }).notNull(), // user, assistant, system
+  content: text("content").notNull(),
+  messageType: varchar("message_type", { length: 50 }), // command, query, response, status, error, success
+  toolCalls: jsonb("tool_calls"), // AI tool calls made
+  functionResults: jsonb("function_results"), // results from function calls
+  codeSnippets: jsonb("code_snippets"), // any code in the message
+  dataQueries: jsonb("data_queries"), // any database queries made
+  systemActions: jsonb("system_actions"), // system-level actions performed
+  metadata: jsonb("metadata"), // additional message metadata
+  tokens: integer("tokens"), // token count for this message
+  cost: numeric("cost", { precision: 10, scale: 4 }), // estimated cost
+  processingTime: integer("processing_time"), // time to process in ms
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const jarvisAiKnowledge = pgTable("jarvis_ai_knowledge", {
+  id: varchar("id", { length: 255 }).primaryKey(),
+  category: varchar("category", { length: 100 }), // codebase, api, database, user_patterns, business_logic
+  subcategory: varchar("subcategory", { length: 100 }),
+  title: varchar("title", { length: 255 }),
+  description: text("description"),
+  content: jsonb("content"), // the actual knowledge content
+  sourceType: varchar("source_type", { length: 50 }), // learned, trained, manual, discovered
+  confidence: numeric("confidence", { precision: 5, scale: 2 }), // 0-100 confidence in this knowledge
+  usageCount: integer("usage_count").default(0), // how often this knowledge is referenced
+  lastUsedAt: timestamp("last_used_at"),
+  tags: jsonb("tags"), // searchable tags
+  relatedFiles: jsonb("related_files"), // files this knowledge relates to
+  relatedFunctions: jsonb("related_functions"), // functions this knowledge relates to
+  relatedData: jsonb("related_data"), // data structures this knowledge relates to
+  examples: jsonb("examples"), // usage examples
+  version: varchar("version", { length: 50 }).default('1.0'),
+  deprecatedAt: timestamp("deprecated_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const jarvisAiTasks = pgTable("jarvis_ai_tasks", {
+  id: varchar("id", { length: 255 }).primaryKey(),
+  sessionId: varchar("session_id", { length: 255 }).references(() => jarvisAiSessions.id).notNull(),
+  parentTaskId: varchar("parent_task_id", { length: 255 }), // for subtasks
+  taskType: varchar("task_type", { length: 100 }), // code_modification, data_analysis, training, debugging, feature_development
+  priority: varchar("priority", { length: 20 }).default('medium'), // low, medium, high, critical
+  status: varchar("status", { length: 50 }).default('pending'), // pending, in_progress, completed, failed, cancelled
+  title: varchar("title", { length: 255 }),
+  description: text("description"),
+  requirements: jsonb("requirements"), // detailed task requirements
+  constraints: jsonb("constraints"), // limitations or constraints
+  expectedOutput: jsonb("expected_output"), // what the result should look like
+  actualOutput: jsonb("actual_output"), // actual result
+  progress: integer("progress").default(0), // 0-100 completion percentage
+  estimatedTime: integer("estimated_time"), // estimated time in minutes
+  actualTime: integer("actual_time"), // actual time taken in minutes
+  dependencies: jsonb("dependencies"), // what this task depends on
+  resources: jsonb("resources"), // files, APIs, data needed
+  toolsUsed: jsonb("tools_used"), // which tools were used
+  codeChanges: jsonb("code_changes"), // code modifications made
+  dataChanges: jsonb("data_changes"), // data changes made
+  testResults: jsonb("test_results"), // testing outcomes
+  qualityScore: numeric("quality_score", { precision: 5, scale: 2 }), // 0-100 quality assessment
+  userFeedback: jsonb("user_feedback"), // user feedback on the task
+  learnings: jsonb("learnings"), // what was learned from this task
+  errors: jsonb("errors"), // any errors encountered
+  retryCount: integer("retry_count").default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+  startedAt: timestamp("started_at"),
+  completedAt: timestamp("completed_at"),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const jarvisAiTraining = pgTable("jarvis_ai_training", {
+  id: varchar("id", { length: 255 }).primaryKey(),
+  trainingType: varchar("training_type", { length: 100 }), // codebase_analysis, user_behavior, performance_optimization, feature_patterns
+  dataSource: varchar("data_source", { length: 100 }), // code, logs, user_interactions, analytics, system_metrics
+  inputData: jsonb("input_data"), // training input data
+  expectedOutput: jsonb("expected_output"), // expected training outcomes
+  actualOutput: jsonb("actual_output"), // actual training results
+  modelParameters: jsonb("model_parameters"), // training parameters used
+  accuracy: numeric("accuracy", { precision: 5, scale: 2 }), // training accuracy
+  loss: numeric("loss", { precision: 10, scale: 6 }), // training loss
+  epochs: integer("epochs"), // training epochs completed
+  validationScore: numeric("validation_score", { precision: 5, scale: 2 }),
+  trainingDuration: integer("training_duration"), // training time in minutes
+  memoryUsage: integer("memory_usage"), // memory used in MB
+  cpuUsage: numeric("cpu_usage", { precision: 5, scale: 2 }), // CPU usage percentage
+  improvements: jsonb("improvements"), // improvements made to the model
+  knowledgeGained: jsonb("knowledge_gained"), // new knowledge acquired
+  applicationsFound: jsonb("applications_found"), // practical applications discovered
+  patterns: jsonb("patterns"), // patterns identified
+  insights: jsonb("insights"), // insights gained
+  recommendations: jsonb("recommendations"), // recommendations for the system
+  status: varchar("status", { length: 50 }).default('in_progress'), // in_progress, completed, failed
+  createdAt: timestamp("created_at").defaultNow(),
+  completedAt: timestamp("completed_at"),
+});
+
+// Jarvis AI insert schemas  
+export const insertJarvisAiSessionSchema = createInsertSchema(jarvisAiSessions).omit({
+  createdAt: true,
+  lastActiveAt: true,
+});
+
+export const insertJarvisAiConversationSchema = createInsertSchema(jarvisAiConversations).omit({
+  createdAt: true,
+});
+
+export const insertJarvisAiKnowledgeSchema = createInsertSchema(jarvisAiKnowledge).omit({
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertJarvisAiTaskSchema = createInsertSchema(jarvisAiTasks).omit({
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertJarvisAiTrainingSchema = createInsertSchema(jarvisAiTraining).omit({
+  createdAt: true,
+});
+
 // Insert types
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type InsertUserProfile = z.infer<typeof insertUserProfileSchema>;
@@ -748,3 +906,15 @@ export type InsertChatMessage = z.infer<typeof insertChatMessageSchema>;
 export type InsertDecisionTreeProgress = z.infer<typeof insertDecisionTreeProgressSchema>;
 export type InsertLearningAnalytics = z.infer<typeof insertLearningAnalyticsSchema>;
 export type InsertVerificationCode = z.infer<typeof insertVerificationCodeSchema>;
+
+// Jarvis AI types
+export type JarvisAiSession = typeof jarvisAiSessions.$inferSelect;
+export type InsertJarvisAiSession = z.infer<typeof insertJarvisAiSessionSchema>;
+export type JarvisAiConversation = typeof jarvisAiConversations.$inferSelect;
+export type InsertJarvisAiConversation = z.infer<typeof insertJarvisAiConversationSchema>;
+export type JarvisAiKnowledge = typeof jarvisAiKnowledge.$inferSelect;
+export type InsertJarvisAiKnowledge = z.infer<typeof insertJarvisAiKnowledgeSchema>;
+export type JarvisAiTask = typeof jarvisAiTasks.$inferSelect;
+export type InsertJarvisAiTask = z.infer<typeof insertJarvisAiTaskSchema>;
+export type JarvisAiTraining = typeof jarvisAiTraining.$inferSelect;
+export type InsertJarvisAiTraining = z.infer<typeof insertJarvisAiTrainingSchema>;

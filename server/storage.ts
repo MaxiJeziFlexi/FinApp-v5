@@ -10,6 +10,11 @@ import {
   bankAccounts,
   bankTransactions,
   bankConnections,
+  jarvisAiSessions,
+  jarvisAiConversations,
+  jarvisAiKnowledge,
+  jarvisAiTasks,
+  jarvisAiTraining,
   type User, 
   type InsertUser,
   type UpsertUser,
@@ -31,7 +36,17 @@ import {
   type BankTransaction,
   type NewBankTransaction,
   type BankConnection,
-  type NewBankConnection
+  type NewBankConnection,
+  type JarvisAiSession,
+  type InsertJarvisAiSession,
+  type JarvisAiConversation,
+  type InsertJarvisAiConversation,
+  type JarvisAiKnowledge,
+  type InsertJarvisAiKnowledge,
+  type JarvisAiTask,
+  type InsertJarvisAiTask,
+  type JarvisAiTraining,
+  type InsertJarvisAiTraining
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, asc } from "drizzle-orm";
@@ -111,6 +126,27 @@ export interface IStorage {
   // Subscription operations
   getSubscriptionPlans(): Promise<any[]>;
   createSubscriptionPlan(plan: any): Promise<any>;
+
+  // Jarvis AI operations
+  createJarvisSession(session: InsertJarvisAiSession): Promise<JarvisAiSession>;
+  getJarvisSession(sessionId: string): Promise<JarvisAiSession | undefined>;
+  getUserJarvisSessions(userId: string): Promise<JarvisAiSession[]>;
+  updateJarvisSession(sessionId: string, updates: Partial<InsertJarvisAiSession>): Promise<JarvisAiSession>;
+  
+  createJarvisConversation(conversation: InsertJarvisAiConversation): Promise<JarvisAiConversation>;
+  getJarvisConversations(sessionId: string): Promise<JarvisAiConversation[]>;
+  
+  createJarvisKnowledge(knowledge: InsertJarvisAiKnowledge): Promise<JarvisAiKnowledge>;
+  getJarvisKnowledge(category?: string): Promise<JarvisAiKnowledge[]>;
+  updateJarvisKnowledge(knowledgeId: string, updates: Partial<InsertJarvisAiKnowledge>): Promise<JarvisAiKnowledge>;
+  
+  createJarvisTask(task: InsertJarvisAiTask): Promise<JarvisAiTask>;
+  getJarvisTasks(sessionId: string): Promise<JarvisAiTask[]>;
+  updateJarvisTask(taskId: string, updates: Partial<InsertJarvisAiTask>): Promise<JarvisAiTask>;
+  
+  createJarvisTraining(training: InsertJarvisAiTraining): Promise<JarvisAiTraining>;
+  getJarvisTraining(): Promise<JarvisAiTraining[]>;
+  updateJarvisTraining(trainingId: string, updates: Partial<InsertJarvisAiTraining>): Promise<JarvisAiTraining>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -272,18 +308,18 @@ export class DatabaseStorage implements IStorage {
           username: `admin_${userId.substring(0, 20)}`,
           email: `${userId}@admin.local`,
           name: 'Admin User',
-          role: 'admin',
+          role: 'admin' as const,
           accountStatus: 'active',
-          subscriptionTier: 'max',
-          subscriptionStatus: 'active',
+          subscriptionTier: 'max' as const,
+          subscriptionStatus: 'active' as const,
         } : {
           id: userId,
           username: `guest_${userId.substring(0, 20)}`,
           email: `${userId}@guest.local`,
-          role: 'user',
+          role: 'user' as const,
           accountStatus: 'pending',
-          subscriptionTier: 'free',
-          subscriptionStatus: 'expired',
+          subscriptionTier: 'free' as const,
+          subscriptionStatus: 'expired' as const,
         };
 
         await db
@@ -707,6 +743,132 @@ export class DatabaseStorage implements IStorage {
 
   async getAllUsers(): Promise<User[]> {
     return await db.select().from(users).limit(100); // Limit for performance
+  }
+
+  // Jarvis AI operations
+  async createJarvisSession(session: InsertJarvisAiSession): Promise<JarvisAiSession> {
+    const [newSession] = await db
+      .insert(jarvisAiSessions)
+      .values(session)
+      .returning();
+    return newSession;
+  }
+
+  async getJarvisSession(sessionId: string): Promise<JarvisAiSession | undefined> {
+    const [session] = await db
+      .select()
+      .from(jarvisAiSessions)
+      .where(eq(jarvisAiSessions.id, sessionId));
+    return session;
+  }
+
+  async getUserJarvisSessions(userId: string): Promise<JarvisAiSession[]> {
+    return await db
+      .select()
+      .from(jarvisAiSessions)
+      .where(eq(jarvisAiSessions.userId, userId))
+      .orderBy(desc(jarvisAiSessions.createdAt));
+  }
+
+  async updateJarvisSession(sessionId: string, updates: Partial<InsertJarvisAiSession>): Promise<JarvisAiSession> {
+    const [updated] = await db
+      .update(jarvisAiSessions)
+      .set({ ...updates, lastActiveAt: new Date() })
+      .where(eq(jarvisAiSessions.id, sessionId))
+      .returning();
+    return updated;
+  }
+
+  async createJarvisConversation(conversation: InsertJarvisAiConversation): Promise<JarvisAiConversation> {
+    const [newConversation] = await db
+      .insert(jarvisAiConversations)
+      .values(conversation)
+      .returning();
+    return newConversation;
+  }
+
+  async getJarvisConversations(sessionId: string): Promise<JarvisAiConversation[]> {
+    return await db
+      .select()
+      .from(jarvisAiConversations)
+      .where(eq(jarvisAiConversations.sessionId, sessionId))
+      .orderBy(asc(jarvisAiConversations.createdAt));
+  }
+
+  async createJarvisKnowledge(knowledge: InsertJarvisAiKnowledge): Promise<JarvisAiKnowledge> {
+    const [newKnowledge] = await db
+      .insert(jarvisAiKnowledge)
+      .values(knowledge)
+      .returning();
+    return newKnowledge;
+  }
+
+  async getJarvisKnowledge(category?: string): Promise<JarvisAiKnowledge[]> {
+    const query = db.select().from(jarvisAiKnowledge);
+    
+    if (category) {
+      return await query.where(eq(jarvisAiKnowledge.category, category));
+    }
+    
+    return await query.orderBy(desc(jarvisAiKnowledge.lastUsedAt));
+  }
+
+  async updateJarvisKnowledge(knowledgeId: string, updates: Partial<InsertJarvisAiKnowledge>): Promise<JarvisAiKnowledge> {
+    const [updated] = await db
+      .update(jarvisAiKnowledge)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(jarvisAiKnowledge.id, knowledgeId))
+      .returning();
+    return updated;
+  }
+
+  async createJarvisTask(task: InsertJarvisAiTask): Promise<JarvisAiTask> {
+    const [newTask] = await db
+      .insert(jarvisAiTasks)
+      .values(task)
+      .returning();
+    return newTask;
+  }
+
+  async getJarvisTasks(sessionId: string): Promise<JarvisAiTask[]> {
+    return await db
+      .select()
+      .from(jarvisAiTasks)
+      .where(eq(jarvisAiTasks.sessionId, sessionId))
+      .orderBy(desc(jarvisAiTasks.createdAt));
+  }
+
+  async updateJarvisTask(taskId: string, updates: Partial<InsertJarvisAiTask>): Promise<JarvisAiTask> {
+    const [updated] = await db
+      .update(jarvisAiTasks)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(jarvisAiTasks.id, taskId))
+      .returning();
+    return updated;
+  }
+
+  async createJarvisTraining(training: InsertJarvisAiTraining): Promise<JarvisAiTraining> {
+    const [newTraining] = await db
+      .insert(jarvisAiTraining)
+      .values(training)
+      .returning();
+    return newTraining;
+  }
+
+  async getJarvisTraining(): Promise<JarvisAiTraining[]> {
+    return await db
+      .select()
+      .from(jarvisAiTraining)
+      .orderBy(desc(jarvisAiTraining.createdAt));
+  }
+
+  async updateJarvisTraining(trainingId: string, updates: Partial<InsertJarvisAiTraining>): Promise<JarvisAiTraining> {
+    const [updated] = await db
+      .update(jarvisAiTraining)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(jarvisAiTraining.id, trainingId))
+      .returning();
+    return updated;
   }
 }
 

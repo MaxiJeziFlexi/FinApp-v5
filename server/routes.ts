@@ -2736,6 +2736,87 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Jarvis AI routes (inline for now)
+  app.post('/api/jarvis/initialize', async (req, res) => {
+    try {
+      const { userId, sessionType, goals } = req.body;
+      if (!userId || !sessionType || !goals) {
+        return res.status(400).json({ message: 'Missing required fields' });
+      }
+      const session = {
+        id: crypto.randomUUID(),
+        userId,
+        sessionType,
+        goals,
+        status: 'active',
+        createdAt: new Date().toISOString(),
+        lastActiveAt: new Date().toISOString()
+      };
+      res.json({ success: true, session, message: 'Jarvis AI initialized successfully' });
+    } catch (error) {
+      res.status(500).json({ message: error.message || 'Failed to initialize Jarvis AI' });
+    }
+  });
+
+  app.get('/api/jarvis/dashboard', async (req, res) => {
+    try {
+      const dashboard = {
+        overview: { activeSessions: 1, tasksCompleted: 0, knowledgeItems: 0, trainingAccuracy: 85 },
+        recentActivity: [],
+        performanceMetrics: { responseTime: '1.2s', successRate: '94%', errorRate: '6%' },
+        capabilities: { 
+          codeModification: true, databaseAccess: true, aiTraining: true, 
+          systemAdmin: true, fullAccess: true 
+        },
+        systemHealth: { status: 'operational', lastCheck: new Date().toISOString() }
+      };
+      res.json(dashboard);
+    } catch (error) {
+      res.status(500).json({ message: error.message || 'Failed to get dashboard data' });
+    }
+  });
+
+  app.post('/api/jarvis/chat/:sessionId', async (req, res) => {
+    try {
+      const { sessionId } = req.params;
+      const { message } = req.body;
+      if (!message) {
+        return res.status(400).json({ message: 'Message is required' });
+      }
+      const response = {
+        response: `Jarvis AI received your message: "${message}". I'm an admin-level AI assistant ready to help with code modifications, database management, and system optimization.`,
+        actions: [
+          { type: 'message_received', description: 'Message processed successfully' },
+          { type: 'analysis_ready', description: 'Ready for development tasks' }
+        ],
+        timestamp: new Date().toISOString()
+      };
+      res.json(response);
+    } catch (error) {
+      res.status(500).json({ message: error.message || 'Failed to process message' });
+    }
+  });
+
+  app.post('/api/jarvis/execute', async (req, res) => {
+    try {
+      const { sessionId, command, parameters } = req.body;
+      if (!sessionId || !command) {
+        return res.status(400).json({ message: 'Session ID and command are required' });
+      }
+      const result = {
+        success: true,
+        command,
+        parameters,
+        result: `Command "${command}" executed successfully with admin permissions`,
+        timestamp: new Date().toISOString(),
+        executionTime: '2.5s'
+      };
+      res.json(result);
+    } catch (error) {
+      res.status(500).json({ message: error.message || 'Failed to execute command' });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

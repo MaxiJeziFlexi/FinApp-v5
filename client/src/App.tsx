@@ -33,6 +33,7 @@ import RetirementPlanning from "@/pages/retirement-planning";
 import LearningHub from "@/pages/learning-hub";
 import CommunityDiscussions from "@/pages/community-discussions";
 import UserProfile from "@/pages/user-profile";
+import AdminJarvis from "@/pages/AdminJarvis";
 
 function Router() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -98,6 +99,7 @@ function Router() {
           <Route path="/community-discussions" component={CommunityDiscussions} />
           <Route path="/profile" component={UserProfile} />
           <Route path="/user-profile" component={UserProfile} />
+          <Route path="/admin-jarvis" component={AdminJarvis} />
           <Route component={NotFound} />
         </Switch>
       </main>

@@ -81,9 +81,22 @@ export default function GamingHub() {
   const queryClient = useQueryClient();
   const { user, isAdmin } = useAuth();
 
-  // Always call hooks before any conditional returns
+  // Always call ALL hooks before any conditional returns
   const [activeTab, setActiveTab] = useState('challenges');
   const [userAge, setUserAge] = useState(22); // This would come from user profile
+
+  // All mutations must be called at the top level
+  const startChallengeMutation = useMutation({
+    mutationFn: async (challengeId: string) => {
+      return apiRequest('POST', '/api/gaming/start-challenge', { challengeId });
+    },
+    onSuccess: () => {
+      toast({
+        title: "Challenge Started!",
+        description: "Good luck! Complete the challenge to earn XP and crypto rewards.",
+      });
+    }
+  });
 
   // Check if user has access to gaming hub (Pro/Max plans or admin)
   const hasAccess = isAdmin || (user as any)?.subscriptionTier === 'pro' || (user as any)?.subscriptionTier === 'max';
@@ -269,18 +282,6 @@ export default function GamingHub() {
     { rank: 4, username: 'QuantumTrader', level: 31, xp: 67000, badges: 28, cryptoEarned: 1.234, ageGroup: 'experienced' },
     { rank: 5, username: 'BudgetBoss_20', level: 18, xp: 32000, badges: 10, cryptoEarned: 0.321, ageGroup: 'young' }
   ];
-
-  const startChallengeMutation = useMutation({
-    mutationFn: async (challengeId: string) => {
-      return apiRequest('POST', '/api/gaming/start-challenge', { challengeId });
-    },
-    onSuccess: () => {
-      toast({
-        title: "Challenge Started!",
-        description: "Good luck! Complete the challenge to earn XP and crypto rewards.",
-      });
-    }
-  });
 
   const getDifficultyColor = (difficulty: number) => {
     if (difficulty <= 3) return 'text-green-600 bg-green-100';

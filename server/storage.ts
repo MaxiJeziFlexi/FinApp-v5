@@ -24,7 +24,6 @@ import {
   type DecisionTreeProgress,
   type InsertDecisionTreeProgress,
   type Achievement,
-  type Achievement,
   type UserAchievement,
   type NewUserAchievement,
   type BankAccount,
@@ -60,7 +59,7 @@ export interface IStorage {
   // Advisor operations
   getAdvisors(): Promise<Advisor[]>;
   getAdvisor(id: string): Promise<Advisor | undefined>;
-  createAdvisor(advisor: InsertAdvisor): Promise<Advisor>;
+  createAdvisor(advisor: NewAdvisor): Promise<Advisor>;
   
   // Session operations
   getOrCreateSession(userId: string, advisorId: string): Promise<AdvisorSession>;

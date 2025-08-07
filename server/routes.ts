@@ -157,7 +157,112 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Sign-in endpoint
+  // Registration endpoint for new users
+  app.post('/api/auth/register', async (req, res) => {
+    try {
+      const userData = req.body;
+      console.log('Registration request received:', userData);
+      
+      // Validate required fields
+      if (!userData.email || !userData.name) {
+        return res.status(400).json({ 
+          message: 'Email and name are required',
+          details: 'Missing required registration fields'
+        });
+      }
+
+      // Generate user ID
+      const userId = `user-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+      
+      // Determine if this should be an admin
+      const isAdmin = userData.role === 'admin' || userData.userType === 'admin' || 
+                     userData.email?.includes('admin') || userData.name?.toLowerCase().includes('admin');
+      
+      // Create user
+      let user;
+      try {
+        // Parse name parts safely
+        const nameParts = userData.name?.trim().split(' ') || [];
+        const firstName = userData.firstName || nameParts[0] || 'User';
+        const lastName = userData.lastName || (nameParts.length > 1 ? nameParts.slice(1).join(' ') : '');
+        
+        console.log('Name parsing debug:', { 
+          originalName: userData.name, 
+          nameParts, 
+          firstName, 
+          lastName 
+        });
+        
+        user = await storage.createUser({
+          id: userId,
+          name: userData.name || `${firstName} ${lastName}`.trim(),
+          email: userData.email,
+          firstName: firstName,
+          lastName: lastName,
+          username: userData.username || null,
+          phoneNumber: userData.phoneNumber || null,
+          subscriptionTier: isAdmin ? 'max' : 'free',
+          accountStatus: 'active',
+          role: isAdmin ? 'admin' : 'user',
+          apiUsageThisMonth: '0',
+          apiUsageResetDate: new Date(),
+          emailVerified: true,
+        });
+      } catch (error: any) {
+        // If user creation fails due to duplicate email, return specific error
+        if (error.code === '23505') {
+          return res.status(409).json({ 
+            message: 'Account already exists with this email',
+            details: 'Please use the sign-in option instead'
+          });
+        }
+        throw error;
+      }
+
+      // Create user profile with registration data
+      const profileData = {
+        userId: userId,
+        financialGoal: userData.financialGoals?.[0] || userData.financialGoal || 'general_wealth',
+        timeframe: userData.timeframe || 'medium',
+        monthlyIncome: userData.annualIncome || userData.monthlyIncome || 'medium',
+        currentSavings: userData.currentSavings || 'low',
+        targetAmount: userData.savingsGoals || userData.targetAmount || '10000',
+        onboardingComplete: userData.onboardingComplete || true,
+        isPremium: isAdmin,
+        progress: 0,
+        consents: {
+          termsAccepted: userData.termsAccepted || true,
+          privacyAccepted: userData.privacyAccepted || true,
+          marketingOptIn: userData.marketingOptIn || false,
+          dataAnalyticsOptIn: userData.dataAnalyticsOptIn || true,
+        },
+        financialData: [],
+        achievements: []
+      };
+
+      const profile = await storage.createUserProfile(profileData);
+
+      console.log('User and profile created successfully:', { userId, profileId: profile.userId });
+
+      res.json({
+        success: true,
+        message: 'Registration completed successfully',
+        user: {
+          ...user,
+          profile: profile
+        }
+      });
+      
+    } catch (error) {
+      console.error('Registration error:', error);
+      res.status(500).json({ 
+        message: 'Failed to complete registration',
+        details: error instanceof Error ? error.message : 'Unknown error occurred'
+      });
+    }
+  });
+
+  // Sign-in endpoint for existing users
   app.post('/api/auth/signin', async (req, res) => {
     try {
       const { email, password } = req.body;

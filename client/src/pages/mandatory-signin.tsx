@@ -140,25 +140,40 @@ export default function MandatorySignIn() {
         financialGoals: selectedGoals,
         onboardingComplete: true,
         role: isAdminMode ? 'admin' : 'user',
-        userType: isAdminMode ? 'admin' : 'user'
+        userType: isAdminMode ? 'admin' : 'user',
+        termsAccepted: true,
+        privacyAccepted: true,
+        dataAnalyticsOptIn: true
       };
 
-      const endpoint = isSignUp ? '/api/auth/signin' : '/api/auth/login';
+      // Use the correct endpoint for registration vs signin
+      const endpoint = isSignUp ? '/api/auth/register' : '/api/auth/signin';
+      console.log('Submitting to endpoint:', endpoint, finalData);
+      
       const response = await apiRequest('POST', endpoint, finalData);
       
       if (response.ok) {
+        const result = await response.json();
+        console.log('Registration/signin successful:', result);
+        
         toast({
           title: isSignUp ? "Welcome to FinApp!" : "Welcome Back!",
           description: isSignUp ? "Your profile has been created successfully!" : "Successfully signed in!",
         });
-        window.location.href = '/finapp-home';
+        
+        // Small delay to show success message
+        setTimeout(() => {
+          window.location.href = '/finapp-home';
+        }, 1000);
       } else {
-        throw new Error('Authentication failed');
+        const errorData = await response.json();
+        throw new Error(errorData.message || errorData.details || 'Authentication failed');
       }
     } catch (error) {
+      console.error('Authentication error:', error);
       toast({
         title: "Authentication Failed",
-        description: "There was an error processing your request. Please try again.",
+        description: error instanceof Error ? error.message : "There was an error processing your request. Please try again.",
         variant: "destructive"
       });
     } finally {

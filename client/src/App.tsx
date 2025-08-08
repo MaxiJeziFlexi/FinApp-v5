@@ -17,6 +17,7 @@ import { AdminDashboard } from "@/pages/admin-dashboard";
 import MandatorySignIn from "@/pages/mandatory-signin";
 import CryptoMarketplace from "@/pages/crypto-marketplace";
 import AdvancedAIDashboard from "@/pages/advanced-ai-dashboard";
+import AdvancedAIControlCenter from "@/components/admin/AdvancedAIControlCenter";
 import GamingHub from "@/pages/gaming-hub";
 import EnhancedCryptoMarketplace from "@/pages/enhanced-crypto-marketplace";
 import DeveloperDiagnostics from "@/pages/developer-diagnostics";
@@ -88,6 +89,7 @@ function Router() {
           <Route path="/test" component={ComprehensiveTest} />
           <Route path="/admin" component={AdminDashboard} />
           <Route path="/admin-jarvis" component={AdminJarvis} />
+          <Route path="/admin-ai-control" component={AdvancedAIControlCenter} />
           <Route path="/ai-dashboard" component={AdvancedAIDashboard} />
           <Route path="/gaming" component={GamingHub} />
           <Route path="/enhanced-crypto" component={EnhancedCryptoMarketplace} />

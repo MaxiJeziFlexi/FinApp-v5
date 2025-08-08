@@ -1,18 +1,37 @@
-import { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { 
-  Brain, 
-  TrendingUp, 
-  Shield, 
-  Globe, 
-  Zap, 
-  Star, 
+import { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
+  Brain,
+  TrendingUp,
+  Shield,
+  Globe,
+  Zap,
+  Star,
   CheckCircle,
   ArrowRight,
   Play,
@@ -50,14 +69,17 @@ import {
   Building2,
   Calendar,
   User,
-  Crown
-} from 'lucide-react';
-import { motion, useInView } from 'framer-motion';
-import { useRef } from 'react';
-import { Link } from 'wouter';
-import FloatingElements, { Card3D, Button3D, AnimatedNumber3D } from '@/components/3d/FloatingElements';
-import SignUpModal from '@/components/auth/SignUpModal';
-import QuickNavigation from '@/components/navigation/QuickNavigation';
+  Crown,
+} from "lucide-react";
+import { motion, useInView } from "framer-motion";
+import { useRef } from "react";
+import { Link } from "wouter";
+import FloatingElements, {
+  Card3D,
+  Button3D,
+  AnimatedNumber3D,
+} from "@/components/3d/FloatingElements";
+import SignUpModal from "@/components/auth/SignUpModal";
 
 interface FeatureCard {
   icon: any;
@@ -84,118 +106,164 @@ const aiUseCases = [
   {
     icon: FileText,
     title: "AI Report Generator",
-    description: "Generate comprehensive financial reports analyzing your spending, investments, and growth opportunities with AI-powered insights.",
-    features: ["Monthly financial summaries", "Investment performance analysis", "Risk assessment reports", "Goal progress tracking"],
-    gradient: "from-blue-500 to-cyan-600"
+    description:
+      "Generate comprehensive financial reports analyzing your spending, investments, and growth opportunities with AI-powered insights.",
+    features: [
+      "Monthly financial summaries",
+      "Investment performance analysis",
+      "Risk assessment reports",
+      "Goal progress tracking",
+    ],
+    gradient: "from-blue-500 to-cyan-600",
   },
   {
     icon: TrendingUp,
     title: "Investment Consultation AI",
-    description: "Get real-time investment advice based on current market conditions, your risk profile, and financial goals.",
-    features: ["Portfolio optimization", "Market trend analysis", "Risk-adjusted recommendations", "Diversification strategies"],
-    gradient: "from-green-500 to-emerald-600"
+    description:
+      "Get real-time investment advice based on current market conditions, your risk profile, and financial goals.",
+    features: [
+      "Portfolio optimization",
+      "Market trend analysis",
+      "Risk-adjusted recommendations",
+      "Diversification strategies",
+    ],
+    gradient: "from-green-500 to-emerald-600",
   },
   {
     icon: Calculator,
     title: "Tax Optimization & Loopholes",
-    description: "Stay ahead with up-to-date tax reform analysis and legal optimization strategies updated in real-time.",
-    features: ["2025 tax reform compliance", "Legal loophole identification", "Deduction maximization", "Tax-loss harvesting"],
-    gradient: "from-purple-500 to-indigo-600"
+    description:
+      "Stay ahead with up-to-date tax reform analysis and legal optimization strategies updated in real-time.",
+    features: [
+      "2025 tax reform compliance",
+      "Legal loophole identification",
+      "Deduction maximization",
+      "Tax-loss harvesting",
+    ],
+    gradient: "from-purple-500 to-indigo-600",
   },
   {
     icon: PiggyBank,
     title: "Safe Retirement Planning",
-    description: "AI-powered retirement strategies that adapt to changing regulations and market conditions.",
-    features: ["401(k) optimization", "IRA strategies", "Social Security maximization", "Healthcare cost planning"],
-    gradient: "from-orange-500 to-red-600"
+    description:
+      "AI-powered retirement strategies that adapt to changing regulations and market conditions.",
+    features: [
+      "401(k) optimization",
+      "IRA strategies",
+      "Social Security maximization",
+      "Healthcare cost planning",
+    ],
+    gradient: "from-orange-500 to-red-600",
   },
   {
     icon: GraduationCap,
     title: "Learning Access Hub",
-    description: "Personalized financial education with adaptive learning paths based on your knowledge level and goals.",
-    features: ["Interactive courses", "Skill assessments", "Progress tracking", "Certification programs"],
-    gradient: "from-teal-500 to-blue-600"
+    description:
+      "Personalized financial education with adaptive learning paths based on your knowledge level and goals.",
+    features: [
+      "Interactive courses",
+      "Skill assessments",
+      "Progress tracking",
+      "Certification programs",
+    ],
+    gradient: "from-teal-500 to-blue-600",
   },
   {
     icon: Users,
     title: "Community & Discussions",
-    description: "Connect with financial experts and peers in a gamified learning environment with cryptocurrency rewards.",
-    features: ["Expert Q&A sessions", "Peer discussions", "Knowledge sharing", "Crypto reward system"],
-    gradient: "from-pink-500 to-rose-600"
-  }
+    description:
+      "Connect with financial experts and peers in a gamified learning environment with cryptocurrency rewards.",
+    features: [
+      "Expert Q&A sessions",
+      "Peer discussions",
+      "Knowledge sharing",
+      "Crypto reward system",
+    ],
+    gradient: "from-pink-500 to-rose-600",
+  },
 ];
 
 const gamificationFeatures = [
   {
     icon: Trophy,
     title: "Achievement Levels",
-    description: "Unlock new levels as you complete financial milestones and educational modules.",
-    reward: "XP + Crypto Tokens"
+    description:
+      "Unlock new levels as you complete financial milestones and educational modules.",
+    reward: "XP + Crypto Tokens",
   },
   {
     icon: Coins,
     title: "Community Points",
-    description: "Earn points by helping others with detailed financial explanations and insights.",
-    reward: "Convertible to Crypto"
+    description:
+      "Earn points by helping others with detailed financial explanations and insights.",
+    reward: "Convertible to Crypto",
   },
   {
     icon: Bitcoin,
     title: "Crypto Rewards",
-    description: "Transfer earned points to cryptocurrency or use for premium platform features.",
-    reward: "BTC, ETH, Custom Token"
+    description:
+      "Transfer earned points to cryptocurrency or use for premium platform features.",
+    reward: "BTC, ETH, Custom Token",
   },
   {
     icon: GamepadIcon,
     title: "Learning Challenges",
-    description: "Complete daily challenges and quests to improve your financial knowledge.",
-    reward: "Bonus Multipliers"
-  }
+    description:
+      "Complete daily challenges and quests to improve your financial knowledge.",
+    reward: "Bonus Multipliers",
+  },
 ];
 
 const features: FeatureCard[] = [
   {
     icon: Brain,
     title: "Advanced AI Financial Advisor",
-    description: "Get personalized financial advice powered by GPT-4, tailored to your unique situation and goals.",
-    gradient: "from-purple-500 to-indigo-600"
+    description:
+      "Get personalized financial advice powered by GPT-4, tailored to your unique situation and goals.",
+    gradient: "from-purple-500 to-indigo-600",
   },
   {
     icon: TrendingUp,
     title: "Smart Portfolio Management",
-    description: "AI-driven portfolio optimization with real-time market analysis and automated rebalancing.",
-    gradient: "from-green-500 to-emerald-600"
+    description:
+      "AI-driven portfolio optimization with real-time market analysis and automated rebalancing.",
+    gradient: "from-green-500 to-emerald-600",
   },
   {
     icon: Target,
     title: "Intelligent Goal Tracking",
-    description: "Set and achieve financial goals with AI-powered insights and automated savings strategies.",
-    gradient: "from-blue-500 to-cyan-600"
+    description:
+      "Set and achieve financial goals with AI-powered insights and automated savings strategies.",
+    gradient: "from-blue-500 to-cyan-600",
   },
   {
     icon: Shield,
     title: "Bank-Level Security",
-    description: "256-bit encryption and multi-factor authentication protect your financial data.",
-    gradient: "from-red-500 to-pink-600"
+    description:
+      "256-bit encryption and multi-factor authentication protect your financial data.",
+    gradient: "from-red-500 to-pink-600",
   },
   {
     icon: Globe,
     title: "Multilingual Support",
-    description: "Available in English, German, French, and Polish with culturally-aware financial advice.",
-    gradient: "from-orange-500 to-yellow-600"
+    description:
+      "Available in English, German, French, and Polish with culturally-aware financial advice.",
+    gradient: "from-orange-500 to-yellow-600",
   },
   {
     icon: Calculator,
     title: "Tax Optimization",
-    description: "AI-powered tax strategies that automatically find deductions and optimize your returns.",
-    gradient: "from-indigo-500 to-purple-600"
-  }
+    description:
+      "AI-powered tax strategies that automatically find deductions and optimize your returns.",
+    gradient: "from-indigo-500 to-purple-600",
+  },
 ];
 
 const stats: StatCard[] = [
   { value: "10,000+", label: "Active Users", icon: Users },
   { value: "$50M+", label: "Assets Managed", icon: DollarSign },
   { value: "15%", label: "Avg. Return Boost", icon: TrendingUp },
-  { value: "99.9%", label: "Uptime", icon: Shield }
+  { value: "99.9%", label: "Uptime", icon: Shield },
 ];
 
 const testimonials: TestimonialCard[] = [
@@ -203,26 +271,35 @@ const testimonials: TestimonialCard[] = [
     name: "Sarah Chen",
     role: "Software Engineer",
     company: "Tech Startup",
-    content: "FinApp's AI advisor helped me optimize my portfolio and save $12,000 in taxes last year. The insights are incredibly accurate.",
-    avatar: "👩‍💻"
+    content:
+      "FinApp's AI advisor helped me optimize my portfolio and save $12,000 in taxes last year. The insights are incredibly accurate.",
+    avatar: "👩‍💻",
   },
   {
     name: "Marcus Johnson",
     role: "Small Business Owner",
     company: "Johnson Consulting",
-    content: "The multilingual support and tax optimization features are game-changers for my international business. Highly recommended!",
-    avatar: "👨‍💼"
+    content:
+      "The multilingual support and tax optimization features are game-changers for my international business. Highly recommended!",
+    avatar: "👨‍💼",
   },
   {
     name: "Elena Rodriguez",
     role: "Financial Advisor",
     company: "Rodriguez Wealth Management",
-    content: "I recommend FinApp to all my clients. The AI insights complement traditional financial planning perfectly.",
-    avatar: "👩‍💼"
-  }
+    content:
+      "I recommend FinApp to all my clients. The AI insights complement traditional financial planning perfectly.",
+    avatar: "👩‍💼",
+  },
 ];
 
-function AnimatedCounter({ end, duration = 2000 }: { end: number; duration?: number }) {
+function AnimatedCounter({
+  end,
+  duration = 2000,
+}: {
+  end: number;
+  duration?: number;
+}) {
   const [count, setCount] = useState(0);
   const ref = useRef<HTMLSpanElement>(null);
   const inView = useInView(ref);
@@ -232,19 +309,19 @@ function AnimatedCounter({ end, duration = 2000 }: { end: number; duration?: num
 
     let start = 0;
     const startTime = performance.now();
-    
+
     const updateCount = (currentTime: number) => {
       const elapsed = currentTime - startTime;
       const progress = Math.min(elapsed / duration, 1);
       const currentCount = Math.floor(progress * end);
-      
+
       setCount(currentCount);
-      
+
       if (progress < 1) {
         requestAnimationFrame(updateCount);
       }
     };
-    
+
     requestAnimationFrame(updateCount);
   }, [end, duration, inView]);
 
@@ -254,7 +331,7 @@ function AnimatedCounter({ end, duration = 2000 }: { end: number; duration?: num
 export default function Landing() {
   const [activeFeature, setActiveFeature] = useState(0);
   const [showSignUpModal, setShowSignUpModal] = useState(false);
-  
+
   useEffect(() => {
     const interval = setInterval(() => {
       setActiveFeature((prev) => (prev + 1) % features.length);
@@ -263,7 +340,7 @@ export default function Landing() {
   }, []);
 
   const handleSignUpSuccess = () => {
-    window.location.href = '/finapp-home';
+    window.location.href = "/finapp-home";
   };
 
   return (
@@ -280,7 +357,7 @@ export default function Landing() {
                 FinApp
               </span>
             </div>
-            
+
             {/* Desktop Navigation */}
             <div className="hidden lg:flex items-center gap-8">
               {/* Product Dropdown */}
@@ -290,13 +367,27 @@ export default function Landing() {
                 </button>
                 <div className="absolute top-full left-0 mt-2 w-48 bg-white dark:bg-gray-800 shadow-xl rounded-lg border opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
                   <div className="p-2">
-                    <a href="#features" className="block px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded">Features</a>
-                    <a href="#pricing" className="block px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded">Pricing</a>
+                    <a
+                      href="#features"
+                      className="block px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded"
+                    >
+                      Features
+                    </a>
+                    <a
+                      href="#pricing"
+                      className="block px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded"
+                    >
+                      Pricing
+                    </a>
                     <Link href="/security">
-                      <span className="block px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded cursor-pointer">Security</span>
+                      <span className="block px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded cursor-pointer">
+                        Security
+                      </span>
                     </Link>
                     <Link href="/api">
-                      <span className="block px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded cursor-pointer">API</span>
+                      <span className="block px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded cursor-pointer">
+                        API
+                      </span>
                     </Link>
                   </div>
                 </div>
@@ -310,16 +401,24 @@ export default function Landing() {
                 <div className="absolute top-full left-0 mt-2 w-48 bg-white dark:bg-gray-800 shadow-xl rounded-lg border opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
                   <div className="p-2">
                     <Link href="/about">
-                      <span className="block px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded cursor-pointer">About</span>
+                      <span className="block px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded cursor-pointer">
+                        About
+                      </span>
                     </Link>
                     <Link href="/blog">
-                      <span className="block px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded cursor-pointer">Blog</span>
+                      <span className="block px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded cursor-pointer">
+                        Blog
+                      </span>
                     </Link>
                     <Link href="/careers">
-                      <span className="block px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded cursor-pointer">Careers</span>
+                      <span className="block px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded cursor-pointer">
+                        Careers
+                      </span>
                     </Link>
                     <Link href="/contact">
-                      <span className="block px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded cursor-pointer">Contact</span>
+                      <span className="block px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded cursor-pointer">
+                        Contact
+                      </span>
                     </Link>
                   </div>
                 </div>
@@ -333,16 +432,24 @@ export default function Landing() {
                 <div className="absolute top-full left-0 mt-2 w-48 bg-white dark:bg-gray-800 shadow-xl rounded-lg border opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
                   <div className="p-2">
                     <Link href="/help">
-                      <span className="block px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded cursor-pointer">Help Center</span>
+                      <span className="block px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded cursor-pointer">
+                        Help Center
+                      </span>
                     </Link>
                     <Link href="/documentation">
-                      <span className="block px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded cursor-pointer">Documentation</span>
+                      <span className="block px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded cursor-pointer">
+                        Documentation
+                      </span>
                     </Link>
                     <Link href="/community">
-                      <span className="block px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded cursor-pointer">Community</span>
+                      <span className="block px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded cursor-pointer">
+                        Community
+                      </span>
                     </Link>
                     <Link href="/status">
-                      <span className="block px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded cursor-pointer">Status</span>
+                      <span className="block px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded cursor-pointer">
+                        Status
+                      </span>
                     </Link>
                   </div>
                 </div>
@@ -351,7 +458,9 @@ export default function Landing() {
               {/* Auth Buttons */}
               <div className="flex items-center gap-3">
                 <Link href="/signin">
-                  <Button variant="ghost" size="sm">Sign In</Button>
+                  <Button variant="ghost" size="sm">
+                    Sign In
+                  </Button>
                 </Link>
                 <Link href="/admin-login">
                   <Button variant="outline" size="sm">
@@ -371,7 +480,10 @@ export default function Landing() {
             {/* Mobile Menu Button */}
             <div className="lg:hidden">
               <Link href="/signin">
-                <Button size="sm" className="bg-gradient-to-r from-blue-600 to-purple-600">
+                <Button
+                  size="sm"
+                  className="bg-gradient-to-r from-blue-600 to-purple-600"
+                >
                   Get Started
                 </Button>
               </Link>
@@ -398,11 +510,12 @@ export default function Landing() {
               Financial Intelligence
             </h1>
             <p className="text-xl md:text-2xl text-gray-600 dark:text-gray-300 mb-8 max-w-3xl mx-auto leading-relaxed">
-              Harness the power of AI to optimize your finances, maximize returns, and achieve your financial goals faster than ever before.
+              Harness the power of AI to optimize your finances, maximize
+              returns, and achieve your financial goals faster than ever before.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
               <Button
-                onClick={() => window.location.href = '/signin'}
+                onClick={() => (window.location.href = "/signin")}
                 className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white text-lg px-8 py-3 rounded-xl font-semibold"
               >
                 <User className="mr-2 h-5 w-5" />
@@ -410,7 +523,11 @@ export default function Landing() {
               </Button>
               <Dialog>
                 <DialogTrigger asChild>
-                  <Button size="lg" variant="outline" className="text-lg px-8 py-3">
+                  <Button
+                    size="lg"
+                    variant="outline"
+                    className="text-lg px-8 py-3"
+                  >
                     <Calendar className="mr-2 h-5 w-5" />
                     Schedule Demo - August 2025
                   </Button>
@@ -419,7 +536,8 @@ export default function Landing() {
                   <DialogHeader>
                     <DialogTitle>Schedule Your Personal Demo</DialogTitle>
                     <DialogDescription>
-                      Book a 30-minute personalized demo with our financial experts. Available slots this week.
+                      Book a 30-minute personalized demo with our financial
+                      experts. Available slots this week.
                     </DialogDescription>
                   </DialogHeader>
                   <div className="space-y-4">
@@ -432,10 +550,18 @@ export default function Landing() {
                       </div>
                     </div>
                     <div className="grid grid-cols-2 gap-2">
-                      <Button variant="outline" size="sm">Today 2:00 PM</Button>
-                      <Button variant="outline" size="sm">Today 4:00 PM</Button>
-                      <Button variant="outline" size="sm">Fri 10:00 AM</Button>
-                      <Button variant="outline" size="sm">Fri 3:00 PM</Button>
+                      <Button variant="outline" size="sm">
+                        Today 2:00 PM
+                      </Button>
+                      <Button variant="outline" size="sm">
+                        Today 4:00 PM
+                      </Button>
+                      <Button variant="outline" size="sm">
+                        Fri 10:00 AM
+                      </Button>
+                      <Button variant="outline" size="sm">
+                        Fri 3:00 PM
+                      </Button>
                     </div>
                     <Button className="w-full bg-gradient-to-r from-blue-600 to-purple-600">
                       <Calendar className="mr-2 h-4 w-4" />
@@ -489,11 +615,13 @@ export default function Landing() {
               <div className="text-left space-y-2">
                 <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
                   <Brain className="h-4 w-4 text-blue-600" />
-                  AI Analysis: Your portfolio is optimally balanced for current market conditions
+                  AI Analysis: Your portfolio is optimally balanced for current
+                  market conditions
                 </div>
                 <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
                   <Zap className="h-4 w-4 text-yellow-600" />
-                  Smart Alert: Consider tax-loss harvesting to save $2,400 this year
+                  Smart Alert: Consider tax-loss harvesting to save $2,400 this
+                  year
                 </div>
               </div>
             </div>
@@ -535,7 +663,10 @@ export default function Landing() {
       </section>
 
       {/* Comprehensive AI Use Cases Section */}
-      <section id="ai-features" className="py-20 px-6 bg-gradient-to-br from-gray-50 to-blue-50 dark:from-gray-900 dark:to-blue-900 relative overflow-hidden">
+      <section
+        id="ai-features"
+        className="py-20 px-6 bg-gradient-to-br from-gray-50 to-blue-50 dark:from-gray-900 dark:to-blue-900 relative overflow-hidden"
+      >
         <FloatingElements />
         <div className="container mx-auto relative z-10">
           <div className="text-center mb-16">
@@ -547,7 +678,8 @@ export default function Landing() {
               How Our AI Works for You
             </h2>
             <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
-              Revolutionary AI-powered financial tools that provide real-time insights, personalized strategies, and comprehensive analysis
+              Revolutionary AI-powered financial tools that provide real-time
+              insights, personalized strategies, and comprehensive analysis
             </p>
           </div>
 
@@ -558,7 +690,9 @@ export default function Landing() {
                 <Card3D key={index} className="group">
                   <Card className="h-full hover:shadow-2xl transition-all duration-300 border-0 bg-white/80 backdrop-blur-sm">
                     <CardHeader>
-                      <div className={`inline-flex p-3 rounded-lg bg-gradient-to-r ${useCase.gradient} text-white mb-4`}>
+                      <div
+                        className={`inline-flex p-3 rounded-lg bg-gradient-to-r ${useCase.gradient} text-white mb-4`}
+                      >
                         <IconComponent className="h-6 w-6" />
                       </div>
                       <CardTitle className="text-xl font-bold text-gray-900 dark:text-white group-hover:text-blue-600 transition-colors">
@@ -571,7 +705,10 @@ export default function Landing() {
                     <CardContent>
                       <ul className="space-y-2">
                         {useCase.features.map((feature, idx) => (
-                          <li key={idx} className="flex items-center text-sm text-gray-600 dark:text-gray-300">
+                          <li
+                            key={idx}
+                            className="flex items-center text-sm text-gray-600 dark:text-gray-300"
+                          >
                             <CheckCircle className="h-4 w-4 text-green-500 mr-2 flex-shrink-0" />
                             {feature}
                           </li>
@@ -598,7 +735,8 @@ export default function Landing() {
               Earn While You Learn
             </h2>
             <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
-              Get rewarded for your financial knowledge. Answer complex questions, help the community, and earn cryptocurrency tokens
+              Get rewarded for your financial knowledge. Answer complex
+              questions, help the community, and earn cryptocurrency tokens
             </p>
           </div>
 
@@ -631,9 +769,12 @@ export default function Landing() {
           </div>
 
           <div className="bg-gradient-to-r from-purple-600 to-pink-600 rounded-2xl p-8 text-white text-center">
-            <h3 className="text-2xl font-bold mb-4">Community Q&A Rewards System</h3>
+            <h3 className="text-2xl font-bold mb-4">
+              Community Q&A Rewards System
+            </h3>
             <p className="text-lg mb-6 opacity-90">
-              Answer financial questions with detailed explanations and earn points convertible to cryptocurrency
+              Answer financial questions with detailed explanations and earn
+              points convertible to cryptocurrency
             </p>
             <div className="grid grid-cols-3 gap-6 mb-6">
               <div>
@@ -650,7 +791,7 @@ export default function Landing() {
               </div>
             </div>
             <Button
-              onClick={() => window.location.href = '/signin'}
+              onClick={() => (window.location.href = "/signin")}
               className="bg-white text-purple-600 hover:bg-gray-100 px-8 py-3 rounded-xl font-semibold"
             >
               <Bitcoin className="mr-2 h-5 w-5" />
@@ -674,8 +815,9 @@ export default function Landing() {
                 Revolutionary Financial Intelligence
               </h2>
               <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
-                Experience the next generation of financial management with AI-powered insights, 
-                automated optimization, and personalized strategies.
+                Experience the next generation of financial management with
+                AI-powered insights, automated optimization, and personalized
+                strategies.
               </p>
             </motion.div>
           </div>
@@ -693,10 +835,14 @@ export default function Landing() {
                 >
                   <Card className="h-full hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border-0 bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900">
                     <CardHeader>
-                      <div className={`w-12 h-12 rounded-lg bg-gradient-to-r ${feature.gradient} flex items-center justify-center mb-4`}>
+                      <div
+                        className={`w-12 h-12 rounded-lg bg-gradient-to-r ${feature.gradient} flex items-center justify-center mb-4`}
+                      >
                         <IconComponent className="h-6 w-6 text-white" />
                       </div>
-                      <CardTitle className="text-xl mb-2">{feature.title}</CardTitle>
+                      <CardTitle className="text-xl mb-2">
+                        {feature.title}
+                      </CardTitle>
                       <CardDescription className="text-gray-600 dark:text-gray-400 leading-relaxed">
                         {feature.description}
                       </CardDescription>
@@ -719,7 +865,9 @@ export default function Landing() {
               transition={{ duration: 0.8 }}
               viewport={{ once: true }}
             >
-              <h2 className="text-4xl font-bold mb-6">Trusted by Financial Professionals</h2>
+              <h2 className="text-4xl font-bold mb-6">
+                Trusted by Financial Professionals
+              </h2>
               <p className="text-xl text-gray-600 dark:text-gray-300">
                 See what our users are saying about their FinApp experience
               </p>
@@ -739,7 +887,10 @@ export default function Landing() {
                   <CardContent className="p-6">
                     <div className="flex items-center gap-1 mb-4">
                       {[...Array(5)].map((_, i) => (
-                        <Star key={i} className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                        <Star
+                          key={i}
+                          className="h-4 w-4 fill-yellow-400 text-yellow-400"
+                        />
                       ))}
                     </div>
                     <p className="text-gray-700 dark:text-gray-300 mb-6 italic">
@@ -763,7 +914,10 @@ export default function Landing() {
       </section>
 
       {/* Pricing Section */}
-      <section id="pricing" className="py-20 px-6 bg-gradient-to-br from-gray-50 to-blue-50 dark:from-gray-900 dark:to-blue-900">
+      <section
+        id="pricing"
+        className="py-20 px-6 bg-gradient-to-br from-gray-50 to-blue-50 dark:from-gray-900 dark:to-blue-900"
+      >
         <div className="container mx-auto">
           <div className="text-center mb-16">
             <Badge className="mb-4 bg-gradient-to-r from-green-100 to-emerald-100 text-green-900 border-green-200">
@@ -774,7 +928,8 @@ export default function Landing() {
               Choose Your Plan
             </h2>
             <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
-              Transparent pricing with no hidden fees. Launch special: 30% off first 3 months!
+              Transparent pricing with no hidden fees. Launch special: 30% off
+              first 3 months!
             </p>
           </div>
 
@@ -845,15 +1000,21 @@ export default function Landing() {
                   <div className="space-y-3">
                     <div className="flex items-center gap-2">
                       <CheckCircle className="h-4 w-4 text-green-500" />
-                      <span className="text-sm">Advanced AI financial advisor</span>
+                      <span className="text-sm">
+                        Advanced AI financial advisor
+                      </span>
                     </div>
                     <div className="flex items-center gap-2">
                       <CheckCircle className="h-4 w-4 text-green-500" />
-                      <span className="text-sm">Tax optimization strategies</span>
+                      <span className="text-sm">
+                        Tax optimization strategies
+                      </span>
                     </div>
                     <div className="flex items-center gap-2">
                       <CheckCircle className="h-4 w-4 text-green-500" />
-                      <span className="text-sm">Real-time market intelligence</span>
+                      <span className="text-sm">
+                        Real-time market intelligence
+                      </span>
                     </div>
                     <div className="flex items-center gap-2">
                       <CheckCircle className="h-4 w-4 text-green-500" />
@@ -861,7 +1022,9 @@ export default function Landing() {
                     </div>
                     <div className="flex items-center gap-2">
                       <CheckCircle className="h-4 w-4 text-green-500" />
-                      <span className="text-sm">5 AI advisor sessions/month</span>
+                      <span className="text-sm">
+                        5 AI advisor sessions/month
+                      </span>
                     </div>
                   </div>
                   <Link href="/checkout?plan=pro">
@@ -897,11 +1060,15 @@ export default function Landing() {
                     </div>
                     <div className="flex items-center gap-2">
                       <CheckCircle className="h-4 w-4 text-green-500" />
-                      <span className="text-sm">Unlimited AI advisor sessions</span>
+                      <span className="text-sm">
+                        Unlimited AI advisor sessions
+                      </span>
                     </div>
                     <div className="flex items-center gap-2">
                       <CheckCircle className="h-4 w-4 text-green-500" />
-                      <span className="text-sm">Custom portfolio management</span>
+                      <span className="text-sm">
+                        Custom portfolio management
+                      </span>
                     </div>
                     <div className="flex items-center gap-2">
                       <CheckCircle className="h-4 w-4 text-green-500" />
@@ -926,7 +1093,8 @@ export default function Landing() {
           {/* Pricing Footer */}
           <div className="mt-12 text-center">
             <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
-              All plans include 30-day money-back guarantee • Cancel anytime • Secure payment via Stripe
+              All plans include 30-day money-back guarantee • Cancel anytime •
+              Secure payment via Stripe
             </p>
             <div className="flex justify-center items-center gap-6 text-xs text-gray-500">
               <div className="flex items-center gap-1">
@@ -959,59 +1127,20 @@ export default function Landing() {
               Ready to Transform Your Financial Future?
             </h2>
             <p className="text-xl mb-8 opacity-90 max-w-2xl mx-auto">
-              Join thousands of users who have already optimized their finances with AI-powered intelligence.
+              Join thousands of users who have already optimized their finances
+              with AI-powered intelligence.
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link href="/finapp-home">
-                <Button size="lg" className="bg-white text-blue-600 hover:bg-gray-100 text-lg px-8 py-3">
-                  <Sparkles className="mr-2 h-5 w-5" />
-                  Start Your Free Trial
-                </Button>
-              </Link>
-              <Dialog>
-                <DialogTrigger asChild>
-                  <Button size="lg" variant="outline" className="border-white text-white hover:bg-white hover:text-blue-600 text-lg px-8 py-3">
-                    <Calendar className="mr-2 h-5 w-5" />
-                    Book Demo - August 2025
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="sm:max-w-md">
-                  <DialogHeader>
-                    <DialogTitle>Schedule Your Personal Demo</DialogTitle>
-                    <DialogDescription>
-                      Book a 30-minute personalized demo with our financial experts. Available slots this week.
-                    </DialogDescription>
-                  </DialogHeader>
-                  <div className="space-y-4">
-                    <div className="text-sm text-gray-600">
-                      <p className="font-semibold">Available Times (CEST):</p>
-                      <div className="mt-2 space-y-1">
-                        <p>• Today, Aug 7 - 2:00 PM, 4:00 PM</p>
-                        <p>• Friday, Aug 8 - 10:00 AM, 3:00 PM</p>
-                        <p>• Monday, Aug 11 - 9:00 AM, 1:00 PM, 5:00 PM</p>
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-2 gap-2">
-                      <Button variant="outline" size="sm">Today 2:00 PM</Button>
-                      <Button variant="outline" size="sm">Today 4:00 PM</Button>
-                      <Button variant="outline" size="sm">Fri 10:00 AM</Button>
-                      <Button variant="outline" size="sm">Fri 3:00 PM</Button>
-                    </div>
-                    <Button className="w-full bg-gradient-to-r from-blue-600 to-purple-600">
-                      <Calendar className="mr-2 h-4 w-4" />
-                      Confirm Demo Booking
-                    </Button>
-                  </div>
-                </DialogContent>
-              </Dialog>
-            </div>
+            <Link href="/signin">
+              <Button
+                size="lg"
+                className="bg-white text-blue-600 hover:bg-gray-100 text-lg px-8 py-3"
+              >
+                <ArrowRight className="mr-2 h-5 w-5" />
+                Get Started
+              </Button>
+            </Link>
           </motion.div>
         </div>
-      </section>
-
-      {/* Quick Navigation Section */}
-      <section className="py-20 px-6 bg-gray-50">
-        <QuickNavigation />
       </section>
 
       {/* Footer */}
@@ -1024,7 +1153,8 @@ export default function Landing() {
                 <span className="text-xl font-bold">FinApp</span>
               </div>
               <p className="text-gray-400">
-                The future of financial intelligence, powered by advanced AI technology.
+                The future of financial intelligence, powered by advanced AI
+                technology.
               </p>
             </div>
             <div>
@@ -1056,12 +1186,13 @@ export default function Landing() {
             </div>
           </div>
           <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
-            <p>&copy; 2025 FinApp. All rights reserved. Powered by advanced AI technology.</p>
+            <p>
+              &copy; 2025 FinApp. All rights reserved. Powered by advanced AI
+              technology.
+            </p>
           </div>
         </div>
       </footer>
-
-
     </div>
   );
 }

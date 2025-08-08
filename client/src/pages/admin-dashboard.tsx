@@ -294,6 +294,25 @@ export function AdminDashboard() {
                   </Link>
                 </CardContent>
               </Card>
+
+              <Card className="hover:shadow-lg transition-shadow cursor-pointer bg-gradient-to-br from-purple-50 to-blue-50 border-purple-200">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Brain className="h-5 w-5 text-purple-600" />
+                    AI Control Center
+                  </CardTitle>
+                  <CardDescription>
+                    Advanced AI system management and monitoring
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <Link href="/admin-ai-control">
+                    <Button size="sm" className="w-full bg-purple-600 hover:bg-purple-700">
+                      Open AI Control Center
+                    </Button>
+                  </Link>
+                </CardContent>
+              </Card>
             </div>
 
             {/* Financial Dashboard for Demo */}

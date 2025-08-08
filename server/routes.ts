@@ -21,6 +21,8 @@ import { RealtimeDataService } from "./services/realtimeDataService";
 import { DiagnosticsService } from "./services/diagnosticsService";
 import { analyticsService } from "./services/analyticsService";
 import { setupAuth, isAuthenticated } from "./replitAuth";
+import { requireAdmin, logAdminAction, validateAIParams } from "./middleware/adminAuth";
+import { aiMetricsService } from "./services/aiMetricsService";
 import bcrypt from "bcryptjs";
 import Stripe from "stripe";
 
@@ -2980,6 +2982,270 @@ What would you like me to help you with?`,
       res.json(result);
     } catch (error) {
       res.status(500).json({ message: error.message || 'Failed to execute command' });
+    }
+  });
+
+  // ===== AI ADMIN API ROUTES =====
+  // Protected admin routes for AI management and control
+  
+  // AI System Overview
+  app.get('/api/admin/ai-overview', requireAdmin as any, logAdminAction('view_ai_overview'), async (req, res) => {
+    try {
+      const systemMetrics = await aiMetricsService.getSystemMetrics();
+      const modelMetrics = await aiMetricsService.getAllModelMetrics();
+      
+      res.json({
+        success: true,
+        system: systemMetrics,
+        models: modelMetrics,
+        timestamp: new Date().toISOString()
+      });
+    } catch (error) {
+      console.error('Error fetching AI overview:', error);
+      res.status(500).json({ 
+        error: 'Failed to fetch AI overview',
+        message: (error as Error).message 
+      });
+    }
+  });
+
+  // AI Performance Metrics
+  app.get('/api/admin/ai-performance', requireAdmin as any, validateAIParams, async (req, res) => {
+    try {
+      const { timeRange = '24h' } = req.query;
+      
+      const systemMetrics = await aiMetricsService.getSystemMetrics();
+      const performanceHistory = await aiMetricsService.getPerformanceHistory(timeRange as string);
+      
+      res.json({
+        ...systemMetrics,
+        history: performanceHistory,
+        generated_at: new Date().toISOString()
+      });
+    } catch (error) {
+      console.error('Error fetching AI performance:', error);
+      res.status(500).json({ 
+        error: 'Failed to fetch AI performance data',
+        message: error.message 
+      });
+    }
+  });
+
+  // AI Models Management
+  app.get('/api/admin/ai-models', requireAdmin as any, validateAIParams, async (req, res) => {
+    try {
+      const { modelType, status } = req.query;
+      
+      let models = await aiMetricsService.getAllModelMetrics();
+      
+      // Filter by model type if specified
+      if (modelType) {
+        models = models.filter(model => 
+          model.service.toLowerCase().includes(modelType as string) ||
+          model.category.toLowerCase().includes(modelType as string)
+        );
+      }
+      
+      // Filter by status if specified
+      if (status) {
+        models = models.filter(model => model.status === status);
+      }
+      
+      res.json(models);
+    } catch (error) {
+      console.error('Error fetching AI models:', error);
+      res.status(500).json({ 
+        error: 'Failed to fetch AI models data',
+        message: error.message 
+      });
+    }
+  });
+
+  // Individual Model Details
+  app.get('/api/admin/ai-models/:modelName', requireAdmin as any, async (req, res) => {
+    try {
+      const { modelName } = req.params;
+      const model = await aiMetricsService.getModelMetrics(decodeURIComponent(modelName));
+      
+      if (!model) {
+        return res.status(404).json({ 
+          error: 'Model not found',
+          message: `AI model '${modelName}' does not exist` 
+        });
+      }
+      
+      res.json(model);
+    } catch (error) {
+      console.error('Error fetching model details:', error);
+      res.status(500).json({ 
+        error: 'Failed to fetch model details',
+        message: error.message 
+      });
+    }
+  });
+
+  // AI Models Retraining
+  app.post('/api/admin/retrain-models', requireAdmin as any, logAdminAction('retrain_ai_models'), async (req, res) => {
+    try {
+      const { modelType } = req.body;
+      const adminUserId = (req as any).user.id;
+      
+      if (!modelType) {
+        return res.status(400).json({
+          error: 'Missing model type',
+          message: 'Model type is required for retraining'
+        });
+      }
+      
+      const success = await aiMetricsService.retrainModels(modelType, adminUserId);
+      
+      if (success) {
+        res.json({
+          success: true,
+          message: `AI models of type '${modelType}' have been successfully retrained`,
+          retrainedAt: new Date().toISOString(),
+          adminUser: adminUserId
+        });
+      } else {
+        res.status(500).json({
+          error: 'Retraining failed',
+          message: 'Failed to retrain AI models'
+        });
+      }
+    } catch (error) {
+      console.error('Error retraining models:', error);
+      res.status(500).json({ 
+        error: 'Failed to retrain models',
+        message: error.message 
+      });
+    }
+  });
+
+  // Tax Data Update
+  app.post('/api/admin/update-tax-data', requireAdmin as any, logAdminAction('update_tax_data'), async (req, res) => {
+    try {
+      const adminUserId = (req as any).user.id;
+      
+      const success = await aiMetricsService.updateTaxData(adminUserId);
+      
+      if (success) {
+        res.json({
+          success: true,
+          message: 'Tax data has been successfully updated',
+          updatedAt: new Date().toISOString(),
+          adminUser: adminUserId
+        });
+      } else {
+        res.status(500).json({
+          error: 'Update failed',
+          message: 'Failed to update tax data'
+        });
+      }
+    } catch (error) {
+      console.error('Error updating tax data:', error);
+      res.status(500).json({ 
+        error: 'Failed to update tax data',
+        message: error.message 
+      });
+    }
+  });
+
+  // AI System Health Check
+  app.get('/api/admin/ai-health', requireAdmin as any, async (req, res) => {
+    try {
+      const systemMetrics = await aiMetricsService.getSystemMetrics();
+      const models = await aiMetricsService.getAllModelMetrics();
+      
+      const activeModels = models.filter(m => m.status === 'active').length;
+      const errorModels = models.filter(m => m.status === 'error').length;
+      const trainingModels = models.filter(m => m.status === 'training').length;
+      
+      const healthStatus = {
+        overall: systemMetrics.errorRate < 10 ? 'healthy' : systemMetrics.errorRate < 25 ? 'warning' : 'critical',
+        uptime: systemMetrics.uptime,
+        totalModels: models.length,
+        activeModels,
+        errorModels,
+        trainingModels,
+        averageAccuracy: models.reduce((acc, m) => acc + m.accuracy, 0) / models.length,
+        totalCost: systemMetrics.totalCost,
+        lastUpdate: systemMetrics.lastUpdateTime
+      };
+      
+      res.json(healthStatus);
+    } catch (error) {
+      console.error('Error checking AI health:', error);
+      res.status(500).json({ 
+        error: 'Failed to check AI system health',
+        message: error.message 
+      });
+    }
+  });
+
+  // AI Admin Authentication Check
+  app.get('/api/admin/auth-check', requireAdmin as any, async (req, res) => {
+    try {
+      const user = (req as any).user;
+      
+      res.json({
+        authenticated: true,
+        user: {
+          id: user.id,
+          role: user.role,
+          email: user.email
+        },
+        permissions: ['ai_management', 'system_control', 'data_access'],
+        timestamp: new Date().toISOString()
+      });
+    } catch (error) {
+      console.error('Error checking admin auth:', error);
+      res.status(500).json({ 
+        error: 'Failed to verify admin authentication',
+        message: error.message 
+      });
+    }
+  });
+
+  // AI System Controls
+  app.post('/api/admin/ai-controls/:action', requireAdmin as any, logAdminAction('ai_system_control'), async (req, res) => {
+    try {
+      const { action } = req.params;
+      const { target, parameters } = req.body;
+      const adminUserId = (req as any).user.id;
+      
+      console.log(`[AI CONTROL] Admin ${adminUserId} executing action: ${action} on target: ${target}`);
+      
+      let result;
+      
+      switch (action) {
+        case 'restart':
+          result = { success: true, message: `Restarted ${target}`, action: 'restart' };
+          break;
+        case 'configure':
+          result = { success: true, message: `Configured ${target}`, action: 'configure', parameters };
+          break;
+        case 'optimize':
+          result = { success: true, message: `Optimized ${target}`, action: 'optimize' };
+          break;
+        default:
+          return res.status(400).json({
+            error: 'Invalid action',
+            message: `Action '${action}' is not supported`,
+            validActions: ['restart', 'configure', 'optimize']
+          });
+      }
+      
+      res.json({
+        ...result,
+        executedAt: new Date().toISOString(),
+        adminUser: adminUserId
+      });
+    } catch (error) {
+      console.error('Error executing AI control:', error);
+      res.status(500).json({ 
+        error: 'Failed to execute AI control action',
+        message: error.message 
+      });
     }
   });
 

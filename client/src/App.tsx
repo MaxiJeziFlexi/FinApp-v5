@@ -90,7 +90,7 @@ function Router() {
           <Route path="/admin" component={AdminDashboard} />
           <Route path="/admin-jarvis" component={AdminJarvis} />
           <Route path="/admin-ai-control" component={AdvancedAIControlCenter} />
-          <Route path="/ai-dashboard" component={AdvancedAIDashboard} />
+
           <Route path="/gaming" component={GamingHub} />
           <Route path="/enhanced-crypto" component={EnhancedCryptoMarketplace} />
           <Route path="/developer-diagnostics" component={DeveloperDiagnostics} />

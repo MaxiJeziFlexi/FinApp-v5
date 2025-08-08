@@ -91,13 +91,7 @@ const navigationItems = [
     description: 'Cryptocurrency trading platform',
     badge: 'Live'
   },
-  {
-    path: '/ai-dashboard',
-    label: 'AI Analytics',
-    icon: Brain,
-    description: 'Advanced AI market analysis',
-    badge: 'Pro'
-  },
+
   {
     path: '/admin',
     label: 'Admin Panel',

@@ -116,64 +116,9 @@ export default function AdvancedAIControlCenter() {
     } catch (err) {
       console.error('Error fetching AI metrics:', err);
       
-      // Fallback data for demonstration
-      setSystemMetrics({
-        totalRequests: 247856,
-        successfulResponses: 236421,
-        averageResponseTime: 1847.23,
-        totalTokensUsed: 15847263,
-        totalCost: 2456.78,
-        userSatisfactionScore: 94.17,
-        errorRate: 4.61,
-        activeModels: 12,
-        uptime: 99.8,
-        lastUpdateTime: new Date().toISOString()
-      });
-      
-      setModelMetrics([
-        {
-          name: 'GPT-4o (OpenAI)',
-          service: 'OpenAI Service',
-          category: 'General AI',
-          accuracy: 96.84,
-          totalRequests: 111534,
-          avgResponseTime: 1842.67,
-          successRate: 97.23,
-          lastUpdate: new Date().toISOString(),
-          status: 'active',
-          cost: 1277.53,
-          errorCount: 3089,
-          tokensUsed: 9508358
-        },
-        {
-          name: 'AI Emotional Analysis',
-          service: 'Emotional Analysis Service',
-          category: 'Behavioral Psychology',
-          accuracy: 88.92,
-          totalRequests: 29743,
-          avgResponseTime: 934.56,
-          successRate: 92.67,
-          lastUpdate: new Date(Date.now() - 60 * 60 * 1000).toISOString(),
-          status: 'active',
-          cost: 196.54,
-          errorCount: 2178,
-          tokensUsed: 633891
-        },
-        {
-          name: 'Jarvis AI System',
-          service: 'Jarvis AI Service',
-          category: 'System Administration',
-          accuracy: 87.23,
-          totalRequests: 12393,
-          avgResponseTime: 3245.67,
-          successRate: 85.45,
-          lastUpdate: new Date(Date.now() - 120 * 60 * 1000).toISOString(),
-          status: 'training',
-          cost: 147.41,
-          errorCount: 1803,
-          tokensUsed: 475439
-        }
-      ]);
+      // No fallback data - only use real data from API
+      console.warn('Failed to fetch AI metrics from API, showing error state instead of mock data');
+      setModelMetrics([]);
     } finally {
       setLoading(false);
     }

@@ -104,7 +104,7 @@ function Router() {
           <Route path="/profile" component={UserProfile} />
           <Route path="/user-profile" component={UserProfile} />
           <Route path="/admin-jarvis" component={AdminJarvis} />
-          <Route path="/enhanced-chat" component={EnhancedChatPage} />
+
           <Route component={NotFound} />
         </Switch>
       </main>

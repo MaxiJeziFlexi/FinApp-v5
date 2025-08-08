@@ -36,6 +36,7 @@ import AdvisorSelection from "@/components/financial/AdvisorSelection";
 import DecisionTreeView from "@/components/financial/DecisionTreeView";
 import { PersonalizedDecisionTreeView } from "@/components/financial/PersonalizedDecisionTreeView";
 import ChatWindow from "@/components/financial/ChatWindow";
+import EnhancedChatWindow from '@/components/chat/EnhancedChatWindow';
 import AchievementNotification from "@/components/financial/AchievementNotification";
 import { FinancialVisualizations3D } from "@/components/financial/FinancialVisualizations3D";
 import { AdvancedAnalyticsDashboard } from "@/components/financial/AdvancedAnalyticsDashboard";
@@ -424,13 +425,38 @@ export default function FinAppHome() {
                   </AlertDescription>
                 </Alert>
                 {selectedAdvisor && (
-                  <ChatWindow
-                    advisor={selectedAdvisor}
-                    userId={userId}
-                    userProfile={userProfile}
-                    onBackToDecisionTree={() => setCurrentFlow('decision-tree')}
-                    onBackToAdvisors={() => setCurrentFlow('advisor-selection')}
-                  />
+                  <div className="space-y-6">
+                    <div className="text-center">
+                      <h3 className="text-2xl font-bold mb-2">🎉 Decision Tree Completed!</h3>
+                      <p className="text-gray-600 mb-4">
+                        Teraz możesz korzystać z zaawansowanego AI chatu z nieograniczonym dostępem do wyszukiwania internetowego i generowania raportów
+                      </p>
+                      <Badge variant="outline" className="mb-4">Enhanced AI Assistant Active</Badge>
+                    </div>
+                    
+                    <EnhancedChatWindow
+                      userId={userId}
+                      sessionId={`${selectedAdvisor.id}-${userId}-${Date.now()}`}
+                      onMessageSent={(message) => {
+                        console.log('Enhanced chat message sent:', message);
+                      }}
+                    />
+                    
+                    <div className="flex gap-2 justify-center">
+                      <Button 
+                        variant="outline" 
+                        onClick={() => setCurrentFlow('decision-tree')}
+                      >
+                        ← Powrót do Decision Tree
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        onClick={() => setCurrentFlow('advisor-selection')}
+                      >
+                        ← Wybierz innego doradcę
+                      </Button>
+                    </div>
+                  </div>
                 )}
               </TabsContent>
 

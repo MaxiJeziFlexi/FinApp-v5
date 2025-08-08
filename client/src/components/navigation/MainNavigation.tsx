@@ -91,13 +91,7 @@ const navigationItems = [
     description: 'Cryptocurrency trading platform',
     badge: 'Live'
   },
-  {
-    path: '/enhanced-chat',
-    label: 'Enhanced AI Chat',
-    icon: MessageCircle,
-    description: 'Advanced AI chat with web search',
-    badge: 'New'
-  },
+
 
   {
     path: '/admin',

@@ -198,7 +198,7 @@ class AIMetricsService {
       await new Promise(resolve => setTimeout(resolve, 2000));
       
       // Log the action
-      await analyticsService.trackEventData(adminUserId, 'ai_model_retrain', {
+      await analyticsService.trackEvent(adminUserId, 'ai_model_retrain', {
         modelType,
         timestamp: new Date().toISOString(),
         action: 'retrain_initiated'
@@ -224,7 +224,7 @@ class AIMetricsService {
       await new Promise(resolve => setTimeout(resolve, 1500));
       
       // Log the action
-      await analyticsService.trackEventData(adminUserId, 'tax_data_update', {
+      await analyticsService.trackEvent(adminUserId, 'tax_data_update', {
         timestamp: new Date().toISOString(),
         action: 'tax_update_initiated'
       });

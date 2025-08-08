@@ -73,7 +73,7 @@ export const logAdminAction = (action: string) => {
     // Zapisz log do analytics
     if (req.user?.id) {
       import('../services/analyticsService').then(({ analyticsService }) => {
-        analyticsService.trackEventData(req.user!.id, 'admin_action', {
+        analyticsService.trackEvent(req.user!.id, 'admin_action', {
           action,
           timestamp: new Date().toISOString(),
           userAgent: req.headers['user-agent'],

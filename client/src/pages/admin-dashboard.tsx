@@ -363,7 +363,23 @@ export function AdminDashboard() {
           </TabsContent>
 
           <TabsContent value="analytics" className="space-y-6">
-            <RealTimeAnalytics />
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Activity className="h-5 w-5" />
+                  Combined AI Analytics & Performance
+                </CardTitle>
+                <CardDescription>Comprehensive analytics combining real-time data with advanced AI control</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="mb-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                  <p className="text-blue-800 text-sm">
+                    <span className="font-semibold">Note:</span> Advanced AI Control Center with full analytics is available in the "AI Control" tab above for comprehensive system management.
+                  </p>
+                </div>
+                <RealTimeAnalytics />
+              </CardContent>
+            </Card>
           </TabsContent>
 
           <TabsContent value="ai-control" className="space-y-6">

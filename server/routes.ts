@@ -36,6 +36,37 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
 export async function registerRoutes(app: Express): Promise<Server> {
   // Auth middleware
   await setupAuth(app);
+  
+  // Enhanced data collection endpoints for AI training
+  app.post('/api/data-collection/ai-interaction', async (req, res) => {
+    try {
+      const { userId, modelName, prompt, response, metrics } = req.body;
+      const interactionData = {
+        userId, modelName, 
+        promptLength: prompt?.length || 0,
+        responseLength: response?.length || 0,
+        responseTime: metrics?.responseTime || 0,
+        tokensUsed: metrics?.tokensUsed || 0,
+        cost: metrics?.cost || 0,
+        timestamp: new Date().toISOString()
+      };
+      await analyticsService.trackEvent(userId, 'detailed_ai_interaction', interactionData);
+      res.json({ success: true, message: 'AI interaction data collected' });
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to collect AI interaction data' });
+    }
+  });
+
+  app.post('/api/data-collection/financial-data', async (req, res) => {
+    try {
+      const { userId, financialData, goals } = req.body;
+      const enhancedData = { userId, ...financialData, goals, timestamp: new Date().toISOString() };
+      await analyticsService.trackEvent(userId, 'financial_profile_data', enhancedData);
+      res.json({ success: true, message: 'Financial data collected for AI training' });
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to collect financial data' });
+    }
+  });
 
   // Auth routes
   app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {

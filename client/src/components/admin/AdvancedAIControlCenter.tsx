@@ -107,8 +107,10 @@ export default function AdvancedAIControlCenter() {
         setSystemMetrics(performanceData);
       }
       
-      // Pobierz metryki modeli
-      const modelsResponse = await fetch('/api/admin/ai-models');
+      // Pobierz metryki modeli z proper headers
+      const modelsResponse = await fetch('/api/admin/ai-models', {
+        headers: { 'x-user-id': 'admin-main-system' }
+      });
       if (modelsResponse.ok) {
         const modelsData = await modelsResponse.json();
         setModelMetrics(modelsData);

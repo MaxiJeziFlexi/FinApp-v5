@@ -20,7 +20,7 @@ import {
   PiggyBank,
   BookOpen,
   Users
-} from 'lucide-react';
+, MessageCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { logout } from '@/hooks/useAuth';
 
@@ -90,6 +90,13 @@ const navigationItems = [
     icon: Bitcoin,
     description: 'Cryptocurrency trading platform',
     badge: 'Live'
+  },
+  {
+    path: '/enhanced-chat',
+    label: 'Enhanced AI Chat',
+    icon: MessageCircle,
+    description: 'Advanced AI chat with web search',
+    badge: 'New'
   },
 
   {

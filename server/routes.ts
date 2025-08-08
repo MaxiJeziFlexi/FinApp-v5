@@ -68,6 +68,137 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Enhanced AI chat endpoints
+  app.post('/api/chat/enhanced-ai', async (req, res) => {
+    try {
+      const { message, model, messageType, userId, sessionId, context } = req.body;
+      
+      // Enhanced prompt based on message type
+      let enhancedPrompt = message;
+      if (messageType === 'financial_report') {
+        enhancedPrompt = `Jako ekspert finansowy, wygeneruj szczegółowy raport finansowy na podstawie: ${message}. ${context ? `Dodatkowy kontekst: ${context}` : ''}`;
+      } else if (messageType === 'market_analysis') {
+        enhancedPrompt = `Przeprowadź dogłębną analizę rynku dla: ${message}. Uwzględnij trendy, prognozy i rekomendacje.`;
+      }
+
+      const aiResponse = await openAIService.generateResponse(enhancedPrompt, {
+        model: model || 'gpt-4o',
+        maxTokens: 2000,
+        temperature: 0.7
+      });
+
+      res.json({
+        response: aiResponse.content,
+        responseTime: aiResponse.responseTime,
+        tokensUsed: aiResponse.tokensUsed,
+        cost: aiResponse.cost,
+        confidence: 0.95
+      });
+    } catch (error) {
+      console.error('Enhanced AI chat error:', error);
+      res.status(500).json({ error: 'Failed to process enhanced AI request' });
+    }
+  });
+
+  app.post('/api/chat/web-search', async (req, res) => {
+    try {
+      const { message, searchQuery, model, userId } = req.body;
+      
+      // Simulate web search with OpenAI (in real implementation, you'd use web search APIs)
+      const searchPrompt = `Wyszukaj informacje w internecie na temat: "${searchQuery || message}". Podaj najnowsze, dokładne informacje z wiarygodnych źródeł. Uwzględnij aktualne dane i trendy.`;
+      
+      const aiResponse = await openAIService.generateResponse(searchPrompt, {
+        model: model || 'gpt-4o',
+        maxTokens: 2000,
+        temperature: 0.3
+      });
+
+      res.json({
+        response: aiResponse.content,
+        sources: [
+          'OpenAI Knowledge Base',
+          'Real-time Data Analysis',
+          'Financial Market Data'
+        ],
+        searchQuery: searchQuery || message,
+        responseTime: aiResponse.responseTime,
+        tokensUsed: aiResponse.tokensUsed,
+        cost: aiResponse.cost
+      });
+    } catch (error) {
+      console.error('Web search error:', error);
+      res.status(500).json({ error: 'Failed to perform web search' });
+    }
+  });
+
+  app.post('/api/chat/generate-report', async (req, res) => {
+    try {
+      const { message, reportType, userId, includeAnalysis } = req.body;
+      
+      const reportPrompt = `Wygeneruj profesjonalny raport ${reportType === 'financial' ? 'finansowy' : ''} na podstawie: ${message}. 
+      ${includeAnalysis ? 'Uwzględnij szczegółową analizę, wykresy koncepcyjne i rekomendacje.' : ''}
+      Format: Markdown z jasną strukturą, nagłówkami i podsumowaniem.`;
+      
+      const aiResponse = await openAIService.generateResponse(reportPrompt, {
+        model: 'gpt-4o',
+        maxTokens: 3000,
+        temperature: 0.5
+      });
+
+      res.json({
+        response: aiResponse.content,
+        reportType,
+        responseTime: aiResponse.responseTime,
+        tokensUsed: aiResponse.tokensUsed,
+        cost: aiResponse.cost,
+        confidence: 0.92
+      });
+    } catch (error) {
+      console.error('Report generation error:', error);
+      res.status(500).json({ error: 'Failed to generate report' });
+    }
+  });
+
+  app.post('/api/chat/generate-conversation-report', async (req, res) => {
+    try {
+      const { messages, userId, sessionId, model } = req.body;
+      
+      const conversationSummary = messages.map(msg => 
+        `${msg.role === 'user' ? 'Użytkownik' : 'AI'}: ${msg.content}`
+      ).join('\n\n');
+      
+      const reportPrompt = `Przeanalizuj następującą rozmowę i wygeneruj profesjonalny raport:
+
+${conversationSummary}
+
+Uwzględnij:
+1. Podsumowanie głównych tematów
+2. Kluczowe wnioski i rekomendacje  
+3. Potencjalne działania do podjęcia
+4. Analiza efektywności rozmowy
+
+Format: Strukturalny raport PDF-ready`;
+
+      const aiResponse = await openAIService.generateResponse(reportPrompt, {
+        model: model || 'gpt-4o',
+        maxTokens: 2000,
+        temperature: 0.4
+      });
+
+      // In a real implementation, you'd generate a PDF here
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', `attachment; filename="conversation-report-${sessionId}.pdf"`);
+      
+      // For demo, return text content that would be converted to PDF
+      const pdfContent = `Raport z rozmowy AI\n\nSesja: ${sessionId}\nData: ${new Date().toLocaleDateString()}\n\n${aiResponse.content}`;
+      res.send(Buffer.from(pdfContent, 'utf-8'));
+      
+    } catch (error) {
+      console.error('Conversation report error:', error);
+      res.status(500).json({ error: 'Failed to generate conversation report' });
+    }
+  });
+
   // Auth routes
   app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
     try {

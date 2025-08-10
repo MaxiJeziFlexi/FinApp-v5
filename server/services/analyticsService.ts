@@ -204,6 +204,11 @@ export class AnalyticsService {
     }
   }
 
+  // Track event method (alias for trackUserEvent to match routes.ts usage)
+  async trackEvent(userId: string, eventType: string, data: any) {
+    return this.trackUserEvent(userId, eventType, data);
+  }
+
   // Missing methods that are called from routes
   async getUserDashboardData(userId: string): Promise<UserBehaviorMetrics> {
     try {

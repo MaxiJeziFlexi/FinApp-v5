@@ -173,6 +173,62 @@ Your role is to provide personalized, actionable financial advice based on the u
     }
   }
 
+  async generateResponse(prompt: string, options: {
+    model?: string;
+    maxTokens?: number;
+    temperature?: number;
+  } = {}): Promise<{
+    content: string;
+    responseTime: number;
+    tokensUsed: number;
+    cost: number;
+  }> {
+    const startTime = Date.now();
+    const model = options.model || 'gpt-4o';
+    const maxTokens = options.maxTokens || 1000;
+    const temperature = options.temperature || 0.7;
+
+    try {
+      const response = await openai.chat.completions.create({
+        model: model,
+        messages: [
+          {
+            role: "system",
+            content: "You are a helpful financial assistant providing expert advice and analysis."
+          },
+          {
+            role: "user",
+            content: prompt
+          }
+        ],
+        max_tokens: maxTokens,
+        temperature: temperature,
+      });
+
+      const responseTime = Date.now() - startTime;
+      const tokensUsed = response.usage?.total_tokens || 0;
+      
+      // Estimate cost based on model and tokens
+      const costPerThousand = model === 'gpt-4o' ? 0.03 : 0.002;
+      const cost = (tokensUsed / 1000) * costPerThousand;
+
+      return {
+        content: response.choices[0].message.content || '',
+        responseTime,
+        tokensUsed,
+        cost
+      };
+    } catch (error) {
+      console.error('Error generating response:', error);
+      return {
+        content: 'I apologize, but I encountered an error processing your request. Please try again.',
+        responseTime: Date.now() - startTime,
+        tokensUsed: 0,
+        cost: 0
+      };
+    }
+  }
+
   async generateFinancialReport(userProfile: any, decisionPath: any[], advisorContext: AdvisorContext): Promise<string> {
     try {
       const prompt = `Generate a comprehensive financial report for this user based on their profile and consultation responses. Include specific recommendations, action steps, timelines, and projections.

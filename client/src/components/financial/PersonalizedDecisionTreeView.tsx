@@ -70,11 +70,11 @@ interface PersonalizedInsights {
 interface PersonalizedDecisionTreeViewProps {
   advisorId: string;
   userId: string;
-  advisor: {
+  advisor?: {
     id: string;
     name: string;
-    specialty: string;
-    icon: string;
+    specialty?: string;
+    icon?: string;
   };
   onComplete?: (insights: PersonalizedInsights) => void;
   onBackToAdvisor?: () => void;

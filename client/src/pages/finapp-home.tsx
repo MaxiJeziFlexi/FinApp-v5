@@ -388,6 +388,7 @@ export default function FinAppHome() {
                   <PersonalizedDecisionTreeView 
                     advisorId={selectedAdvisor.id} 
                     userId={currentUser?.id || 'demo-user'}
+                    advisor={selectedAdvisor}
                     onComplete={(insights) => {
                       console.log('Assessment completed with insights:', insights);
                       setShowAchievement("assessment-complete");

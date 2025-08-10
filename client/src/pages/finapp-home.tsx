@@ -385,29 +385,17 @@ export default function FinAppHome() {
                   </AlertDescription>
                 </Alert>
                 {selectedAdvisor ? (
-                  // Show based on user subscription - Enhanced personalized tree for all users
-                  isAdmin || (currentUser as any)?.subscriptionTier === 'max' || (currentUser as any)?.subscriptionTier === 'pro' ? (
-                    <PersonalizedDecisionTreeView
-                      advisorId={selectedAdvisor.id}
-                      userId={userId}
-                      advisor={selectedAdvisor}
-                      onComplete={(insights) => {
-                        console.log('Personalized insights generated:', insights);
-                        handleDecisionTreeComplete();
-                      }}
-                      onBackToAdvisor={() => setCurrentFlow('advisor-selection')}
-                    />
-                  ) : (
-                    <Alert className="border-orange-200 bg-orange-50">
-                      <AlertDescription>
-                        <Crown className="w-4 h-4 inline mr-2" />
-                        Decision trees are available for Pro and Max plan users. Free users have access to basic advisor chat.
-                        <Link href="/checkout">
-                          <Button variant="link" className="p-0 h-auto ml-2">Upgrade to Pro</Button>
-                        </Link>
-                      </AlertDescription>
-                    </Alert>
-                  )
+                  // Enhanced personalized tree for all users - Max tier has full access
+                  <PersonalizedDecisionTreeView
+                    advisorId={selectedAdvisor.id}
+                    userId={currentUser?.id || userId}
+                    advisor={selectedAdvisor}
+                    onComplete={(insights) => {
+                      console.log('Personalized insights generated:', insights);
+                      handleDecisionTreeComplete();
+                    }}
+                    onBackToAdvisor={() => setCurrentFlow('advisor-selection')}
+                  />
                 ) : (
                   <Alert>
                     <AlertDescription>
@@ -435,9 +423,9 @@ export default function FinAppHome() {
                     </div>
                     
                     <ImprovedChatInterface
-                      userId={userId}
+                      userId={currentUser?.id || userId}
                       advisorId={selectedAdvisor.id}
-                      sessionId={`${selectedAdvisor.id}-${userId}-${Date.now()}`}
+                      sessionId={`${selectedAdvisor.id}-${currentUser?.id || userId}-${Date.now()}`}
                       onDataCollected={(data) => {
                         console.log('Chat data collected:', data);
                       }}

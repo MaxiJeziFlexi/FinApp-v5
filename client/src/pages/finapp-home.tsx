@@ -1,141 +1,228 @@
-import { useState, useEffect, useCallback } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { useAuth } from '@/hooks/useAuth';
-import { Link, useLocation } from 'wouter';
-import { 
-  Brain, 
-  Target, 
-  BarChart3, 
-  MessageSquare, 
-  Trophy, 
-  Settings, 
-  LogOut,
-  User,
-  Activity,
-  CheckCircle,
-  Clock,
-  AlertCircle
-} from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Progress } from '@/components/ui/progress';
-import { Badge } from '@/components/ui/badge';
-import AdvisorSelection from '@/components/financial/AdvisorSelection';
-import { PersonalizedDecisionTreeView } from '@/components/financial/PersonalizedDecisionTreeView';
-import EnhancedChatWindow from '@/components/chat/EnhancedChatWindow';
-import UserSettingsModal from '@/components/settings/UserSettingsModal';
-import { useToast } from '@/hooks/use-toast';
-import type { UserProfile, Advisor } from '@/shared/schema';
+"use client";
 
-interface UserProfileType {
-  id: string;
-  userId: string;
-  firstName?: string;
-  lastName?: string;
-  email?: string;
-  onboardingComplete?: boolean;
-  financialGoals?: {
-    primaryGoal?: string;
-    timeHorizon?: string;
-    riskTolerance?: string;
-    monthlyIncome?: number;
-    monthlyExpenses?: number;
-    currentSavings?: number;
-    savingsGoal?: number;
-  };
-}
+import { useState, useEffect, useMemo } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Link } from "wouter";
+import {
+  User as UserIcon,
+  MessageSquare,
+  TrendingUp,
+  Target,
+  Brain,
+  BarChart3,
+  Activity,
+  Zap,
+  Settings,
+  LogOut,
+  Crown,
+} from "lucide-react";
+
+import { useAuth } from "@/hooks/useAuth";
+// (RoleBasedAccess, UserProfileDropdown są nieużywane – usuń importy, jeśli chcesz)
+import UserSettingsModal from "@/components/settings/UserSettingsModal";
+
+import OnboardingForm from "@/components/financial/OnboardingForm";
+import AdvisorSelection from "@/components/financial/AdvisorSelection";
+import { PersonalizedDecisionTreeView } from "@/components/financial/PersonalizedDecisionTreeView";
+
+import EnhancedChatWindow from "@/components/chat/EnhancedChatWindow";
+import AchievementNotification from "@/components/financial/AchievementNotification";
+import { FinancialVisualizations3D } from "@/components/financial/FinancialVisualizations3D";
+import { AdvancedAnalyticsDashboard } from "@/components/financial/AdvancedAnalyticsDashboard";
+
+import type { UserProfile as UserProfileType } from "@shared/schema";
+
+type AppFlow =
+  | "onboarding"
+  | "advisor-selection"
+  | "decision-tree"
+  | "chat"
+  | "analytics";
+type Advisor = { id: string; name?: string; [k: string]: any };
 
 export default function FinAppHome() {
-  const { isAuthenticated, user: currentUser, isLoading: authLoading, isAdmin } = useAuth();
-  
-  const logout = () => {
-    localStorage.removeItem('finapp_admin_auth');
-    localStorage.removeItem('finapp_user_auth');
-    window.location.reload();
-  };
-  
-  const [location, setLocation] = useLocation();
-  const [currentFlow, setCurrentFlow] = useState('onboarding');
+  const [currentFlow, setCurrentFlow] = useState<AppFlow>("onboarding");
   const [selectedAdvisor, setSelectedAdvisor] = useState<Advisor | null>(null);
+  const [showAchievement, setShowAchievement] = useState<string | null>(null);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
-  const { toast } = useToast();
 
-  // Analytics tracking
-  const trackEvent = useCallback(async (eventType: string, data: any) => {
-    if (!currentUser?.id) return;
-    
-    try {
-      await fetch('/api/analytics/track-event', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          userId: currentUser.id,
-          eventType,
-          eventData: data,
-          timeSpent: Date.now() - (window as any).pageLoadTime,
-          interactionCount: 1,
-          learningPath: currentFlow
-        })
-      });
-    } catch (error) {
-      console.warn('Failed to track event:', error);
-    }
-  }, [currentUser?.id, currentFlow]);
+  // auth
+  const {
+    user: currentUser,
+    isLoading: authLoading,
+    isAuthenticated,
+    isAdmin,
+  } = useAuth();
 
+  // redirect if not authed
   useEffect(() => {
+    if (!authLoading && !isAuthenticated) {
+      window.location.href = "/";
+    }
+  }, [authLoading, isAuthenticated]);
+
+  // analytics (guard na window)
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const trackEvent = async (eventType: string, data: any) => {
+      try {
+        await fetch("/api/analytics/track-event", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            userId: currentUser?.id || "demo-user",
+            eventType,
+            eventData: data,
+            timeSpent: Date.now() - (window as any).pageLoadTime,
+            interactionCount: 1,
+            learningPath: currentFlow,
+          }),
+        });
+      } catch (error) {
+        console.warn("Failed to track event:", error);
+      }
+    };
+
     if (!(window as any).pageLoadTime) {
       (window as any).pageLoadTime = Date.now();
     }
 
-    trackEvent('page_view', {
+    trackEvent("page_view", {
       flow: currentFlow,
       advisor: selectedAdvisor,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
 
     return () => {
-      trackEvent('page_leave', {
+      trackEvent("page_leave", {
         flow: currentFlow,
-        sessionDuration: Date.now() - (window as any).pageLoadTime
+        sessionDuration: Date.now() - (window as any).pageLoadTime,
       });
     };
   }, [currentFlow, selectedAdvisor, currentUser?.id]);
 
-  // User profile
+  // user profile (FIX: dodany queryFn + enabled)
   const userId = currentUser?.id ?? null;
-  
-  const { data: userProfile, isLoading: profileLoading } = useQuery<UserProfileType | undefined>({
-    queryKey: ['userProfile', userId],
-    enabled: !!userId,
+
+  const { data: userProfile, isLoading: profileLoading } = useQuery<
+    UserProfileType | undefined
+  >({
+    queryKey: ["userProfile", userId],
+    enabled: !!userId, // dopiero gdy znamy usera
     queryFn: async () => {
-      const res = await fetch(`/api/user/profile?userId=${encodeURIComponent(userId as string)}`);
+      const res = await fetch(
+        `/api/user/profile?userId=${encodeURIComponent(userId as string)}`,
+      );
       if (!res.ok) return undefined;
       return res.json();
     },
     retry: 1,
   });
 
-  // Navigation handlers
-  const handleFlowChange = (newFlow: string) => {
-    setCurrentFlow(newFlow);
-    trackEvent('navigation_change', { from: currentFlow, to: newFlow });
-  };
+  // helpery: obsługa snake_case/camelCase
+  const onboardingComplete =
+    (userProfile as any)?.onboardingComplete ??
+    (userProfile as any)?.onboarding_complete ??
+    false;
 
-  const handleAdvisorSelect = (advisor: Advisor) => {
+  // dane do 3D (bezpieczne fallbacki)
+  const threeDData = useMemo(() => {
+    if (!userProfile) {
+      return {
+        savingsGoal: 50000,
+        currentSavings: 15000,
+        monthlyIncome: 5000,
+        expenses: [
+          { category: "Housing", amount: 1500, color: "#3b82f6" },
+          { category: "Food", amount: 600, color: "#10b981" },
+          { category: "Transport", amount: 400, color: "#f59e0b" },
+          { category: "Entertainment", amount: 300, color: "#ef4444" },
+          { category: "Savings", amount: 800, color: "#8b5cf6" },
+        ],
+        projections: Array.from({ length: 12 }, (_, i) => ({
+          month: `Month ${i + 1}`,
+          value: 15000 + i * 2000 + Math.random() * 1000,
+        })),
+        riskProfile: "moderate" as const,
+        learningProgress: 65,
+        engagementScore: 82,
+      };
+    }
+
+    const financialGoal =
+      (userProfile as any).financialGoal ?? (userProfile as any).financial_goal;
+
+    const currSavings =
+      (userProfile as any).currentSavings ??
+      (userProfile as any).current_savings;
+
+    const monthlyIncome =
+      (userProfile as any).monthlyIncome ?? (userProfile as any).monthly_income;
+
+    const riskTolerance =
+      (userProfile as any).riskTolerance ?? (userProfile as any).risk_tolerance;
+
+    const progress = (userProfile as any).progress ?? 45;
+
+    const engagementScore =
+      (userProfile as any).engagementMetrics?.score ??
+      (userProfile as any).engagement_metrics?.score ??
+      75;
+
+    return {
+      savingsGoal:
+        financialGoal === "emergency_fund"
+          ? 20000
+          : financialGoal === "home_purchase"
+            ? 100000
+            : 50000,
+      currentSavings:
+        currSavings === "high"
+          ? 25000
+          : currSavings === "medium"
+            ? 10000
+            : 2000,
+      monthlyIncome:
+        monthlyIncome === "high"
+          ? 8000
+          : monthlyIncome === "medium"
+            ? 5000
+            : 3000,
+      expenses: [
+        { category: "Housing", amount: 1500, color: "#3b82f6" },
+        { category: "Food", amount: 600, color: "#10b981" },
+        { category: "Transport", amount: 400, color: "#f59e0b" },
+        { category: "Entertainment", amount: 300, color: "#ef4444" },
+        { category: "Savings", amount: 800, color: "#8b5cf6" },
+      ],
+      projections: Array.from({ length: 12 }, (_, i) => ({
+        month: `Month ${i + 1}`,
+        value: (currSavings === "high" ? 25000 : 10000) + i * 1500,
+      })),
+      riskProfile:
+        (riskTolerance as "conservative" | "moderate" | "aggressive") ||
+        "moderate",
+      learningProgress: progress,
+      engagementScore,
+    };
+  }, [userProfile]);
+
+  const handleFlowChange = (newFlow: AppFlow) => setCurrentFlow(newFlow);
+
+  const handleAdvisorSelected = (advisor: Advisor) => {
     setSelectedAdvisor(advisor);
-    setCurrentFlow('decision-tree');
-    trackEvent('advisor_selected', { advisorId: advisor.id, advisorName: advisor.name });
-    toast({
-      title: `${advisor.name} Selected`,
-      description: `Your AI advisor ${advisor.name} is now ready to help you!`
-    });
+    setCurrentFlow("decision-tree");
   };
 
-  const handleLogout = async () => {
-    trackEvent('logout', { sessionDuration: Date.now() - (window as any).pageLoadTime });
-    await logout();
-    setLocation('/auth');
+  const handleLogout = () => {
+    localStorage.removeItem("finapp_admin_auth");
+    localStorage.removeItem("finapp_user_auth");
+    window.location.href = "/";
   };
 
   if (authLoading || profileLoading) {
@@ -144,7 +231,9 @@ export default function FinAppHome() {
         <div className="text-center">
           <Brain className="w-12 h-12 mx-auto mb-4 text-blue-600 animate-pulse" />
           <div className="text-xl font-semibold mb-2">FinApp is Loading</div>
-          <div className="text-gray-600">Initializing your personalized financial education experience...</div>
+          <div className="text-gray-600">
+            Initializing your personalized financial education experience...
+          </div>
         </div>
       </div>
     );
@@ -162,254 +251,397 @@ export default function FinAppHome() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+    <div className="min-h-screen bg-black relative">
+      {/* Background */}
+      <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/10 via-purple-500/10 to-blue-500/10" />
+      <div
+        className="absolute inset-0"
+        style={{
+          backgroundImage: `radial-gradient(circle at 25% 25%, rgba(0, 255, 255, 0.1) 0%, transparent 50%), 
+                            radial-gradient(circle at 75% 75%, rgba(147, 51, 234, 0.1) 0%, transparent 50%)`,
+        }}
+      />
+
       {/* Header */}
-      <div className="bg-white border-b border-gray-200 shadow-sm">
-        <div className="container mx-auto px-4 py-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <Brain className="w-8 h-8 text-blue-600" />
-              <div>
-                <h1 className="text-2xl font-bold text-gray-900">FinApp Dashboard</h1>
-                <p className="text-gray-600">Your personalized financial education platform</p>
+      <div className="relative bg-gradient-to-r from-black/90 via-gray-900/95 to-black/90 backdrop-blur-xl border-b border-cyan-500/30 py-6">
+        <div className="container mx-auto px-4">
+          <div className="text-center relative z-10">
+            <div className="flex items-center justify-center mb-6">
+              <div className="h-1 w-16 bg-gradient-to-r from-cyan-400 to-blue-600 rounded-full mr-4" />
+              <div className="text-5xl font-black bg-gradient-to-r from-cyan-400 via-purple-500 to-blue-600 bg-clip-text text-transparent">
+                FINAPP NEURAL CORE
+              </div>
+              <div className="h-1 w-16 bg-gradient-to-r from-blue-600 to-purple-400 rounded-full ml-4" />
+            </div>
+
+            <div className="text-cyan-400 font-mono text-lg tracking-wider mb-4">
+              [ QUANTUM FINANCIAL CONSCIOUSNESS SYSTEM ]
+            </div>
+
+            <div className="grid grid-cols-3 gap-8 mt-6 max-w-4xl mx-auto">
+              <div className="bg-black/30 backdrop-blur-md border border-cyan-500/30 rounded-xl p-4 text-center">
+                <div className="text-2xl font-bold text-cyan-400">10,000+</div>
+                <div className="text-gray-300 font-mono text-sm">
+                  ACTIVE NEURAL NODES
+                </div>
+              </div>
+              <div className="bg-black/30 backdrop-blur-md border border-purple-500/30 rounded-xl p-4 text-center">
+                <div className="text-2xl font-bold text-purple-400">99.8%</div>
+                <div className="text-gray-300 font-mono text-sm">
+                  SYSTEM UPTIME
+                </div>
+              </div>
+              <div className="bg-black/30 backdrop-blur-md border border-blue-500/30 rounded-xl p-4 text-center">
+                <div className="text-2xl font-bold text-blue-400">24/7</div>
+                <div className="text-gray-300 font-mono text-sm">
+                  AI PROCESSING
+                </div>
               </div>
             </div>
-            
-            <div className="flex items-center space-x-4">
+
+            <div className="flex items-center justify-center gap-4 mt-8">
               {isAdmin && (
-                <div className="flex items-center space-x-2">
+                <div className="flex items-center gap-2">
                   <Link href="/admin-dashboard">
-                    <Button variant="outline" size="sm">
-                      <Settings className="w-4 h-4 mr-2" />
-                      Admin
-                    </Button>
+                    <button className="bg-gradient-to-r from-yellow-500 to-orange-600 text-black px-4 py-2 rounded-xl font-bold text-sm tracking-wider hover:shadow-lg transition-all duration-300">
+                      <div className="flex items-center gap-2">
+                        <Settings className="w-4 h-4" />
+                        ADMIN CORE
+                      </div>
+                    </button>
                   </Link>
                   <Link href="/developer-diagnostics">
-                    <Button variant="outline" size="sm">
-                      <Activity className="w-4 h-4 mr-2" />
-                      Diagnostics
-                    </Button>
+                    <button className="bg-gradient-to-r from-cyan-500 to-blue-600 text-white px-4 py-2 rounded-xl font-bold text-sm tracking-wider hover:shadow-lg transition-all duration-300">
+                      <div className="flex items-center gap-2">
+                        <Activity className="w-4 h-4" />
+                        DIAGNOSTICS
+                      </div>
+                    </button>
                   </Link>
                 </div>
               )}
 
-              <Button onClick={handleLogout} variant="outline" size="sm">
-                <LogOut className="w-4 h-4 mr-2" />
-                Logout
-              </Button>
+              <button
+                onClick={handleLogout}
+                className="bg-gradient-to-r from-red-500 to-pink-600 text-white px-4 py-2 rounded-xl font-bold text-sm tracking-wider hover:shadow-lg transition-all duration-300"
+              >
+                <div className="flex items-center gap-2">
+                  <LogOut className="w-4 h-4" />
+                  DISCONNECT
+                </div>
+              </button>
             </div>
-          </div>
-          
-          {/* User Status */}
-          {currentUser && (
-            <div className="mt-4 flex items-center justify-center">
-              <Card className="w-full max-w-md">
-                <CardContent className="p-4">
-                  <div className="flex items-center space-x-3">
-                    <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                      <User className="w-5 h-5 text-blue-600" />
+
+            {currentUser && (
+              <div className="flex items-center justify-center mt-6">
+                <div className="bg-black/40 backdrop-blur-xl border border-cyan-500/50 rounded-2xl px-6 py-4">
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 bg-gradient-to-br from-cyan-400 to-blue-600 rounded-full flex items-center justify-center">
+                      <div className="text-2xl">👤</div>
                     </div>
-                    <div className="flex-1">
-                      <div className="font-medium text-gray-900">
-                        Welcome back, {(currentUser as any)?.firstName || 'User'}!
+                    <div className="text-left">
+                      <div className="text-white font-bold tracking-wider">
+                        Welcome back,{" "}
+                        {(currentUser as any)?.firstName ||
+                          (currentUser as any)?.first_name ||
+                          "User"}
+                        !
                       </div>
-                      <div className="text-sm text-gray-500">
-                        {(currentUser as any)?.subscriptionTier === 'free' ? 'Free Plan' : 
-                         (currentUser as any)?.subscriptionTier === 'pro' ? 'Pro Member' : 'Premium Member'}
+                      <div className="text-cyan-400 font-mono text-sm">
+                        {((currentUser as any)?.subscriptionTier ||
+                          (currentUser as any)?.subscription_tier) === "free"
+                          ? "Free Plan"
+                          : ((currentUser as any)?.subscriptionTier ||
+                                (currentUser as any)?.subscription_tier) ===
+                              "pro"
+                            ? "Pro Member"
+                            : "Premium Member"}
                       </div>
                     </div>
-                    <div className="flex items-center space-x-1">
-                      <div className="w-2 h-2 bg-green-400 rounded-full"></div>
-                      <span className="text-xs text-gray-500">Online</span>
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
+                      <span className="text-gray-300 font-mono text-xs">
+                        NEURAL LINK ACTIVE
+                      </span>
                     </div>
                   </div>
-                </CardContent>
-              </Card>
-            </div>
-          )}
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
-      <div className="container mx-auto px-4 py-8">
-        {/* Navigation Tabs */}
-        <Card className="mb-8">
-          <CardHeader>
-            <CardTitle className="text-center">Financial Learning Journey</CardTitle>
-            <CardDescription className="text-center">
-              Navigate through your personalized financial education experience
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Tabs value={currentFlow} onValueChange={(value: string) => handleFlowChange(value)}>
-              <TabsList className="grid w-full grid-cols-5">
-                <TabsTrigger 
-                  value="onboarding" 
-                  className="flex items-center gap-2"
-                  disabled={userProfile?.onboardingComplete || false}
-                >
-                  <User className="w-4 h-4" />
-                  Profile Setup
-                </TabsTrigger>
-                <TabsTrigger 
-                  value="advisor-selection" 
-                  className="flex items-center gap-2"
-                  disabled={!userProfile?.onboardingComplete}
-                >
-                  <Target className="w-4 h-4" />
-                  AI Advisors
-                </TabsTrigger>
-                <TabsTrigger 
-                  value="decision-tree" 
-                  className="flex items-center gap-2"
-                  disabled={!selectedAdvisor?.id}
-                >
-                  <BarChart3 className="w-4 h-4" />
-                  Decision Tree
-                </TabsTrigger>
-                <TabsTrigger 
-                  value="chat" 
-                  className="flex items-center gap-2"
-                  disabled={!selectedAdvisor?.id}
-                >
-                  <MessageSquare className="w-4 h-4" />
-                  AI Chat
-                </TabsTrigger>
-                <TabsTrigger 
-                  value="achievements" 
-                  className="flex items-center gap-2"
-                >
-                  <Trophy className="w-4 h-4" />
-                  Achievements
-                </TabsTrigger>
-              </TabsList>
+      <div className="container mx-auto px-4 py-8 relative z-10">
+        <div className="bg-gradient-to-r from-gray-900/80 to-black/90 backdrop-blur-xl border border-cyan-500/30 rounded-2xl p-6 mb-8">
+          <div className="text-center mb-6">
+            <div className="text-cyan-400 font-mono text-sm tracking-wider mb-2">
+              NEURAL INTERFACE SELECTION
+            </div>
+            <div className="h-1 w-32 bg-gradient-to-r from-cyan-400 to-purple-400 rounded-full mx-auto" />
+          </div>
 
-              <TabsContent value="onboarding" className="mt-6">
-                <Card>
-                  <CardContent className="p-6">
-                    <div className="text-center">
-                      <CheckCircle className="w-16 h-16 mx-auto mb-4 text-green-500" />
-                      <h3 className="text-xl font-semibold mb-2">Profile Setup Complete</h3>
-                      <p className="text-gray-600 mb-4">Your financial profile has been successfully configured</p>
-                      <Badge variant="secondary">Setup Complete</Badge>
-                    </div>
-                  </CardContent>
-                </Card>
-              </TabsContent>
+          <Tabs
+            value={currentFlow}
+            onValueChange={(v) => handleFlowChange(v as AppFlow)}
+          >
+            <TabsList className="grid w-full grid-cols-5 bg-black/40 border border-cyan-500/20 rounded-xl p-2">
+              <TabsTrigger
+                value="onboarding"
+                className="flex items-center gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-cyan-500 data-[state=active]:to-blue-600 data-[state=active]:text-white text-gray-300 font-mono text-sm transition-all duration-300"
+                disabled={!!onboardingComplete}
+              >
+                <UserIcon className="w-4 h-4" />
+                NEURAL PROFILE
+              </TabsTrigger>
 
-              <TabsContent value="advisor-selection" className="mt-6">
-                <AdvisorSelection onAdvisorSelect={handleAdvisorSelect} />
-              </TabsContent>
+              <TabsTrigger
+                value="advisor-selection"
+                className="flex items-center gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-500 data-[state=active]:to-pink-600 data-[state=active]:text-white text-gray-300 font-mono text-sm transition-all duration-300"
+                disabled={!onboardingComplete}
+              >
+                <Target className="w-4 h-4" />
+                AI ADVISORS
+              </TabsTrigger>
 
-              <TabsContent value="decision-tree" className="mt-6">
-                {selectedAdvisor ? (
-                  <PersonalizedDecisionTreeView 
+              <TabsTrigger
+                value="decision-tree"
+                className="flex items-center gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-indigo-600 data-[state=active]:text-white text-gray-300 font-mono text-sm transition-all duration-300"
+                disabled={!selectedAdvisor?.id}
+              >
+                <BarChart3 className="w-4 h-4" />
+                DECISION MATRIX
+              </TabsTrigger>
+
+              <TabsTrigger
+                value="chat"
+                className="flex items-center gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-green-500 data-[state=active]:to-emerald-600 data-[state=active]:text-white text-gray-300 font-mono text-sm transition-all duration-300"
+                disabled={!selectedAdvisor?.id}
+              >
+                <MessageSquare className="w-4 h-4" />
+                NEURAL CHAT
+              </TabsTrigger>
+
+              <TabsTrigger
+                value="analytics"
+                className="flex items-center gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-500 data-[state=active]:to-red-600 data-[state=active]:text-white text-gray-300 font-mono text-sm transition-all duration-300"
+              >
+                <TrendingUp className="w-4 h-4" />
+                ANALYTICS CORE
+              </TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="onboarding" className="space-y-6">
+              <Alert>
+                <Brain className="h-4 w-4" />
+                <AlertDescription>
+                  <strong>AI-Enhanced Onboarding:</strong> Our advanced
+                  profiling system analyzes your responses to create a
+                  personalized learning experience with behavioral pattern
+                  recognition.
+                </AlertDescription>
+              </Alert>
+              <OnboardingForm
+                userId={currentUser?.id || "demo-user"}
+                onComplete={() => handleFlowChange("advisor-selection")}
+              />
+            </TabsContent>
+
+            <TabsContent value="advisor-selection" className="space-y-6">
+              <Alert>
+                <Zap className="h-4 w-4" />
+                <AlertDescription>
+                  <strong>AI Advisor Ecosystem:</strong> Choose from specialized
+                  financial education modules powered by advanced AI models and
+                  real-time learning analytics.
+                </AlertDescription>
+              </Alert>
+              <AdvisorSelection
+                userProfile={userProfile as any}
+                onAdvisorSelect={handleAdvisorSelected}
+              />
+            </TabsContent>
+
+            <TabsContent value="decision-tree" className="space-y-6">
+              <Alert>
+                <Target className="h-4 w-4" />
+                <AlertTitle>Personalized Decision Tree Assessment</AlertTitle>
+                <AlertDescription>
+                  <strong>5-Level Assessment:</strong> Complete the personalized
+                  questionnaire tailored to your advisor's specialty. System
+                  tracks progress for AI chat personalization.
+                </AlertDescription>
+              </Alert>
+              {selectedAdvisor ? (
+                <PersonalizedDecisionTreeView
+                  advisorId={selectedAdvisor.id}
+                  userId={currentUser?.id || "demo-user"}
+                  advisor={selectedAdvisor}
+                  onComplete={(insights) => {
+                    console.log(
+                      "Assessment completed with insights:",
+                      insights,
+                    );
+                    setShowAchievement("assessment-complete");
+                    handleFlowChange("chat");
+                  }}
+                />
+              ) : (
+                <Alert>
+                  <AlertDescription>
+                    Please select an advisor first to access assessment.
+                  </AlertDescription>
+                </Alert>
+              )}
+            </TabsContent>
+
+            <TabsContent value="chat" className="space-y-6">
+              <Alert>
+                <MessageSquare className="h-4 w-4" />
+                <AlertDescription>
+                  <strong>Intelligent Chat System:</strong> Context-aware AI
+                  conversations with sentiment analysis, learning progress
+                  tracking, and personalized financial education.
+                </AlertDescription>
+              </Alert>
+
+              {selectedAdvisor && (
+                <div className="space-y-6">
+                  <div className="text-center">
+                    <h3 className="text-2xl font-bold mb-2">
+                      🎉 Decision Tree Completed!
+                    </h3>
+                    <p className="text-gray-600 mb-4">
+                      Teraz możesz korzystać z zaawansowanego AI chatu z
+                      nieograniczonym dostępem do wyszukiwania internetowego i
+                      generowania raportów
+                    </p>
+                    <Badge variant="outline" className="mb-4">
+                      Enhanced AI Assistant Active
+                    </Badge>
+                  </div>
+
+                  <EnhancedChatWindow
+                    userId={currentUser?.id || "demo-user"}
+                    sessionId={`enhanced_${selectedAdvisor.id}_${currentUser?.id || "demo-user"}_${Date.now()}`}
                     advisorId={selectedAdvisor.id}
-                    userId={currentUser?.id}
+                    decisionTreeContext={{
+                      advisor: selectedAdvisor,
+                      completedResponses: true,
+                      userInsights: true,
+                    }}
+                    onMessageSent={(message) => {
+                      console.log("Enhanced chat message:", message);
+                    }}
                   />
-                ) : (
-                  <Card>
-                    <CardContent className="p-6 text-center">
-                      <AlertCircle className="w-12 h-12 mx-auto mb-4 text-amber-500" />
-                      <p className="text-gray-600">Please select an AI advisor first to access the decision tree</p>
-                    </CardContent>
-                  </Card>
-                )}
-              </TabsContent>
 
-              <TabsContent value="chat" className="mt-6">
-                {selectedAdvisor ? (
-                  <EnhancedChatWindow 
-                    advisor={selectedAdvisor}
-                    userId={currentUser?.id}
-                  />
-                ) : (
-                  <Card>
-                    <CardContent className="p-6 text-center">
-                      <MessageSquare className="w-12 h-12 mx-auto mb-4 text-gray-400" />
-                      <p className="text-gray-600">Select an AI advisor to start chatting</p>
-                    </CardContent>
-                  </Card>
-                )}
-              </TabsContent>
-
-              <TabsContent value="achievements" className="mt-6">
-                <div className="grid gap-6 md:grid-cols-2">
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
-                        <Trophy className="w-5 h-5 text-yellow-500" />
-                        Achievements
-                      </CardTitle>
-                      <CardDescription>Your financial learning milestones</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="space-y-3">
-                        <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
-                          <div className="flex items-center gap-3">
-                            <CheckCircle className="w-6 h-6 text-green-500" />
-                            <span>Profile Setup</span>
-                          </div>
-                          <Badge variant="secondary">Complete</Badge>
-                        </div>
-                        <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                          <div className="flex items-center gap-3">
-                            <Clock className="w-6 h-6 text-gray-400" />
-                            <span>First AI Session</span>
-                          </div>
-                          <Badge variant="outline">Pending</Badge>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Learning Progress</CardTitle>
-                      <CardDescription>Track your financial knowledge growth</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="space-y-4">
-                        <div className="space-y-2">
-                          <div className="flex justify-between text-sm">
-                            <span>Financial Knowledge</span>
-                            <span>25%</span>
-                          </div>
-                          <Progress value={25} />
-                        </div>
-                        <div className="space-y-2">
-                          <div className="flex justify-between text-sm">
-                            <span>AI Interactions</span>
-                            <span>60%</span>
-                          </div>
-                          <Progress value={60} />
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
+                  <div className="flex gap-2 justify-center">
+                    <Button
+                      variant="outline"
+                      onClick={() => setCurrentFlow("decision-tree")}
+                    >
+                      ← Powrót do Decision Tree
+                    </Button>
+                    <Button
+                      variant="outline"
+                      onClick={() => setCurrentFlow("advisor-selection")}
+                    >
+                      ← Wybierz innego doradcę
+                    </Button>
+                  </div>
                 </div>
-              </TabsContent>
-            </Tabs>
-          </CardContent>
-        </Card>
+              )}
+            </TabsContent>
 
-        {/* Premium Upgrade Section */}
-        {(currentUser as any)?.subscriptionTier === 'free' && (
-          <Card className="mb-8 border-yellow-200 bg-yellow-50">
-            <CardContent className="p-6">
-              <div className="text-center">
-                <h3 className="text-xl font-semibold text-yellow-800 mb-2">Upgrade to Premium</h3>
-                <p className="text-yellow-700 mb-4">
-                  Unlock advanced AI features and personalized financial insights
-                </p>
-                <Link href="/premium-upgrade">
-                  <Button className="bg-yellow-600 hover:bg-yellow-700 text-white">
-                    Upgrade Now
-                  </Button>
-                </Link>
+            <TabsContent value="analytics" className="space-y-6">
+              <Alert>
+                <BarChart3 className="h-4 w-4" />
+                <AlertDescription>
+                  <strong>Advanced Analytics Dashboard:</strong> Comprehensive
+                  behavioral analysis, AI model performance tracking, and
+                  real-time learning insights for the biggest financial
+                  education experiment.
+                </AlertDescription>
+              </Alert>
+
+              <FinancialVisualizations3D data={threeDData} />
+              <AdvancedAnalyticsDashboard
+                userId={currentUser?.id || "demo-user"}
+              />
+            </TabsContent>
+          </Tabs>
+        </div>
+      </div>
+
+      {showAchievement && (
+        <AchievementNotification
+          achievement={
+            {
+              name: "Achievement Unlocked",
+              description: "Great job!",
+              icon: "trophy",
+              type: "milestone",
+              xpReward: 100,
+            } as any
+          }
+          onClose={() => setShowAchievement(null)}
+        />
+      )}
+
+      {currentUser &&
+        ((currentUser as any)?.subscriptionTier ||
+          (currentUser as any)?.subscription_tier) === "free" &&
+        !isAdmin && (
+          <div className="mt-8 bg-gradient-to-r from-gray-900/80 to-black/90 backdrop-blur-xl border border-purple-500/50 rounded-2xl p-6">
+            <div className="text-center">
+              <div className="w-16 h-16 bg-gradient-to-br from-yellow-400 to-orange-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Crown className="w-8 h-8 text-black" />
               </div>
-            </CardContent>
-          </Card>
+              <div className="text-2xl font-black bg-gradient-to-r from-yellow-400 to-orange-600 bg-clip-text text-transparent mb-2">
+                NEURAL CORE UPGRADE
+              </div>
+              <p className="text-gray-300 font-mono text-sm mb-6">
+                [ UNLOCK QUANTUM AI PROCESSING ]
+              </p>
+              <Link href="/checkout">
+                <button className="bg-gradient-to-r from-yellow-500 to-orange-600 text-black px-8 py-3 rounded-xl font-bold text-lg tracking-wider hover:shadow-lg transition-all duration-300">
+                  Initialize Premium
+                </button>
+              </Link>
+            </div>
+          </div>
         )}
+
+      <div className="mt-8 bg-gradient-to-r from-gray-900/60 to-black/80 backdrop-blur-md border border-cyan-500/20 rounded-2xl p-6">
+        <div className="text-center">
+          <div className="flex items-center justify-center gap-2 mb-4">
+            <div className="w-3 h-3 bg-green-400 rounded-full animate-pulse" />
+            <span className="text-cyan-400 font-mono text-sm tracking-wider">
+              NEURAL DATA STREAM ACTIVE
+            </span>
+          </div>
+          <p className="text-gray-300 font-mono text-xs mb-4 max-w-3xl mx-auto">
+            [ QUANTUM AI CONSCIOUSNESS CONTINUOUSLY PROCESSES BEHAVIORAL
+            PATTERNS TO ENHANCE FINANCIAL EDUCATION ALGORITHMS ]
+          </p>
+          <div className="grid grid-cols-3 gap-6">
+            <div className="bg-black/40 border border-green-500/30 rounded-lg p-3">
+              <div className="text-green-400 font-bold text-sm">
+                PRIVACY SHIELDED
+              </div>
+            </div>
+            <div className="bg-black/40 border border-blue-500/30 rounded-lg p-3">
+              <div className="text-blue-400 font-bold text-sm">
+                AI TRAINING CORE
+              </div>
+            </div>
+            <div className="bg-black/40 border border-purple-500/30 rounded-lg p-3">
+              <div className="text-purple-400 font-bold text-sm">
+                GLOBAL RESEARCH
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
       {showSettingsModal && currentUser && (

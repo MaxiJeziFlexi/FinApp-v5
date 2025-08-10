@@ -35,7 +35,7 @@ import OnboardingForm from "@/components/financial/OnboardingForm";
 import AdvisorSelection from "@/components/financial/AdvisorSelection";
 import DecisionTreeView from "@/components/financial/DecisionTreeView";
 import { PersonalizedDecisionTreeView } from "@/components/financial/PersonalizedDecisionTreeView";
-import EnhancedDecisionTreeWithChat from "@/components/financial/EnhancedDecisionTreeWithChat";
+
 import EnhancedChatWindow from '@/components/chat/EnhancedChatWindow';
 import AchievementNotification from "@/components/financial/AchievementNotification";
 import { FinancialVisualizations3D } from "@/components/financial/FinancialVisualizations3D";
@@ -379,27 +379,25 @@ export default function FinAppHome() {
               <TabsContent value="decision-tree" className="space-y-6">
                 <Alert>
                   <Target className="h-4 w-4" />
-                  <AlertTitle>Enhanced AI Assessment & Chat System</AlertTitle>
+                  <AlertTitle>Personalized Decision Tree Assessment</AlertTitle>
                   <AlertDescription>
-                    <strong>Interactive Decision Tree + AI Chat:</strong> Complete the 5-level assessment while chatting with AI for real-time insights. System tracks analytics for continuous learning improvement.
+                    <strong>5-Level Assessment:</strong> Complete the personalized questionnaire tailored to your advisor's specialty. System tracks progress for AI chat personalization.
                   </AlertDescription>
                 </Alert>
                 {selectedAdvisor ? (
-                  <EnhancedDecisionTreeWithChat 
+                  <PersonalizedDecisionTreeView 
                     advisorId={selectedAdvisor.id} 
                     userId={currentUser?.id || 'demo-user'}
-                    advisor={selectedAdvisor}
                     onComplete={(insights) => {
-                      console.log('Enhanced assessment completed with insights:', insights);
-                      setShowAchievement("enhanced-assessment-complete");
-                      handleFlowChange('analytics');
+                      console.log('Assessment completed with insights:', insights);
+                      setShowAchievement("assessment-complete");
+                      handleFlowChange('chat');
                     }}
-                    onBackToAdvisor={() => handleFlowChange('advisor-selection')}
                   />
                 ) : (
                   <Alert>
                     <AlertDescription>
-                      Please select an advisor first to access enhanced assessment.
+                      Please select an advisor first to access assessment.
                     </AlertDescription>
                   </Alert>
                 )}

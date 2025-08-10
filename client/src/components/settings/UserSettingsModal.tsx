@@ -352,58 +352,10 @@ export default function UserSettingsModal({ isOpen, onClose, user }: UserSetting
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div className="grid grid-cols-3 gap-4">
-                      <FormField
-                        control={form.control}
-                        name="preferences.theme"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel className="flex items-center gap-2">
-                              {theme === 'dark' ? <Moon className="w-4 h-4" /> : <Sun className="w-4 h-4" />}
-                              Theme
-                            </FormLabel>
-                            <Select 
-                              onValueChange={(value) => {
-                                field.onChange(value);
-                                // Immediately apply theme change
-                                if (value === 'light' || value === 'dark') {
-                                  setTheme(value as 'light' | 'dark');
-                                } else if (value === 'system') {
-                                  const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-                                  setTheme(systemTheme);
-                                }
-                              }} 
-                              defaultValue={field.value}
-                            >
-                              <FormControl>
-                                <SelectTrigger>
-                                  <SelectValue />
-                                </SelectTrigger>
-                              </FormControl>
-                              <SelectContent>
-                                <SelectItem value="light">
-                                  <div className="flex items-center gap-2">
-                                    <Sun className="w-4 h-4" />
-                                    Light
-                                  </div>
-                                </SelectItem>
-                                <SelectItem value="dark">
-                                  <div className="flex items-center gap-2">
-                                    <Moon className="w-4 h-4" />
-                                    Dark
-                                  </div>
-                                </SelectItem>
-                                <SelectItem value="system">
-                                  <div className="flex items-center gap-2">
-                                    <Settings className="w-4 h-4" />
-                                    System
-                                  </div>
-                                </SelectItem>
-                              </SelectContent>
-                            </Select>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
+                      <div className="text-center text-gray-500 p-4 border border-gray-200 rounded-lg">
+                        <p className="text-sm">Theme settings moved to side navigation</p>
+                        <p className="text-xs mt-1">Click "Profil Użytkownika" in the sidebar to change your theme</p>
+                      </div>
                       <FormField
                         control={form.control}
                         name="preferences.language"

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, useLocation } from 'wouter';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { useTheme } from '@/contexts/ThemeContext';
 import { 
   Home, 
   Gamepad2, 
@@ -19,8 +20,12 @@ import {
   Calculator,
   PiggyBank,
   BookOpen,
-  Users
-, MessageCircle } from 'lucide-react';
+  Users,
+  MessageCircle,
+  Moon,
+  Sun,
+  Palette
+} from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { logout } from '@/hooks/useAuth';
 
@@ -120,6 +125,8 @@ const adminItems = [
 export default function MainNavigation() {
   const [isOpen, setIsOpen] = useState(false);
   const [location] = useLocation();
+  const [isProfileExpanded, setIsProfileExpanded] = useState(false);
+  const { theme, setTheme } = useTheme();
 
   const isActive = (path: string) => {
     return location === path || (path !== '/' && location.startsWith(path));
@@ -142,16 +149,16 @@ export default function MainNavigation() {
         initial={{ x: -300 }}
         animate={{ x: 0 }}
         transition={{ duration: 0.3 }}
-        className="hidden md:flex fixed left-0 top-0 h-full w-72 bg-white/95 backdrop-blur-sm border-r border-gray-200 z-40 flex-col shadow-xl"
+        className="hidden md:flex fixed left-0 top-0 h-full w-72 bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm border-r border-gray-200 dark:border-gray-700 z-40 flex-col shadow-xl"
       >
-        <div className="p-6 border-b border-gray-200">
+        <div className="p-6 border-b border-gray-200 dark:border-gray-700">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-gradient-to-br from-purple-600 to-blue-600 rounded-lg flex items-center justify-center">
+            <div className="w-10 h-10 bg-gradient-to-br from-cyan-500 to-violet-600 rounded-lg flex items-center justify-center">
               <Brain className="h-6 w-6 text-white" />
             </div>
             <div>
-              <h1 className="text-xl font-bold text-gray-900">FinApp</h1>
-              <p className="text-sm text-gray-600">AI Financial Platform</p>
+              <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100">FinApp</h1>
+              <p className="text-sm text-gray-600 dark:text-gray-400">AI Financial Platform</p>
             </div>
           </div>
         </div>
@@ -290,22 +297,90 @@ export default function MainNavigation() {
           </div>
         </div>
 
-        <div className="p-4 border-t border-gray-200">
+        <div className="p-4 border-t border-gray-200 dark:border-gray-700">
           <div className="space-y-2">
-            <Link href="/profile">
+            {/* User Profile Section */}
+            <div className="space-y-2">
               <Button
                 variant="ghost"
                 size="sm"
-                className="w-full justify-start gap-3 text-gray-600 hover:text-gray-900"
+                className="w-full justify-between gap-3 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100"
+                onClick={() => setIsProfileExpanded(!isProfileExpanded)}
               >
-                <User className="h-4 w-4" />
-                Profil Użytkownika
+                <div className="flex items-center gap-3">
+                  <User className="h-4 w-4" />
+                  Profil Użytkownika
+                </div>
+                <motion.div
+                  animate={{ rotate: isProfileExpanded ? 180 : 0 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <Settings className="h-4 w-4" />
+                </motion.div>
               </Button>
-            </Link>
+              
+              <AnimatePresence>
+                {isProfileExpanded && (
+                  <motion.div
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: 'auto', opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    transition={{ duration: 0.2 }}
+                    className="overflow-hidden ml-6 space-y-2"
+                  >
+                    <Link href="/profile">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="w-full justify-start gap-3 text-gray-500 dark:text-gray-500 hover:text-gray-900 dark:hover:text-gray-200"
+                      >
+                        <User className="h-3 w-3" />
+                        Ustawienia Profilu
+                      </Button>
+                    </Link>
+                    
+                    {/* Theme Toggle */}
+                    <div className="space-y-1">
+                      <div className="text-xs text-gray-500 dark:text-gray-500 px-3 font-medium">Motyw</div>
+                      <div className="grid grid-cols-3 gap-1">
+                        <Button
+                          variant={theme === 'light' ? "default" : "ghost"}
+                          size="sm"
+                          className={`text-xs h-8 ${theme === 'light' ? 'bg-cyan-500 hover:bg-cyan-600 text-white' : 'text-gray-500 dark:text-gray-500'}`}
+                          onClick={() => setTheme('light')}
+                        >
+                          <Sun className="h-3 w-3" />
+                        </Button>
+                        <Button
+                          variant={theme === 'dark' ? "default" : "ghost"}
+                          size="sm"
+                          className={`text-xs h-8 ${theme === 'dark' ? 'bg-violet-500 hover:bg-violet-600 text-white' : 'text-gray-500 dark:text-gray-500'}`}
+                          onClick={() => setTheme('dark')}
+                        >
+                          <Moon className="h-3 w-3" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="text-xs h-8 text-gray-500 dark:text-gray-500"
+                          onClick={() => {
+                            const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+                            setTheme(systemTheme);
+                          }}
+                        >
+                          <Palette className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+            
             <Button
               variant="ghost"
               size="sm"
-              className="w-full justify-start gap-3 text-gray-600 hover:text-red-600"
+              className="w-full justify-start gap-3 text-gray-600 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400"
               onClick={logout}
             >
               <LogOut className="h-4 w-4" />
@@ -398,20 +473,23 @@ export default function MainNavigation() {
                 </div>
               </div>
 
-              <div className="p-4 border-t border-gray-200">
+              <div className="p-4 border-t border-gray-200 dark:border-gray-700">
                 <div className="space-y-2">
+                  <Link href="/profile">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="w-full justify-start gap-3 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100"
+                      onClick={() => setIsOpen(false)}
+                    >
+                      <User className="h-4 w-4" />
+                      Profil Użytkownika
+                    </Button>
+                  </Link>
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="w-full justify-start gap-3 text-gray-600 hover:text-gray-900"
-                  >
-                    <User className="h-4 w-4" />
-                    Profil Użytkownika
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="w-full justify-start gap-3 text-gray-600 hover:text-red-600"
+                    className="w-full justify-start gap-3 text-gray-600 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400"
                     onClick={() => window.location.href = '/api/logout'}
                   >
                     <LogOut className="h-4 w-4" />

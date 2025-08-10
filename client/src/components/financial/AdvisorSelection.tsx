@@ -6,7 +6,6 @@ import { useQuery } from "@tanstack/react-query";
 import { Calculator, Home, TrendingUp, PiggyBank, Star, Check, Users } from "lucide-react";
 
 interface AdvisorSelectionProps {
-  userProfile: any;
   onAdvisorSelect: (advisor: any) => void;
 }
 
@@ -25,7 +24,7 @@ interface Advisor {
 
 // Using real advisors from database instead of hardcoded ones
 
-export default function AdvisorSelection({ userProfile, onAdvisorSelect }: AdvisorSelectionProps) {
+export default function AdvisorSelection({ onAdvisorSelect }: AdvisorSelectionProps) {
   const [selectedAdvisorId, setSelectedAdvisorId] = useState<string | null>(null);
 
   // Fetch real advisors from database

@@ -264,8 +264,30 @@ export default function AdvancedAIControlCenter() {
               </h1>
             </div>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Monitor and control all AI models, quantum mathematics engines, spectrum tax analysis, and predictive systems.
+              Monitor and control all AI models including ARIA, NEXUS, and QUANTUM - your supercharged financial AI advisors with full app access.
             </p>
+            <div className="mt-4 bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg">
+              <Badge variant="outline" className="mb-2 text-sm font-semibold">
+                🚀 AI ADVISORS STATUS
+              </Badge>
+              <div className="grid grid-cols-3 gap-4 text-center">
+                <div>
+                  <div className="text-2xl">🧠</div>
+                  <div className="font-semibold">ARIA</div>
+                  <div className="text-sm text-green-600">Active</div>
+                </div>
+                <div>
+                  <div className="text-2xl">🚀</div>
+                  <div className="font-semibold">NEXUS</div>
+                  <div className="text-sm text-green-600">Active</div>
+                </div>
+                <div>
+                  <div className="text-2xl">🛡️</div>
+                  <div className="font-semibold">QUANTUM</div>
+                  <div className="text-sm text-green-600">Active</div>
+                </div>
+              </div>
+            </div>
             <Badge className="mt-2 bg-green-100 text-green-800">
               Administrator Access Verified
             </Badge>

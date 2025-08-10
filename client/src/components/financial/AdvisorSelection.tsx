@@ -38,9 +38,7 @@ export default function AdvisorSelection({ userProfile, onAdvisorSelect }: Advis
     switch (advisorId) {
       case 'financial_planner': return Calculator;
       case 'investment_specialist': return TrendingUp;
-      case 'tax_strategist': return Home;
       case 'risk_analyst': return PiggyBank;
-      case 'retirement_specialist': return PiggyBank;
       default: return Calculator;
     }
   };
@@ -72,10 +70,19 @@ export default function AdvisorSelection({ userProfile, onAdvisorSelect }: Advis
     <div className="w-full max-w-7xl mx-auto space-y-8">
       {/* Header */}
       <div className="text-center">
-        <h2 className="text-3xl font-bold text-primary mb-2">Choose Your AI Financial Advisor</h2>
-        <p className="text-muted-foreground text-lg">
-          Select the specialist who best matches your financial goals
+        <h2 className="text-3xl font-bold text-primary mb-2">🚀 AI Advisors - Jak Jarvis na Sterydach</h2>
+        <p className="text-lg text-gray-600 dark:text-gray-300 mb-4">
+          Wybierz swojego superinteligentnego doradcy finansowego z pełnym dostępem do aplikacji
         </p>
+        <div className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 p-4 rounded-lg">
+          <Badge variant="outline" className="mb-2 text-sm font-semibold">
+            🔥 PREMIUM AI TECHNOLOGY
+          </Badge>
+          <p className="text-sm text-gray-700 dark:text-gray-300">
+            Nasze AI Advisory to nie zwykłe chatboty - to zaawansowane systemy z dostępem do całej aplikacji, 
+            analizy predykcyjnej i możliwościami jak JARVIS ze sterydami!
+          </p>
+        </div>
         {userProfile?.financialGoal && (
           <Badge variant="secondary" className="mt-4">
             Recommended for: {userProfile.financialGoal.replace('_', ' ').toUpperCase()}

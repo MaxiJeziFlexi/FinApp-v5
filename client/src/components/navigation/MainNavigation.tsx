@@ -177,11 +177,11 @@ export default function MainNavigation() {
                     whileTap={{ scale: 0.98 }}
                     className={`flex items-center gap-3 p-3 rounded-lg transition-all cursor-pointer ${
                       active 
-                        ? 'bg-gradient-to-r from-purple-500 to-blue-500 text-white shadow-lg' 
-                        : 'hover:bg-gray-100 text-gray-700'
+                        ? 'bg-gradient-to-r from-cyan-500 to-violet-500 text-white shadow-lg' 
+                        : 'hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-200'
                     }`}
                   >
-                    <Icon className={`h-5 w-5 ${active ? 'text-white' : 'text-gray-500'}`} />
+                    <Icon className={`h-5 w-5 ${active ? 'text-white' : 'text-gray-500 dark:text-gray-400'}`} />
                     <div className="flex-1">
                       <div className="flex items-center gap-2">
                         <span className="font-medium">{item.label}</span>
@@ -196,7 +196,7 @@ export default function MainNavigation() {
                           </Badge>
                         )}
                       </div>
-                      <p className={`text-xs ${active ? 'text-white/80' : 'text-gray-500'}`}>
+                      <p className={`text-xs ${active ? 'text-white/80' : 'text-gray-500 dark:text-gray-400'}`}>
                         {item.description}
                       </p>
                     </div>
@@ -208,7 +208,7 @@ export default function MainNavigation() {
 
           {/* Premium Features Section */}
           <div className="mb-6">
-            <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3 px-3">Premium Features</h3>
+            <h3 className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-3 px-3">Premium Features</h3>
             <div className="space-y-2">
               {premiumItems.map((item) => {
                 const Icon = item.icon;
@@ -221,11 +221,11 @@ export default function MainNavigation() {
                       whileTap={{ scale: 0.98 }}
                       className={`flex items-center gap-3 p-3 rounded-lg transition-all cursor-pointer ${
                         active 
-                          ? 'bg-gradient-to-r from-purple-500 to-blue-500 text-white shadow-lg' 
-                          : 'hover:bg-gray-100 text-gray-700'
+                          ? 'bg-gradient-to-r from-emerald-500 to-cyan-500 text-white shadow-lg' 
+                          : 'hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-200'
                       }`}
                     >
-                      <Icon className={`h-5 w-5 ${active ? 'text-white' : 'text-gray-500'}`} />
+                      <Icon className={`h-5 w-5 ${active ? 'text-white' : 'text-gray-500 dark:text-gray-400'}`} />
                       <div className="flex-1">
                         <div className="flex items-center gap-2">
                           <span className="font-medium">{item.label}</span>
@@ -233,14 +233,14 @@ export default function MainNavigation() {
                             <Badge 
                               variant={active ? "secondary" : "outline"}
                               className={`text-xs ${
-                                active ? 'bg-white/20 text-white' : 'bg-purple-100 text-purple-800'
+                                active ? 'bg-white/20 text-white' : 'bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200'
                               }`}
                             >
                               {item.badge}
                             </Badge>
                           )}
                         </div>
-                        <p className={`text-xs ${active ? 'text-white/80' : 'text-gray-500'}`}>
+                        <p className={`text-xs ${active ? 'text-white/80' : 'text-gray-500 dark:text-gray-400'}`}>
                           {item.description}
                         </p>
                       </div>
@@ -253,7 +253,7 @@ export default function MainNavigation() {
 
           {/* Admin Section */}
           <div className="mb-6">
-            <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3 px-3">Admin</h3>
+            <h3 className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-3 px-3">Admin</h3>
             <div className="space-y-2">
               {adminItems.map((item) => {
                 const Icon = item.icon;
@@ -266,11 +266,11 @@ export default function MainNavigation() {
                       whileTap={{ scale: 0.98 }}
                       className={`flex items-center gap-3 p-3 rounded-lg transition-all cursor-pointer ${
                         active 
-                          ? 'bg-gradient-to-r from-red-500 to-pink-500 text-white shadow-lg' 
-                          : 'hover:bg-gray-100 text-gray-700'
+                          ? 'bg-gradient-to-r from-violet-500 to-purple-500 text-white shadow-lg' 
+                          : 'hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-200'
                       }`}
                     >
-                      <Icon className={`h-5 w-5 ${active ? 'text-white' : 'text-gray-500'}`} />
+                      <Icon className={`h-5 w-5 ${active ? 'text-white' : 'text-gray-500 dark:text-gray-400'}`} />
                       <div className="flex-1">
                         <div className="flex items-center gap-2">
                           <span className="font-medium">{item.label}</span>
@@ -278,14 +278,14 @@ export default function MainNavigation() {
                             <Badge 
                               variant={active ? "secondary" : "outline"}
                               className={`text-xs ${
-                                active ? 'bg-white/20 text-white' : 'bg-red-100 text-red-800'
+                                active ? 'bg-white/20 text-white' : 'bg-violet-100 dark:bg-violet-900 text-violet-800 dark:text-violet-200'
                               }`}
                             >
                               {item.badge}
                             </Badge>
                           )}
                         </div>
-                        <p className={`text-xs ${active ? 'text-white/80' : 'text-gray-500'}`}>
+                        <p className={`text-xs ${active ? 'text-white/80' : 'text-gray-500 dark:text-gray-400'}`}>
                           {item.description}
                         </p>
                       </div>
@@ -406,17 +406,17 @@ export default function MainNavigation() {
               animate={{ x: 0 }}
               exit={{ x: -300 }}
               transition={{ duration: 0.3 }}
-              className="fixed left-0 top-0 h-full w-80 bg-white z-50 flex-col shadow-xl md:hidden"
+              className="fixed left-0 top-0 h-full w-80 bg-white dark:bg-gray-900 z-50 flex-col shadow-xl md:hidden"
             >
-              <div className="p-6 border-b border-gray-200">
+              <div className="p-6 border-b border-gray-200 dark:border-gray-700">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-gradient-to-br from-purple-600 to-blue-600 rounded-lg flex items-center justify-center">
+                    <div className="w-10 h-10 bg-gradient-to-br from-cyan-500 to-violet-600 rounded-lg flex items-center justify-center">
                       <Brain className="h-6 w-6 text-white" />
                     </div>
                     <div>
-                      <h1 className="text-xl font-bold text-gray-900">FinApp</h1>
-                      <p className="text-sm text-gray-600">AI Financial Platform</p>
+                      <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100">FinApp</h1>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">AI Financial Platform</p>
                     </div>
                   </div>
                   <Button
@@ -442,12 +442,12 @@ export default function MainNavigation() {
                           whileTap={{ scale: 0.98 }}
                           className={`flex items-center gap-3 p-3 rounded-lg transition-all cursor-pointer ${
                             active 
-                              ? 'bg-gradient-to-r from-purple-500 to-blue-500 text-white shadow-lg' 
-                              : 'hover:bg-gray-100 text-gray-700'
+                              ? 'bg-gradient-to-r from-cyan-500 to-violet-500 text-white shadow-lg' 
+                              : 'hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-200'
                           }`}
                           onClick={() => setIsOpen(false)}
                         >
-                          <Icon className={`h-5 w-5 ${active ? 'text-white' : 'text-gray-500'}`} />
+                          <Icon className={`h-5 w-5 ${active ? 'text-white' : 'text-gray-500 dark:text-gray-400'}`} />
                           <div className="flex-1">
                             <div className="flex items-center gap-2">
                               <span className="font-medium">{item.label}</span>
@@ -455,14 +455,14 @@ export default function MainNavigation() {
                                 <Badge 
                                   variant={active ? "secondary" : "outline"}
                                   className={`text-xs ${
-                                    active ? 'bg-white/20 text-white' : ''
+                                    active ? 'bg-white/20 text-white' : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300'
                                   }`}
                                 >
                                   {item.badge}
                                 </Badge>
                               )}
                             </div>
-                            <p className={`text-xs ${active ? 'text-white/80' : 'text-gray-500'}`}>
+                            <p className={`text-xs ${active ? 'text-white/80' : 'text-gray-500 dark:text-gray-400'}`}>
                               {item.description}
                             </p>
                           </div>

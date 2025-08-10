@@ -35,6 +35,7 @@ import LearningHub from "@/pages/learning-hub";
 import CommunityDiscussions from "@/pages/community-discussions";
 import UserProfile from "@/pages/user-profile";
 import AdminJarvis from "@/pages/AdminJarvis";
+import { ThemeProvider } from "@/contexts/ThemeContext";
 
 
 function Router() {
@@ -115,10 +116,12 @@ function Router() {
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <Toaster />
-        <Router />
-      </TooltipProvider>
+      <ThemeProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Router />
+        </TooltipProvider>
+      </ThemeProvider>
     </QueryClientProvider>
   );
 }

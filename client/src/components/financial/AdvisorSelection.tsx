@@ -57,28 +57,28 @@ export default function AdvisorSelection({ onAdvisorSelect }: AdvisorSelectionPr
     <div className="w-full max-w-7xl mx-auto space-y-8">
       {/* Futuristic Header with Neural Effects */}
       <div className="text-center relative">
-        <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 via-indigo-500/10 to-purple-500/10 blur-3xl"></div>
+        <div className="absolute inset-0 bg-gradient-to-r from-cyan-400/20 via-emerald-400/20 to-violet-400/20 blur-3xl"></div>
         <div className="relative z-10">
           <div className="flex items-center justify-center mb-4">
-            <div className="h-1 w-20 bg-gradient-to-r from-blue-400 to-indigo-600 rounded-full mr-4"></div>
-            <div className="text-5xl font-black bg-gradient-to-r from-blue-400 via-indigo-500 to-purple-600 bg-clip-text text-transparent">
+            <div className="h-1 w-20 bg-gradient-to-r from-cyan-400 to-emerald-500 rounded-full mr-4"></div>
+            <div className="text-5xl font-black bg-gradient-to-r from-cyan-400 via-emerald-500 to-violet-500 bg-clip-text text-transparent">
               AI FINANCIAL ADVISORS
             </div>
-            <div className="h-1 w-20 bg-gradient-to-r from-indigo-600 to-purple-400 rounded-full ml-4"></div>
+            <div className="h-1 w-20 bg-gradient-to-r from-emerald-500 to-violet-400 rounded-full ml-4"></div>
           </div>
-          <p className="text-xl text-gray-600 dark:text-gray-300 mb-6 font-mono">
+          <p className="text-xl text-gray-700 dark:text-gray-300 mb-6 font-mono">
             [ INTELLIGENT FINANCIAL CONSCIOUSNESS ]
           </p>
-          <div className="bg-white/20 dark:bg-black/20 backdrop-blur-md border border-blue-500/30 p-6 rounded-2xl max-w-4xl mx-auto">
+          <div className="bg-white/30 dark:bg-black/20 backdrop-blur-md border border-cyan-400/40 p-6 rounded-2xl max-w-4xl mx-auto">
             <div className="flex items-center justify-center mb-4">
-              <div className="w-3 h-3 bg-blue-400 rounded-full animate-pulse mr-2"></div>
-              <div className="text-blue-600 font-mono text-sm tracking-wider">ADVANCED AI ADVISORS ONLINE</div>
-              <div className="w-3 h-3 bg-blue-400 rounded-full animate-pulse ml-2"></div>
+              <div className="w-3 h-3 bg-cyan-400 rounded-full animate-pulse mr-2"></div>
+              <div className="text-cyan-600 dark:text-cyan-400 font-mono text-sm tracking-wider">ADVANCED AI ADVISORS ONLINE</div>
+              <div className="w-3 h-3 bg-cyan-400 rounded-full animate-pulse ml-2"></div>
             </div>
-            <p className="text-gray-700 dark:text-gray-300 text-base leading-relaxed">
-              Experience next-generation financial AI with <span className="text-blue-500 font-semibold">full system access</span>, 
-              <span className="text-indigo-500 font-semibold"> advanced predictions</span>, and 
-              <span className="text-purple-500 font-semibold"> intelligent analysis</span>
+            <p className="text-gray-800 dark:text-gray-300 text-base leading-relaxed">
+              Experience next-generation financial AI with <span className="text-cyan-500 font-semibold">full system access</span>, 
+              <span className="text-emerald-500 font-semibold"> advanced predictions</span>, and 
+              <span className="text-violet-500 font-semibold"> intelligent analysis</span>
             </p>
           </div>
         </div>
@@ -90,36 +90,36 @@ export default function AdvisorSelection({ onAdvisorSelect }: AdvisorSelectionPr
           const IconComponent = getIconComponent(advisor.id);
           const isSelected = selectedAdvisorId === advisor.id;
 
-          // Generate advisor-specific colors from app theme
+          // Generate advisor-specific light colors
           const getAdvisorColors = (advisorId: string) => {
             switch (advisorId) {
               case 'financial_planner':
                 return {
-                  primary: 'from-blue-400 to-blue-600',
-                  secondary: 'from-blue-500/20 to-blue-600/30',
-                  accent: 'border-blue-500/40',
-                  glow: 'shadow-blue-500/25'
+                  primary: 'from-cyan-300 to-sky-400',
+                  secondary: 'from-cyan-200/30 to-sky-300/40',
+                  accent: 'border-cyan-400/60',
+                  glow: 'shadow-cyan-400/30'
                 };
               case 'investment_specialist':
                 return {
-                  primary: 'from-indigo-400 to-indigo-600',
-                  secondary: 'from-indigo-500/20 to-indigo-600/30',
-                  accent: 'border-indigo-500/40',
-                  glow: 'shadow-indigo-500/25'
+                  primary: 'from-emerald-300 to-green-400',
+                  secondary: 'from-emerald-200/30 to-green-300/40',
+                  accent: 'border-emerald-400/60',
+                  glow: 'shadow-emerald-400/30'
                 };
               case 'risk_analyst':
                 return {
-                  primary: 'from-purple-400 to-purple-600',
-                  secondary: 'from-purple-500/20 to-purple-600/30',
-                  accent: 'border-purple-500/40',
-                  glow: 'shadow-purple-500/25'
+                  primary: 'from-violet-300 to-purple-400',
+                  secondary: 'from-violet-200/30 to-purple-300/40',
+                  accent: 'border-violet-400/60',
+                  glow: 'shadow-violet-400/30'
                 };
               default:
                 return {
-                  primary: 'from-blue-400 to-blue-600',
-                  secondary: 'from-blue-500/20 to-blue-600/30',
-                  accent: 'border-blue-500/40',
-                  glow: 'shadow-blue-500/25'
+                  primary: 'from-cyan-300 to-sky-400',
+                  secondary: 'from-cyan-200/30 to-sky-300/40',
+                  accent: 'border-cyan-400/60',
+                  glow: 'shadow-cyan-400/30'
                 };
             }
           };

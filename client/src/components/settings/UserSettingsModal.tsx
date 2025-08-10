@@ -4,6 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
+import { useTheme } from "@/contexts/ThemeContext";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -33,7 +34,9 @@ import {
   Phone,
   MapPin,
   Briefcase,
-  AlertTriangle
+  AlertTriangle,
+  Moon,
+  Sun
 } from "lucide-react";
 import type { User as UserType } from "@shared/schema";
 
@@ -81,6 +84,7 @@ export default function UserSettingsModal({ isOpen, onClose, user }: UserSetting
   const [currentTab, setCurrentTab] = useState('profile');
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { theme, toggleTheme, setTheme } = useTheme();
 
   const form = useForm<SettingsFormData>({
     resolver: zodResolver(settingsSchema),
@@ -353,17 +357,47 @@ export default function UserSettingsModal({ isOpen, onClose, user }: UserSetting
                         name="preferences.theme"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Theme</FormLabel>
-                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormLabel className="flex items-center gap-2">
+                              {theme === 'dark' ? <Moon className="w-4 h-4" /> : <Sun className="w-4 h-4" />}
+                              Theme
+                            </FormLabel>
+                            <Select 
+                              onValueChange={(value) => {
+                                field.onChange(value);
+                                // Immediately apply theme change
+                                if (value === 'light' || value === 'dark') {
+                                  setTheme(value as 'light' | 'dark');
+                                } else if (value === 'system') {
+                                  const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+                                  setTheme(systemTheme);
+                                }
+                              }} 
+                              defaultValue={field.value}
+                            >
                               <FormControl>
                                 <SelectTrigger>
                                   <SelectValue />
                                 </SelectTrigger>
                               </FormControl>
                               <SelectContent>
-                                <SelectItem value="light">Light</SelectItem>
-                                <SelectItem value="dark">Dark</SelectItem>
-                                <SelectItem value="system">System</SelectItem>
+                                <SelectItem value="light">
+                                  <div className="flex items-center gap-2">
+                                    <Sun className="w-4 h-4" />
+                                    Light
+                                  </div>
+                                </SelectItem>
+                                <SelectItem value="dark">
+                                  <div className="flex items-center gap-2">
+                                    <Moon className="w-4 h-4" />
+                                    Dark
+                                  </div>
+                                </SelectItem>
+                                <SelectItem value="system">
+                                  <div className="flex items-center gap-2">
+                                    <Settings className="w-4 h-4" />
+                                    System
+                                  </div>
+                                </SelectItem>
                               </SelectContent>
                             </Select>
                             <FormMessage />

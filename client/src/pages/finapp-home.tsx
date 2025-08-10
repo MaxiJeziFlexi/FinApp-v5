@@ -251,19 +251,19 @@ export default function FinAppHome() {
   }
 
   return (
-    <div className="min-h-screen bg-black relative">
+    <div className="min-h-screen bg-white dark:bg-black relative">
       {/* Background */}
-      <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/10 via-purple-500/10 to-blue-500/10" />
+      <div className="absolute inset-0 bg-gradient-to-br from-cyan-200/20 via-emerald-200/20 to-violet-200/20 dark:from-cyan-500/10 dark:via-purple-500/10 dark:to-blue-500/10" />
       <div
         className="absolute inset-0"
         style={{
-          backgroundImage: `radial-gradient(circle at 25% 25%, rgba(0, 255, 255, 0.1) 0%, transparent 50%), 
-                            radial-gradient(circle at 75% 75%, rgba(147, 51, 234, 0.1) 0%, transparent 50%)`,
+          backgroundImage: `radial-gradient(circle at 25% 25%, rgba(0, 255, 255, 0.05) 0%, transparent 50%), 
+                            radial-gradient(circle at 75% 75%, rgba(147, 51, 234, 0.05) 0%, transparent 50%)`,
         }}
       />
 
       {/* Header */}
-      <div className="relative bg-gradient-to-r from-black/90 via-gray-900/95 to-black/90 backdrop-blur-xl border-b border-cyan-500/30 py-6">
+      <div className="relative bg-gradient-to-r from-white/90 via-gray-50/95 to-white/90 dark:from-black/90 dark:via-gray-900/95 dark:to-black/90 backdrop-blur-xl border-b border-cyan-500/30 py-6">
         <div className="container mx-auto px-4">
           <div className="text-center relative z-10">
             <div className="flex items-center justify-center mb-6">
@@ -274,26 +274,26 @@ export default function FinAppHome() {
               <div className="h-1 w-16 bg-gradient-to-r from-blue-600 to-purple-400 rounded-full ml-4" />
             </div>
 
-            <div className="text-cyan-400 font-mono text-lg tracking-wider mb-4">
+            <div className="text-cyan-600 dark:text-cyan-400 font-mono text-lg tracking-wider mb-4">
               [ QUANTUM FINANCIAL CONSCIOUSNESS SYSTEM ]
             </div>
 
             <div className="grid grid-cols-3 gap-8 mt-6 max-w-4xl mx-auto">
-              <div className="bg-black/30 backdrop-blur-md border border-cyan-500/30 rounded-xl p-4 text-center">
-                <div className="text-2xl font-bold text-cyan-400">10,000+</div>
-                <div className="text-gray-300 font-mono text-sm">
+              <div className="bg-white/30 dark:bg-black/30 backdrop-blur-md border border-cyan-500/30 rounded-xl p-4 text-center">
+                <div className="text-2xl font-bold text-cyan-600 dark:text-cyan-400">10,000+</div>
+                <div className="text-gray-700 dark:text-gray-300 font-mono text-sm">
                   ACTIVE NEURAL NODES
                 </div>
               </div>
-              <div className="bg-black/30 backdrop-blur-md border border-purple-500/30 rounded-xl p-4 text-center">
-                <div className="text-2xl font-bold text-purple-400">99.8%</div>
-                <div className="text-gray-300 font-mono text-sm">
+              <div className="bg-white/30 dark:bg-black/30 backdrop-blur-md border border-emerald-500/30 rounded-xl p-4 text-center">
+                <div className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">99.8%</div>
+                <div className="text-gray-700 dark:text-gray-300 font-mono text-sm">
                   SYSTEM UPTIME
                 </div>
               </div>
-              <div className="bg-black/30 backdrop-blur-md border border-blue-500/30 rounded-xl p-4 text-center">
-                <div className="text-2xl font-bold text-blue-400">24/7</div>
-                <div className="text-gray-300 font-mono text-sm">
+              <div className="bg-white/30 dark:bg-black/30 backdrop-blur-md border border-violet-500/30 rounded-xl p-4 text-center">
+                <div className="text-2xl font-bold text-violet-600 dark:text-violet-400">24/7</div>
+                <div className="text-gray-700 dark:text-gray-300 font-mono text-sm">
                   AI PROCESSING
                 </div>
               </div>

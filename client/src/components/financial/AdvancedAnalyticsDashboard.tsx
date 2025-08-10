@@ -235,7 +235,7 @@ export function AdvancedAnalyticsDashboard({ userId }: { userId: string }) {
               <CardTitle className="text-sm font-medium">Total Requests</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{aiInsights.totalRequests.toLocaleString()}</div>
+              <div className="text-2xl font-bold">{(aiInsights.totalRequests || 0).toLocaleString()}</div>
             </CardContent>
           </Card>
 
@@ -244,7 +244,7 @@ export function AdvancedAnalyticsDashboard({ userId }: { userId: string }) {
               <CardTitle className="text-sm font-medium">Model Versions</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{aiInsights.modelInsights.length}</div>
+              <div className="text-2xl font-bold">{aiInsights.modelInsights?.length || 0}</div>
             </CardContent>
           </Card>
 
@@ -254,7 +254,8 @@ export function AdvancedAnalyticsDashboard({ userId }: { userId: string }) {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
-                {Math.round(aiInsights.modelInsights.reduce((sum, model) => sum + model.avgResponseTime, 0) / aiInsights.modelInsights.length)}ms
+                {aiInsights.modelInsights?.length ? 
+                  Math.round(aiInsights.modelInsights.reduce((sum, model) => sum + (model.avgResponseTime || 0), 0) / aiInsights.modelInsights.length) : 0}ms
               </div>
             </CardContent>
           </Card>
@@ -265,7 +266,8 @@ export function AdvancedAnalyticsDashboard({ userId }: { userId: string }) {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-green-600">
-                {(aiInsights.modelInsights.reduce((sum, model) => sum + (model.avgUserFeedback || 0), 0) / aiInsights.modelInsights.length).toFixed(1)}/5
+                {aiInsights.modelInsights?.length ? 
+                  (aiInsights.modelInsights.reduce((sum, model) => sum + (model.avgUserFeedback || 0), 0) / aiInsights.modelInsights.length).toFixed(1) : '0.0'}/5
               </div>
             </CardContent>
           </Card>
@@ -278,7 +280,7 @@ export function AdvancedAnalyticsDashboard({ userId }: { userId: string }) {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {aiInsights.modelInsights.map((model, index) => (
+              {(aiInsights.modelInsights || []).map((model, index) => (
                 <div key={model.model} className="border rounded-lg p-4">
                   <div className="flex items-center justify-between mb-2">
                     <h3 className="font-semibold">{model.model}</h3>
@@ -316,12 +318,12 @@ export function AdvancedAnalyticsDashboard({ userId }: { userId: string }) {
           </CardHeader>
           <CardContent>
             <div className="space-y-2">
-              {Object.entries(aiInsights.promptTypeDistribution).map(([type, count]) => (
+              {Object.entries(aiInsights.promptTypeDistribution || {}).map(([type, count]) => (
                 <div key={type} className="flex items-center justify-between">
                   <span className="capitalize">{type.replace('_', ' ')}</span>
                   <div className="flex items-center gap-2">
                     <Progress 
-                      value={(count / aiInsights.totalRequests) * 100} 
+                      value={(aiInsights.totalRequests ? (count / aiInsights.totalRequests) * 100 : 0)} 
                       className="w-24 h-2" 
                     />
                     <span className="text-sm text-gray-600">{count}</span>
@@ -351,7 +353,7 @@ export function AdvancedAnalyticsDashboard({ userId }: { userId: string }) {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-green-600">
-                {realtimeData.last24Hours.uniqueUsers}
+                {realtimeData.last24Hours?.uniqueUsers || 0}
               </div>
             </CardContent>
           </Card>
@@ -361,7 +363,7 @@ export function AdvancedAnalyticsDashboard({ userId }: { userId: string }) {
               <CardTitle className="text-sm font-medium">Learning Events</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{realtimeData.last24Hours.totalEvents}</div>
+              <div className="text-2xl font-bold">{realtimeData.last24Hours?.totalEvents || 0}</div>
             </CardContent>
           </Card>
 
@@ -371,7 +373,7 @@ export function AdvancedAnalyticsDashboard({ userId }: { userId: string }) {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-blue-600">
-                {Math.round(realtimeData.last24Hours.avgEngagement)}
+                {Math.round(realtimeData.last24Hours?.avgEngagement || 0)}
               </div>
             </CardContent>
           </Card>
@@ -399,12 +401,12 @@ export function AdvancedAnalyticsDashboard({ userId }: { userId: string }) {
           </CardHeader>
           <CardContent>
             <div className="space-y-2">
-              {Object.entries(realtimeData.last24Hours.eventTypeDistribution).map(([event, count]) => (
+              {Object.entries(realtimeData.last24Hours?.eventTypeDistribution || {}).map(([event, count]) => (
                 <div key={event} className="flex items-center justify-between">
                   <span className="capitalize">{event.replace('_', ' ')}</span>
                   <div className="flex items-center gap-2">
                     <Progress 
-                      value={(count / realtimeData.last24Hours.totalEvents) * 100} 
+                      value={(realtimeData.last24Hours?.totalEvents ? (count / realtimeData.last24Hours.totalEvents) * 100 : 0)} 
                       className="w-32 h-2" 
                     />
                     <span className="text-sm text-gray-600">{count}</span>
@@ -422,7 +424,7 @@ export function AdvancedAnalyticsDashboard({ userId }: { userId: string }) {
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              {Object.entries(realtimeData.last24Hours.popularLearningPaths).map(([path, count]) => (
+              {Object.entries(realtimeData.last24Hours?.popularLearningPaths || {}).map(([path, count]) => (
                 <div key={path} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
                   <div>
                     <div className="font-medium capitalize">{path.replace('_', ' ')}</div>

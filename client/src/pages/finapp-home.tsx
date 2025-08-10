@@ -35,7 +35,7 @@ import OnboardingForm from "@/components/financial/OnboardingForm";
 import AdvisorSelection from "@/components/financial/AdvisorSelection";
 import DecisionTreeView from "@/components/financial/DecisionTreeView";
 import { PersonalizedDecisionTreeView } from "@/components/financial/PersonalizedDecisionTreeView";
-import ChatWindow from "@/components/financial/ChatWindow";
+import ImprovedChatInterface from "@/components/chat/ImprovedChatInterface";
 import EnhancedChatWindow from '@/components/chat/EnhancedChatWindow';
 import AchievementNotification from "@/components/financial/AchievementNotification";
 import { FinancialVisualizations3D } from "@/components/financial/FinancialVisualizations3D";
@@ -434,11 +434,12 @@ export default function FinAppHome() {
                       <Badge variant="outline" className="mb-4">Enhanced AI Assistant Active</Badge>
                     </div>
                     
-                    <EnhancedChatWindow
+                    <ImprovedChatInterface
                       userId={userId}
+                      advisorId={selectedAdvisor.id}
                       sessionId={`${selectedAdvisor.id}-${userId}-${Date.now()}`}
-                      onMessageSent={(message) => {
-                        console.log('Enhanced chat message sent:', message);
+                      onDataCollected={(data) => {
+                        console.log('Chat data collected:', data);
                       }}
                     />
                     

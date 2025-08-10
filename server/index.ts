@@ -68,8 +68,10 @@ async function validateDatabaseConnection() {
     log('✓ Database connection validated');
     return true;
   } catch (error) {
-    log(`✗ Database connection failed: ${error}`);
-    throw new Error(`Database connection validation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    log(`⚠️ Database connection issue: ${error}`);
+    log('⚠️ Starting server in limited mode without database features');
+    // Allow server to start even if database is temporarily unavailable
+    return false;
   }
 }
 
@@ -81,8 +83,11 @@ async function initializeServer() {
     // Step 1: Validate environment variables
     validateEnvironment();
     
-    // Step 2: Validate database connection
-    await validateDatabaseConnection();
+    // Step 2: Validate database connection (non-blocking)
+    const dbConnected = await validateDatabaseConnection();
+    if (!dbConnected) {
+      log('⚠️ Running in limited mode - some features may be unavailable');
+    }
     
     // Step 3: Register routes
     log('Registering routes...');

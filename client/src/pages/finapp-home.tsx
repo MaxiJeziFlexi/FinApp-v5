@@ -247,8 +247,8 @@ export default function FinAppHome() {
                   {isAdmin ? 'Administrator' : 'User'}: {(currentUser as any)?.email || 'User'}
                 </span>
                 <Badge variant="secondary" className="bg-white/20 text-white">
-                  {(currentUser as any)?.subscriptionTier === 'max' ? 'Max Plan' : 
-                   (currentUser as any)?.subscriptionTier === 'pro' ? 'Pro Plan' : 'Free Plan'}
+                  {String((currentUser as any)?.subscriptionTier === 'max' ? 'Max Plan' : 
+                   (currentUser as any)?.subscriptionTier === 'pro' ? 'Pro Plan' : 'Free Plan')}
                 </Badge>
               </div>
               
@@ -308,7 +308,7 @@ export default function FinAppHome() {
         {/* Enhanced Navigation */}
         <Card className="mb-8">
           <CardContent className="p-6">
-            <Tabs value={currentFlow} onValueChange={(value: any) => handleFlowChange(value)}>
+            <Tabs value={currentFlow} onValueChange={(value: string) => handleFlowChange(value)}>
               <TabsList className="grid w-full grid-cols-5">
                 <TabsTrigger 
                   value="onboarding" 
@@ -488,7 +488,7 @@ export default function FinAppHome() {
               icon: "trophy",
               type: "milestone",
               xpReward: 100
-            } as any}
+            }}
             onClose={() => setShowAchievement(null)}
           />
         )}

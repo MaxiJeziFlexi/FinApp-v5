@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Link } from "wouter";
 import { 
   User, 
@@ -35,6 +35,7 @@ import OnboardingForm from "@/components/financial/OnboardingForm";
 import AdvisorSelection from "@/components/financial/AdvisorSelection";
 import DecisionTreeView from "@/components/financial/DecisionTreeView";
 import { PersonalizedDecisionTreeView } from "@/components/financial/PersonalizedDecisionTreeView";
+import EnhancedDecisionTreeWithChat from "@/components/financial/EnhancedDecisionTreeWithChat";
 import ImprovedChatInterface from "@/components/chat/ImprovedChatInterface";
 import EnhancedChatWindow from '@/components/chat/EnhancedChatWindow';
 import AchievementNotification from "@/components/financial/AchievementNotification";
@@ -378,27 +379,28 @@ export default function FinAppHome() {
 
               <TabsContent value="decision-tree" className="space-y-6">
                 <Alert>
-                  <TrendingUp className="h-4 w-4" />
+                  <Target className="h-4 w-4" />
+                  <AlertTitle>Enhanced AI Assessment & Chat System</AlertTitle>
                   <AlertDescription>
-                    <strong>Interactive Decision Trees:</strong> Gamified financial decision-making with real-time feedback, learning analytics, and personalized pathways.
+                    <strong>Interactive Decision Tree + AI Chat:</strong> Complete the 5-level assessment while chatting with AI for real-time insights. System tracks analytics for continuous learning improvement.
                   </AlertDescription>
                 </Alert>
                 {selectedAdvisor ? (
-                  // Enhanced personalized tree for all users - Max tier has full access
-                  <PersonalizedDecisionTreeView
-                    advisorId={selectedAdvisor.id}
-                    userId={currentUser?.id || userId}
+                  <EnhancedDecisionTreeWithChat 
+                    advisorId={selectedAdvisor.id} 
+                    userId={currentUser?.id || 'demo-user'}
                     advisor={selectedAdvisor}
                     onComplete={(insights) => {
-                      console.log('Personalized insights generated:', insights);
-                      handleDecisionTreeComplete();
+                      console.log('Enhanced assessment completed with insights:', insights);
+                      setShowAchievement("enhanced-assessment-complete");
+                      handleFlowChange('analytics');
                     }}
-                    onBackToAdvisor={() => setCurrentFlow('advisor-selection')}
+                    onBackToAdvisor={() => handleFlowChange('advisor-selection')}
                   />
                 ) : (
                   <Alert>
                     <AlertDescription>
-                      Please select an advisor first to access decision trees.
+                      Please select an advisor first to access enhanced assessment.
                     </AlertDescription>
                   </Alert>
                 )}

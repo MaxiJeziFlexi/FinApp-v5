@@ -572,6 +572,53 @@ Format: Strukturalny raport PDF-ready`;
     }
   });
 
+  // Decision tree context for AI chat
+  app.get('/api/decision-tree-context/:advisorId/:userId', async (req, res) => {
+    try {
+      const { advisorId, userId } = req.params;
+      
+      // Get decision tree progress and responses
+      const progress = await storage.getDecisionTreeProgress(userId, advisorId);
+      
+      if (!progress) {
+        return res.json({
+          completed: false,
+          responses: [],
+          insights: null,
+          message: 'No decision tree completed yet'
+        });
+      }
+
+      // Parse responses if they exist
+      let responses = [];
+      try {
+        responses = typeof progress.responses === 'string' 
+          ? JSON.parse(progress.responses) 
+          : progress.responses || [];
+      } catch (e) {
+        responses = [];
+      }
+
+      return res.json({
+        completed: progress.progress >= 100,
+        responses,
+        insights: progress.recommendations || {},
+        advisorId,
+        currentNode: progress.currentNode,
+        progressPercentage: progress.progress,
+        message: 'Decision tree data retrieved successfully'
+      });
+
+    } catch (error) {
+      console.error('Error retrieving decision tree context:', error);
+      res.status(500).json({ 
+        completed: false,
+        responses: [],
+        error: 'Failed to retrieve decision tree context' 
+      });
+    }
+  });
+
   // Enhanced personalized decision tree endpoints
   app.get('/api/personalized-tree/:advisorId', async (req, res) => {
     try {
@@ -855,6 +902,27 @@ Format: Strukturalny raport PDF-ready`;
         metadata: { modelUsed: model || 'gpt-4o' }
       });
 
+      // Get decision tree context for personalization
+      let decisionTreeContext = '';
+      try {
+        const treeProgress = await storage.getDecisionTreeProgress(user_id, advisor_id);
+        if (treeProgress && treeProgress.responses) {
+          const responses = typeof treeProgress.responses === 'string' 
+            ? JSON.parse(treeProgress.responses) 
+            : treeProgress.responses;
+          
+          if (Array.isArray(responses) && responses.length > 0) {
+            decisionTreeContext = `\nUSER'S DECISION TREE RESPONSES (for personalization):
+${responses.map(r => `- ${r.questionId}: ${r.answer} (confidence: ${r.confidence_level || 0.8})`).join('\n')}
+Progress: ${treeProgress.progress}% complete, Current stage: ${treeProgress.currentNode}
+
+Use this information to provide highly personalized advice based on their assessment responses.`;
+          }
+        }
+      } catch (error) {
+        console.warn('Could not load decision tree context:', error);
+      }
+
       // Prepare context for AI
       const context = {
         advisorId: advisor_id,
@@ -862,7 +930,8 @@ Format: Strukturalny raport PDF-ready`;
         specialty: advisor.specialty,
         userProfile: user_profile,
         decisionPath: decision_path || [],
-        chatHistory: chatHistory.slice(-10) // Last 10 messages for context
+        chatHistory: chatHistory.slice(-10), // Last 10 messages for context
+        decisionTreeContext // Include decision tree responses for personalization
       };
 
       // Get AI response

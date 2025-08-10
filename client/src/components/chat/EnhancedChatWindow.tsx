@@ -42,6 +42,12 @@ interface ChatMessage {
 interface EnhancedChatWindowProps {
   userId: string;
   sessionId: string;
+  advisorId?: string;
+  decisionTreeContext?: {
+    advisor: any;
+    completedResponses: boolean;
+    userInsights: boolean;
+  };
   onMessageSent?: (message: ChatMessage) => void;
 }
 
@@ -59,7 +65,13 @@ const MESSAGE_TYPES = [
   { id: 'data_analysis', icon: BarChart3, label: 'Analiza danych' }
 ];
 
-export default function EnhancedChatWindow({ userId, sessionId, onMessageSent }: EnhancedChatWindowProps) {
+export default function EnhancedChatWindow({ 
+  userId, 
+  sessionId, 
+  advisorId,
+  decisionTreeContext,
+  onMessageSent 
+}: EnhancedChatWindowProps) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -68,11 +80,44 @@ export default function EnhancedChatWindow({ userId, sessionId, onMessageSent }:
   const [isListening, setIsListening] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [reportContext, setReportContext] = useState('');
+  const [decisionTreeData, setDecisionTreeData] = useState<any>(null);
+  const [messageCount, setMessageCount] = useState(0);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
   // Speech recognition setup
   const speechRecognition = useRef<any>(null);
+
+  // Load decision tree data for context
+  useEffect(() => {
+    const loadDecisionTreeData = async () => {
+      if (!advisorId || !userId) return;
+      
+      try {
+        const response = await fetch(`/api/decision-tree-context/${advisorId}/${userId}`);
+        if (response.ok) {
+          const data = await response.json();
+          setDecisionTreeData(data);
+          
+          // Add context message if decision tree completed
+          if (data.completed && data.responses) {
+            const contextMessage: ChatMessage = {
+              id: 'context_' + Date.now(),
+              role: 'system',
+              content: `Based on your completed ${decisionTreeContext?.advisor?.name || 'financial'} assessment, I understand your preferences and can provide personalized advice. Feel free to ask about your responses or get recommendations!`,
+              timestamp: new Date(),
+              messageType: 'analysis'
+            };
+            setMessages([contextMessage]);
+          }
+        }
+      } catch (error) {
+        console.error('Failed to load decision tree context:', error);
+      }
+    };
+
+    loadDecisionTreeData();
+  }, [advisorId, userId, decisionTreeContext]);
 
   useEffect(() => {
     if (typeof window !== 'undefined' && 'webkitSpeechRecognition' in window) {
@@ -127,6 +172,16 @@ export default function EnhancedChatWindow({ userId, sessionId, onMessageSent }:
 
   const sendMessage = async () => {
     if (!inputMessage.trim()) return;
+    
+    // Check message limit
+    if (messageCount >= 20) {
+      toast({
+        title: "Message Limit Reached",
+        description: "You've reached the 20-message limit. Upgrade for unlimited access!",
+        variant: "destructive"
+      });
+      return;
+    }
 
     const userMessage: ChatMessage = {
       id: Date.now().toString(),
@@ -145,15 +200,17 @@ export default function EnhancedChatWindow({ userId, sessionId, onMessageSent }:
     setIsLoading(true);
 
     try {
-      // Enhanced API call with different endpoints based on message type
-      let endpoint = '/api/chat/enhanced-ai';
+      // Enhanced API call with advisor context and decision tree data
+      let endpoint = '/api/chat/send';
       let requestBody: any = {
         message: inputMessage,
         model: selectedModel,
         messageType,
-        userId,
-        sessionId,
-        context: reportContext
+        user_id: userId,
+        advisor_id: advisorId,
+        session_id: sessionId,
+        context: reportContext,
+        include_decision_tree_context: true
       };
 
       // Add web search capability
@@ -199,6 +256,7 @@ export default function EnhancedChatWindow({ userId, sessionId, onMessageSent }:
       };
 
       setMessages(prev => [...prev, aiMessage]);
+      setMessageCount(prev => prev + 1);
 
       // Track the interaction for AI training
       await fetch('/api/data-collection/ai-interaction', {

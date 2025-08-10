@@ -36,7 +36,6 @@ import AdvisorSelection from "@/components/financial/AdvisorSelection";
 import DecisionTreeView from "@/components/financial/DecisionTreeView";
 import { PersonalizedDecisionTreeView } from "@/components/financial/PersonalizedDecisionTreeView";
 import EnhancedDecisionTreeWithChat from "@/components/financial/EnhancedDecisionTreeWithChat";
-import ImprovedChatInterface from "@/components/chat/ImprovedChatInterface";
 import EnhancedChatWindow from '@/components/chat/EnhancedChatWindow';
 import AchievementNotification from "@/components/financial/AchievementNotification";
 import { FinancialVisualizations3D } from "@/components/financial/FinancialVisualizations3D";
@@ -423,12 +422,17 @@ export default function FinAppHome() {
                       <Badge variant="outline" className="mb-4">Enhanced AI Assistant Active</Badge>
                     </div>
                     
-                    <ImprovedChatInterface
-                      userId={currentUser?.id || userId}
+                    <EnhancedChatWindow
+                      userId={currentUser?.id || 'demo-user'}
+                      sessionId={`enhanced_${selectedAdvisor.id}_${currentUser?.id || 'demo-user'}_${Date.now()}`}
                       advisorId={selectedAdvisor.id}
-                      sessionId={`${selectedAdvisor.id}-${currentUser?.id || userId}-${Date.now()}`}
-                      onDataCollected={(data) => {
-                        console.log('Chat data collected:', data);
+                      decisionTreeContext={{
+                        advisor: selectedAdvisor,
+                        completedResponses: true, // Will be fetched from backend
+                        userInsights: true
+                      }}
+                      onMessageSent={(message) => {
+                        console.log('Enhanced chat message:', message);
                       }}
                     />
                     

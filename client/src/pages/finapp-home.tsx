@@ -48,7 +48,6 @@ type AppFlow = 'onboarding' | 'advisor-selection' | 'decision-tree' | 'chat' | '
 export default function FinAppHome() {
   const [currentFlow, setCurrentFlow] = useState<AppFlow>('onboarding');
   const [selectedAdvisor, setSelectedAdvisor] = useState<any | null>(null);
-  const [userId] = useState(() => `user-${Math.random().toString(36).substring(2, 15)}-${Math.random().toString(36).substring(2, 15)}`);
   const [showAchievement, setShowAchievement] = useState<string | null>(null);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
   
@@ -70,7 +69,7 @@ export default function FinAppHome() {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            userId,
+            userId: currentUser?.id || `demo-user`,
             eventType,
             eventData: data,
             timeSpent: Date.now() - (window as any).pageLoadTime,
@@ -101,11 +100,11 @@ export default function FinAppHome() {
         sessionDuration: Date.now() - (window as any).pageLoadTime 
       });
     };
-  }, [currentFlow, selectedAdvisor, userId]);
+  }, [currentFlow, selectedAdvisor, currentUser?.id]);
 
   // Fetch user profile
   const { data: userProfile, isLoading: profileLoading } = useQuery<UserProfile>({
-    queryKey: ['/api/user/profile', userId],
+    queryKey: ['/api/user/profile', currentUser?.id],
     retry: false,
   });
 
@@ -359,7 +358,7 @@ export default function FinAppHome() {
                   </AlertDescription>
                 </Alert>
                 <OnboardingForm 
-                  userId={userId} 
+                  userId={currentUser?.id || 'demo-user'} 
                   onComplete={() => handleFlowChange('advisor-selection')} 
                 />
               </TabsContent>
@@ -461,7 +460,7 @@ export default function FinAppHome() {
                 <FinancialVisualizations3D data={generate3DData()} />
                 
                 {/* Advanced Analytics Dashboard */}
-                <AdvancedAnalyticsDashboard userId={userId} />
+                <AdvancedAnalyticsDashboard userId={currentUser?.id || 'demo-user'} />
               </TabsContent>
             </Tabs>
           </CardContent>

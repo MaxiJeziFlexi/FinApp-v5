@@ -35,7 +35,7 @@ import LearningHub from "@/pages/learning-hub";
 import CommunityDiscussions from "@/pages/community-discussions";
 import UserProfile from "@/pages/user-profile";
 import AdminJarvis from "@/pages/AdminJarvis";
-import EnhancedChatPage from "@/pages/enhanced-chat";
+
 
 function Router() {
   const { isAuthenticated, isLoading } = useAuth();

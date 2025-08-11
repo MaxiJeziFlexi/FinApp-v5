@@ -87,9 +87,9 @@ export default function AnalyticsDashboard() {
                 <Users className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{liveAnalytics?.totalUsers?.toLocaleString() || '0'}</div>
+                <div className="text-2xl font-bold">{(liveAnalytics as any)?.totalUsers?.toLocaleString() || '0'}</div>
                 <p className="text-xs text-muted-foreground">
-                  <span className="text-green-600">+{liveAnalytics?.newUsersToday || 0}</span> new today
+                  <span className="text-green-600">+{(liveAnalytics as any)?.newUsersToday || 0}</span> new today
                 </p>
               </CardContent>
             </Card>
@@ -100,9 +100,9 @@ export default function AnalyticsDashboard() {
                 <Activity className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{liveAnalytics?.activeUsers?.toLocaleString() || '0'}</div>
+                <div className="text-2xl font-bold">{(liveAnalytics as any)?.activeUsers?.toLocaleString() || '0'}</div>
                 <p className="text-xs text-muted-foreground">
-                  <span className="text-green-600">{Math.round((liveAnalytics?.activeUsers / liveAnalytics?.totalUsers) * 100 || 0)}%</span> of total
+                  <span className="text-green-600">{Math.round(((liveAnalytics as any)?.activeUsers / (liveAnalytics as any)?.totalUsers) * 100 || 0)}%</span> of total
                 </p>
               </CardContent>
             </Card>
@@ -113,8 +113,8 @@ export default function AnalyticsDashboard() {
                 <Target className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{Math.round(liveAnalytics?.completionRate || 0)}%</div>
-                <Progress value={liveAnalytics?.completionRate || 0} className="mt-2" />
+                <div className="text-2xl font-bold">{Math.round((liveAnalytics as any)?.completionRate || 0)}%</div>
+                <Progress value={(liveAnalytics as any)?.completionRate || 0} className="mt-2" />
               </CardContent>
             </Card>
 
@@ -124,9 +124,9 @@ export default function AnalyticsDashboard() {
                 <Clock className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{Math.round(liveAnalytics?.avgSessionTime || 0)} min</div>
+                <div className="text-2xl font-bold">{Math.round((liveAnalytics as any)?.avgSessionTime || 0)} min</div>
                 <p className="text-xs text-muted-foreground">
-                  <span className="text-green-600">Engagement Score: {Math.round(liveAnalytics?.engagementScore || 0)}</span>
+                  <span className="text-green-600">Engagement Score: {Math.round((liveAnalytics as any)?.engagementScore || 0)}</span>
                 </p>
               </CardContent>
             </Card>
@@ -140,7 +140,7 @@ export default function AnalyticsDashboard() {
                 <Brain className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{liveAnalytics?.realtimeLearningData?.activeQuestions || 0}</div>
+                <div className="text-2xl font-bold">{(liveAnalytics as any)?.realtimeLearningData?.activeQuestions || 0}</div>
                 <p className="text-xs text-muted-foreground">Currently being answered</p>
               </CardContent>
             </Card>
@@ -151,7 +151,7 @@ export default function AnalyticsDashboard() {
                 <TrendingUp className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{liveAnalytics?.realtimeLearningData?.answersPerMinute || 0}</div>
+                <div className="text-2xl font-bold">{(liveAnalytics as any)?.realtimeLearningData?.answersPerMinute || 0}</div>
                 <p className="text-xs text-muted-foreground">Real-time learning rate</p>
               </CardContent>
             </Card>
@@ -162,7 +162,7 @@ export default function AnalyticsDashboard() {
                 <Star className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{Math.round(liveAnalytics?.realtimeLearningData?.knowledgeGrowthRate || 0)}%</div>
+                <div className="text-2xl font-bold">{Math.round((liveAnalytics as any)?.realtimeLearningData?.knowledgeGrowthRate || 0)}%</div>
                 <p className="text-xs text-muted-foreground">Weekly improvement</p>
               </CardContent>
             </Card>

@@ -77,7 +77,7 @@ export default function FinAppHome() {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            userId: currentUser?.id || "demo-user",
+            userId: (currentUser as any)?.id || "demo-user",
             eventType,
             eventData: data,
             timeSpent: Date.now() - (window as any).pageLoadTime,
@@ -106,10 +106,10 @@ export default function FinAppHome() {
         sessionDuration: Date.now() - (window as any).pageLoadTime,
       });
     };
-  }, [currentFlow, selectedAdvisor, currentUser?.id]);
+  }, [currentFlow, selectedAdvisor, (currentUser as any)?.id]);
 
   // user profile (FIX: dodany queryFn + enabled)
-  const userId = currentUser?.id ?? null;
+  const userId = (currentUser as any)?.id ?? null;
 
   const { data: userProfile, isLoading: profileLoading } = useQuery<
     UserProfileType | undefined

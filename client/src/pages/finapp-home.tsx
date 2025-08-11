@@ -608,10 +608,10 @@ export default function FinAppHome() {
         />
       )}
 
-      {currentUser &&
+      {(currentUser &&
         ((currentUser as any)?.subscriptionTier ||
           (currentUser as any)?.subscription_tier) === "free" &&
-        !isAdmin ? (
+        !isAdmin) ? (
           <div className="mt-8 bg-gradient-to-r from-gray-900/80 to-black/90 backdrop-blur-xl border border-purple-500/50 rounded-2xl p-6">
             <div className="text-center">
               <div className="w-16 h-16 bg-gradient-to-br from-yellow-400 to-orange-600 rounded-full flex items-center justify-center mx-auto mb-4">

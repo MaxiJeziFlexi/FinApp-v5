@@ -3558,6 +3558,162 @@ What would you like me to help you with?`,
     }
   });
 
+  // Heat Map Button Click Tracking
+  app.post('/api/analytics/button-click', async (req, res) => {
+    try {
+      const { buttonId, buttonText, page, position, timestamp, userId, sessionId } = req.body;
+      
+      // Store in interaction events table
+      const event = {
+        user_id: userId,
+        session_id: sessionId,
+        event_type: 'button_click',
+        page_url: page,
+        element_type: 'button',
+        element_id: buttonId,
+        element_text: buttonText,
+        click_position: position,
+        timestamp: new Date(timestamp),
+        metadata: { buttonId, buttonText, position }
+      };
+
+      await storage.createInteractionEvent(event);
+      
+      res.json({ 
+        success: true, 
+        message: 'Button click tracked successfully',
+        timestamp: new Date().toISOString()
+      });
+    } catch (error) {
+      console.error('Button click tracking error:', error);
+      res.status(500).json({ message: 'Failed to track button click' });
+    }
+  });
+
+  // Get Heat Map Data for Specific Page
+  app.get('/api/analytics/heatmap', async (req, res) => {
+    try {
+      const { page } = req.query;
+      
+      let query = `
+        SELECT 
+          element_id as "buttonId",
+          element_text as "buttonText", 
+          page_url as page,
+          COUNT(*) as "clickCount",
+          COUNT(DISTINCT user_id) as "uniqueUsers",
+          MAX(timestamp) as "lastClicked",
+          array_agg(click_position) as positions
+        FROM interaction_events 
+        WHERE event_type = 'button_click'
+      `;
+      
+      const params = [];
+      if (page) {
+        query += ' AND page_url = $1';
+        params.push(page);
+      }
+      
+      query += `
+        GROUP BY element_id, element_text, page_url
+        ORDER BY "clickCount" DESC
+      `;
+
+      const result = await storage.query(query, params);
+      
+      // Process positions data
+      const heatMapData = result.rows.map(row => ({
+        ...row,
+        positions: row.positions.map((pos: any) => ({
+          x: pos.x,
+          y: pos.y,
+          count: 1
+        }))
+      }));
+      
+      res.json(heatMapData);
+    } catch (error) {
+      console.error('Heat map data error:', error);
+      res.status(500).json({ message: 'Failed to fetch heat map data' });
+    }
+  });
+
+  // Get Heat Map Data for All Pages
+  app.get('/api/analytics/heatmap/all-pages', async (req, res) => {
+    try {
+      const query = `
+        SELECT 
+          page_url as page,
+          element_id as "buttonId",
+          element_text as "buttonText", 
+          COUNT(*) as "clickCount",
+          COUNT(DISTINCT user_id) as "uniqueUsers",
+          MAX(timestamp) as "lastClicked",
+          array_agg(click_position) as positions
+        FROM interaction_events 
+        WHERE event_type = 'button_click'
+        GROUP BY page_url, element_id, element_text
+        ORDER BY page_url, "clickCount" DESC
+      `;
+
+      const result = await storage.query(query, []);
+      
+      // Group by page
+      const pageGroups: Record<string, any[]> = {};
+      result.rows.forEach(row => {
+        if (!pageGroups[row.page]) {
+          pageGroups[row.page] = [];
+        }
+        pageGroups[row.page].push({
+          buttonId: row.buttonId,
+          buttonText: row.buttonText,
+          page: row.page,
+          clickCount: row.clickCount,
+          uniqueUsers: row.uniqueUsers,
+          lastClicked: row.lastClicked,
+          positions: row.positions.map((pos: any) => ({
+            x: pos.x,
+            y: pos.y,
+            count: 1
+          }))
+        });
+      });
+      
+      res.json(pageGroups);
+    } catch (error) {
+      console.error('All pages heat map error:', error);
+      res.status(500).json({ message: 'Failed to fetch all pages heat map data' });
+    }
+  });
+
+  // Get Top Clicked Elements
+  app.get('/api/analytics/heatmap/top-clicked', async (req, res) => {
+    try {
+      const { limit = 10 } = req.query;
+      
+      const query = `
+        SELECT 
+          element_id as "buttonId",
+          element_text as "buttonText", 
+          page_url as page,
+          COUNT(*) as "clickCount",
+          COUNT(DISTINCT user_id) as "uniqueUsers",
+          MAX(timestamp) as "lastClicked"
+        FROM interaction_events 
+        WHERE event_type = 'button_click'
+        GROUP BY element_id, element_text, page_url
+        ORDER BY "clickCount" DESC
+        LIMIT $1
+      `;
+
+      const result = await storage.query(query, [parseInt(limit as string)]);
+      res.json(result.rows);
+    } catch (error) {
+      console.error('Top clicked elements error:', error);
+      res.status(500).json({ message: 'Failed to fetch top clicked elements' });
+    }
+  });
+
   // AI System Controls
   app.post('/api/admin/ai-controls/:action', requireAdmin as any, async (req, res) => {
     try {

@@ -37,6 +37,9 @@ import UserProfile from "@/pages/user-profile";
 import AdminJarvis from "@/pages/AdminJarvis";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 
+// Initialize heat map service to start tracking clicks
+import "@/services/heatMapService";
+
 
 function Router() {
   const { isAuthenticated, isLoading } = useAuth();

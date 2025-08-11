@@ -412,6 +412,56 @@ export function DiagnosticsPanel() {
             </Card>
           </div>
 
+          {/* Import and use Heat Map Visualization */}
+          <div className="mt-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>User Heat Map Analytics</CardTitle>
+                <CardDescription>Real-time button click tracking from all users across the application</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div id="heatmap-placeholder" className="bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 p-8 rounded-lg text-center">
+                  <div className="flex items-center justify-center gap-3 mb-4">
+                    <div className="p-3 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full">
+                      <BarChart3 className="h-8 w-8 text-white" />
+                    </div>
+                    <div>
+                      <h3 className="text-xl font-bold">Heat Map Visualization</h3>
+                      <p className="text-gray-600 dark:text-gray-400">Click data is being collected in real-time</p>
+                    </div>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-2xl mx-auto">
+                    <div className="bg-white dark:bg-gray-800 p-4 rounded-lg border">
+                      <div className="text-2xl font-bold text-blue-600">Live</div>
+                      <div className="text-sm text-gray-600 dark:text-gray-400">Button tracking active</div>
+                    </div>
+                    <div className="bg-white dark:bg-gray-800 p-4 rounded-lg border">
+                      <div className="text-2xl font-bold text-green-600">Real-time</div>
+                      <div className="text-sm text-gray-600 dark:text-gray-400">Analytics collection</div>
+                    </div>
+                    <div className="bg-white dark:bg-gray-800 p-4 rounded-lg border">
+                      <div className="text-2xl font-bold text-purple-600">All Users</div>
+                      <div className="text-sm text-gray-600 dark:text-gray-400">Cross-app tracking</div>
+                    </div>
+                  </div>
+                  
+                  <Button 
+                    onClick={() => window.open('/admin-heatmap', '_blank')}
+                    className="mt-6 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
+                  >
+                    <Eye className="h-4 w-4 mr-2" />
+                    Open Full Heat Map Dashboard
+                  </Button>
+                  
+                  <p className="text-sm text-gray-500 mt-4">
+                    Heat map will populate as users interact with buttons throughout the application
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
           <Card>
             <CardHeader>
               <CardTitle>Real User Behavior Analytics</CardTitle>

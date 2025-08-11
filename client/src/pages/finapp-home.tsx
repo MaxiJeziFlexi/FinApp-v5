@@ -316,20 +316,20 @@ export default function FinAppHome() {
 
             {currentUser ? (
               <div className="flex items-center justify-center mt-6">
-                <div className="bg-black/40 backdrop-blur-xl border border-cyan-500/50 rounded-2xl px-6 py-4">
+                <div className="bg-white/40 dark:bg-black/40 backdrop-blur-xl border border-cyan-500/50 rounded-2xl px-6 py-4">
                   <div className="flex items-center gap-4">
                     <div className="w-12 h-12 bg-gradient-to-br from-cyan-400 to-blue-600 rounded-full flex items-center justify-center">
                       <div className="text-2xl">👤</div>
                     </div>
                     <div className="text-left">
-                      <div className="text-white font-bold tracking-wider">
+                      <div className="text-gray-800 dark:text-white font-bold tracking-wider">
                         Welcome back,{" "}
                         {(currentUser as any)?.firstName ||
                           (currentUser as any)?.first_name ||
                           "User"}
                         !
                       </div>
-                      <div className="text-cyan-400 font-mono text-sm">
+                      <div className="text-cyan-600 dark:text-cyan-400 font-mono text-sm">
                         {((currentUser as any)?.subscriptionTier ||
                           (currentUser as any)?.subscription_tier) === "free"
                           ? "Free Plan"
@@ -342,7 +342,7 @@ export default function FinAppHome() {
                     </div>
                     <div className="flex items-center gap-2">
                       <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
-                      <span className="text-gray-300 font-mono text-xs">
+                      <span className="text-gray-600 dark:text-gray-300 font-mono text-xs">
                         NEURAL LINK ACTIVE
                       </span>
                     </div>
@@ -355,9 +355,9 @@ export default function FinAppHome() {
       </div>
 
       <div className="container mx-auto px-4 py-8 relative z-10">
-        <div className="bg-gradient-to-r from-gray-900/80 to-black/90 backdrop-blur-xl border border-cyan-500/30 rounded-2xl p-6 mb-8">
+        <div className="bg-gradient-to-r from-white/80 to-gray-100/90 dark:from-gray-900/80 dark:to-black/90 backdrop-blur-xl border border-cyan-500/30 rounded-2xl p-6 mb-8">
           <div className="text-center mb-6">
-            <div className="text-cyan-400 font-mono text-sm tracking-wider mb-2">
+            <div className="text-cyan-600 dark:text-cyan-400 font-mono text-sm tracking-wider mb-2">
               NEURAL INTERFACE SELECTION
             </div>
             <div className="h-1 w-32 bg-gradient-to-r from-cyan-400 to-purple-400 rounded-full mx-auto" />
@@ -367,10 +367,10 @@ export default function FinAppHome() {
             value={currentFlow}
             onValueChange={(v) => handleFlowChange(v as AppFlow)}
           >
-            <TabsList className="grid w-full grid-cols-5 bg-black/40 border border-cyan-500/20 rounded-xl p-2">
+            <TabsList className="grid w-full grid-cols-5 bg-white/40 dark:bg-black/40 border border-cyan-500/20 rounded-xl p-2">
               <TabsTrigger
                 value="onboarding"
-                className="flex items-center gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-cyan-500 data-[state=active]:to-blue-600 data-[state=active]:text-white text-gray-300 font-mono text-sm transition-all duration-300"
+                className="flex items-center gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-cyan-500 data-[state=active]:to-blue-600 data-[state=active]:text-white text-gray-600 dark:text-gray-300 font-mono text-sm transition-all duration-300"
                 disabled={!!onboardingComplete}
               >
                 <UserIcon className="w-4 h-4" />
@@ -379,7 +379,7 @@ export default function FinAppHome() {
 
               <TabsTrigger
                 value="advisor-selection"
-                className="flex items-center gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-500 data-[state=active]:to-pink-600 data-[state=active]:text-white text-gray-300 font-mono text-sm transition-all duration-300"
+                className="flex items-center gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-500 data-[state=active]:to-pink-600 data-[state=active]:text-white text-gray-600 dark:text-gray-300 font-mono text-sm transition-all duration-300"
                 disabled={!onboardingComplete}
               >
                 <Target className="w-4 h-4" />
@@ -388,7 +388,7 @@ export default function FinAppHome() {
 
               <TabsTrigger
                 value="decision-tree"
-                className="flex items-center gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-indigo-600 data-[state=active]:text-white text-gray-300 font-mono text-sm transition-all duration-300"
+                className="flex items-center gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-indigo-600 data-[state=active]:text-white text-gray-600 dark:text-gray-300 font-mono text-sm transition-all duration-300"
                 disabled={!selectedAdvisor}
               >
                 <BarChart3 className="w-4 h-4" />
@@ -397,7 +397,7 @@ export default function FinAppHome() {
 
               <TabsTrigger
                 value="chat"
-                className="flex items-center gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-green-500 data-[state=active]:to-emerald-600 data-[state=active]:text-white text-gray-300 font-mono text-sm transition-all duration-300"
+                className="flex items-center gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-green-500 data-[state=active]:to-emerald-600 data-[state=active]:text-white text-gray-600 dark:text-gray-300 font-mono text-sm transition-all duration-300"
                 disabled={!selectedAdvisor}
               >
                 <MessageSquare className="w-4 h-4" />
@@ -406,7 +406,7 @@ export default function FinAppHome() {
 
               <TabsTrigger
                 value="analytics"
-                className="flex items-center gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-500 data-[state=active]:to-red-600 data-[state=active]:text-white text-gray-300 font-mono text-sm transition-all duration-300"
+                className="flex items-center gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-500 data-[state=active]:to-red-600 data-[state=active]:text-white text-gray-600 dark:text-gray-300 font-mono text-sm transition-all duration-300"
               >
                 <TrendingUp className="w-4 h-4" />
                 ANALYTICS CORE

@@ -24,7 +24,8 @@ import {
   MessageCircle,
   Moon,
   Sun,
-  Palette
+  Palette,
+  Activity
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { logout } from '@/hooks/useAuth';
@@ -118,6 +119,14 @@ const adminItems = [
     icon: BarChart3,
     description: 'Developer tools & analytics',
     badge: 'Dev',
+    restricted: true
+  },
+  {
+    path: '/admin-heatmap',
+    label: 'Heat Map',
+    icon: Activity,
+    description: 'Live button click analytics',
+    badge: 'Live',
     restricted: true
   }
 ];

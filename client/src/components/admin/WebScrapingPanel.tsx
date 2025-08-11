@@ -67,11 +67,14 @@ export function WebScrapingPanel() {
   const queryClient = useQueryClient();
 
   // Get all scraping jobs
-  const { data: jobs = [], isLoading: jobsLoading } = useQuery({
+  const { data: jobsData, isLoading: jobsLoading } = useQuery({
     queryKey: ['admin', 'webscraping', 'jobs'],
     queryFn: () => apiRequest('/api/admin/webscraping/jobs'),
     refetchInterval: 2000 // Refresh every 2 seconds for real-time updates
   });
+
+  // Ensure jobs is always an array
+  const jobs = Array.isArray(jobsData) ? jobsData : [];
 
   // Create batch scraping job
   const createJobMutation = useMutation({

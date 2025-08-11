@@ -612,19 +612,19 @@ export default function FinAppHome() {
         ((currentUser as any)?.subscriptionTier ||
           (currentUser as any)?.subscription_tier) === "free" &&
         !isAdmin ? (
-          <div className="mt-8 bg-gradient-to-r from-gray-900/80 to-black/90 backdrop-blur-xl border border-purple-500/50 rounded-2xl p-6">
+          <div className="mt-8 bg-gradient-to-r from-gray-100 to-gray-200 dark:from-gray-900/80 dark:to-black/90 backdrop-blur-xl border border-purple-500/50 rounded-2xl p-6">
             <div className="text-center">
               <div className="w-16 h-16 bg-gradient-to-br from-yellow-400 to-orange-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Crown className="w-8 h-8 text-black" />
+                <Crown className="w-8 h-8 text-black dark:text-black" />
               </div>
               <div className="text-2xl font-black bg-gradient-to-r from-yellow-400 to-orange-600 bg-clip-text text-transparent mb-2">
                 NEURAL CORE UPGRADE
               </div>
-              <p className="text-gray-300 font-mono text-sm mb-6">
+              <p className="text-gray-700 dark:text-gray-300 font-mono text-sm mb-6">
                 [ UNLOCK QUANTUM AI PROCESSING ]
               </p>
               <Link href="/checkout">
-                <button className="bg-gradient-to-r from-yellow-500 to-orange-600 text-black px-8 py-3 rounded-xl font-bold text-lg tracking-wider hover:shadow-lg transition-all duration-300">
+                <button className="bg-gradient-to-r from-yellow-500 to-orange-600 text-black dark:text-black px-8 py-3 rounded-xl font-bold text-lg tracking-wider hover:shadow-lg transition-all duration-300">
                   Initialize Premium
                 </button>
               </Link>
@@ -632,31 +632,31 @@ export default function FinAppHome() {
           </div>
         ) : null}
 
-      <div className="mt-8 bg-gradient-to-r from-gray-900/60 to-black/80 backdrop-blur-md border border-cyan-500/20 rounded-2xl p-6">
+      <div className="mt-8 bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-900/60 dark:to-black/80 backdrop-blur-md border border-cyan-500/20 rounded-2xl p-6">
         <div className="text-center">
           <div className="flex items-center justify-center gap-2 mb-4">
             <div className="w-3 h-3 bg-green-400 rounded-full animate-pulse" />
-            <span className="text-cyan-400 font-mono text-sm tracking-wider">
+            <span className="text-cyan-600 dark:text-cyan-400 font-mono text-sm tracking-wider">
               NEURAL DATA STREAM ACTIVE
             </span>
           </div>
-          <p className="text-gray-300 font-mono text-xs mb-4 max-w-3xl mx-auto">
+          <p className="text-gray-600 dark:text-gray-300 font-mono text-xs mb-4 max-w-3xl mx-auto">
             [ QUANTUM AI CONSCIOUSNESS CONTINUOUSLY PROCESSES BEHAVIORAL
             PATTERNS TO ENHANCE FINANCIAL EDUCATION ALGORITHMS ]
           </p>
           <div className="grid grid-cols-3 gap-6">
-            <div className="bg-black/40 border border-green-500/30 rounded-lg p-3">
-              <div className="text-green-400 font-bold text-sm">
+            <div className="bg-white/60 dark:bg-black/40 border border-green-500/30 rounded-lg p-3">
+              <div className="text-green-600 dark:text-green-400 font-bold text-sm">
                 PRIVACY SHIELDED
               </div>
             </div>
-            <div className="bg-black/40 border border-blue-500/30 rounded-lg p-3">
-              <div className="text-blue-400 font-bold text-sm">
+            <div className="bg-white/60 dark:bg-black/40 border border-blue-500/30 rounded-lg p-3">
+              <div className="text-blue-600 dark:text-blue-400 font-bold text-sm">
                 AI TRAINING CORE
               </div>
             </div>
-            <div className="bg-black/40 border border-purple-500/30 rounded-lg p-3">
-              <div className="text-purple-400 font-bold text-sm">
+            <div className="bg-white/60 dark:bg-black/40 border border-purple-500/30 rounded-lg p-3">
+              <div className="text-purple-600 dark:text-purple-400 font-bold text-sm">
                 GLOBAL RESEARCH
               </div>
             </div>

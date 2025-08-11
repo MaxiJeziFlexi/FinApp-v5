@@ -75,25 +75,21 @@ export const requireAdmin = async (req: AuthenticatedRequest, res: Response, nex
   }
 };
 
-// Middleware do logowania działań administratora
-export const logAdminAction = (action: string) => {
-  return (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
-    console.log(`[ADMIN ACTION] User ${req.user?.id} performed: ${action} at ${new Date().toISOString()}`);
-    
-    // Zapisz log do analytics
-    if (req.user?.id) {
-      import('../services/analyticsService').then(({ analyticsService }) => {
-        analyticsService.trackEvent(req.user!.id, 'admin_action', {
-          action,
-          timestamp: new Date().toISOString(),
-          userAgent: req.headers['user-agent'],
-          ip: req.ip
-        }).catch(console.error);
-      });
-    }
-    
-    next();
-  };
+// Middleware do logowania działań administratora (simplified version)
+export const logAdminAction = async (userId: string, action: string, data?: any) => {
+  console.log(`[ADMIN ACTION] User ${userId} performed: ${action} at ${new Date().toISOString()}`, data);
+  
+  try {
+    // Save to analytics if available
+    const { analyticsService } = await import('../services/analyticsService');
+    await analyticsService.trackEvent(userId, 'admin_action', {
+      action,
+      timestamp: new Date().toISOString(),
+      ...data
+    });
+  } catch (error) {
+    console.log('Analytics not available for admin action logging');
+  }
 };
 
 // Middleware do walidacji parametrów AI

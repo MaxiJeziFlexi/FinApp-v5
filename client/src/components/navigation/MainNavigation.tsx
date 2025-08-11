@@ -105,24 +105,7 @@ const premiumItems = [
   }
 ];
 
-// Admin restricted items
-const adminItems = [
-  {
-    path: '/admin',
-    label: 'Admin Panel',
-    icon: Settings,
-    description: 'System management',
-    restricted: true
-  },
-  {
-    path: '/developer-diagnostics',
-    label: 'Diagnostics',
-    icon: BarChart3,
-    description: 'Developer tools & analytics',
-    badge: 'Dev',
-    restricted: true
-  }
-];
+
 
 export default function MainNavigation() {
   const [isOpen, setIsOpen] = useState(false);
@@ -253,132 +236,11 @@ export default function MainNavigation() {
             </div>
           </div>
 
-          {/* Admin Section */}
-          <div className="mb-6">
-            <h3 className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-3 px-3">Admin</h3>
-            <div className="space-y-2">
-              {adminItems.map((item) => {
-                const Icon = item.icon;
-                const active = isActive(item.path);
-                
-                return (
-                  <Link key={item.path} href={item.path}>
-                    <motion.div
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                      className={`flex items-center gap-3 p-3 rounded-lg transition-all cursor-pointer ${
-                        active 
-                          ? 'bg-gradient-to-r from-violet-500 to-purple-500 text-white shadow-lg' 
-                          : 'hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-200'
-                      }`}
-                    >
-                      <Icon className={`h-5 w-5 ${active ? 'text-white' : 'text-gray-500 dark:text-gray-400'}`} />
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2">
-                          <span className="font-medium">{item.label}</span>
-                          {item.badge && (
-                            <Badge 
-                              variant={active ? "secondary" : "outline"}
-                              className={`text-xs ${
-                                active ? 'bg-white/20 text-white' : 'bg-violet-100 dark:bg-violet-900 text-violet-800 dark:text-violet-200'
-                              }`}
-                            >
-                              {item.badge}
-                            </Badge>
-                          )}
-                        </div>
-                        <p className={`text-xs ${active ? 'text-white/80' : 'text-gray-500 dark:text-gray-400'}`}>
-                          {item.description}
-                        </p>
-                      </div>
-                    </motion.div>
-                  </Link>
-                );
-              })}
-            </div>
-          </div>
+
         </div>
 
         <div className="p-4 border-t border-gray-200 dark:border-gray-700">
           <div className="space-y-2">
-            {/* User Profile Section */}
-            <div className="space-y-2">
-              <Button
-                variant="ghost"
-                size="sm"
-                className="w-full justify-between gap-3 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100"
-                onClick={() => setIsProfileExpanded(!isProfileExpanded)}
-              >
-                <div className="flex items-center gap-3">
-                  <User className="h-4 w-4" />
-                  Profil Użytkownika
-                </div>
-                <motion.div
-                  animate={{ rotate: isProfileExpanded ? 180 : 0 }}
-                  transition={{ duration: 0.2 }}
-                >
-                  <Settings className="h-4 w-4" />
-                </motion.div>
-              </Button>
-              
-              <AnimatePresence>
-                {isProfileExpanded && (
-                  <motion.div
-                    initial={{ height: 0, opacity: 0 }}
-                    animate={{ height: 'auto', opacity: 1 }}
-                    exit={{ height: 0, opacity: 0 }}
-                    transition={{ duration: 0.2 }}
-                    className="overflow-hidden ml-6 space-y-2"
-                  >
-                    <Link href="/profile">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="w-full justify-start gap-3 text-gray-500 dark:text-gray-500 hover:text-gray-900 dark:hover:text-gray-200"
-                      >
-                        <User className="h-3 w-3" />
-                        Ustawienia Profilu
-                      </Button>
-                    </Link>
-                    
-                    {/* Theme Toggle */}
-                    <div className="space-y-1">
-                      <div className="text-xs text-gray-500 dark:text-gray-500 px-3 font-medium">Motyw</div>
-                      <div className="grid grid-cols-3 gap-1">
-                        <Button
-                          variant={theme === 'light' ? "default" : "ghost"}
-                          size="sm"
-                          className={`text-xs h-8 ${theme === 'light' ? 'bg-cyan-500 hover:bg-cyan-600 text-white' : 'text-gray-500 dark:text-gray-500'}`}
-                          onClick={() => setTheme('light')}
-                        >
-                          <Sun className="h-3 w-3" />
-                        </Button>
-                        <Button
-                          variant={theme === 'dark' ? "default" : "ghost"}
-                          size="sm"
-                          className={`text-xs h-8 ${theme === 'dark' ? 'bg-violet-500 hover:bg-violet-600 text-white' : 'text-gray-500 dark:text-gray-500'}`}
-                          onClick={() => setTheme('dark')}
-                        >
-                          <Moon className="h-3 w-3" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="text-xs h-8 text-gray-500 dark:text-gray-500"
-                          onClick={() => {
-                            const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-                            setTheme(systemTheme);
-                          }}
-                        >
-                          <Palette className="h-3 w-3" />
-                        </Button>
-                      </div>
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
-            
             <Button
               variant="ghost"
               size="sm"

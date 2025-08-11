@@ -46,7 +46,7 @@ export function DiagnosticsPanel() {
   const { toast } = useToast();
 
   // Real system health data
-  const { data: systemHealth, isLoading: healthLoading, refetch: refetchHealth } = useQuery({
+  const { data: systemHealth, isLoading: healthLoading, refetch: refetchHealth } = useQuery<SystemHealth>({
     queryKey: ['/api/health'],
     refetchInterval: 10000,
   });
@@ -127,14 +127,14 @@ export function DiagnosticsPanel() {
 
         <TabsContent value="health" className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <Card className={`${systemHealth?.status === 'healthy' ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800' : 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800'}`}>
+            <Card className={`${(systemHealth as any)?.status === 'healthy' ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800' : 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800'}`}>
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm font-medium flex items-center gap-2">
-                  {getHealthIcon(systemHealth?.status || 'unknown')}
+                  {getHealthIcon((systemHealth as any)?.status || 'unknown')}
                   System Status
                 </CardTitle>
-                <CardDescription className={`text-2xl font-bold ${systemHealth?.status === 'healthy' ? 'text-green-700 dark:text-green-300' : 'text-red-700 dark:text-red-300'}`}>
-                  {healthLoading ? '...' : (systemHealth?.status || 'Unknown').toUpperCase()}
+                <CardDescription className={`text-2xl font-bold ${(systemHealth as any)?.status === 'healthy' ? 'text-green-700 dark:text-green-300' : 'text-red-700 dark:text-red-300'}`}>
+                  {healthLoading ? '...' : ((systemHealth as any)?.status || 'Unknown').toUpperCase()}
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -144,14 +144,14 @@ export function DiagnosticsPanel() {
               </CardContent>
             </Card>
 
-            <Card className={`${systemHealth?.database ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800' : 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800'}`}>
+            <Card className={`${(systemHealth as any)?.database ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800' : 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800'}`}>
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm font-medium flex items-center gap-2">
                   <Database className="h-4 w-4" />
                   Database
                 </CardTitle>
-                <CardDescription className={`text-2xl font-bold ${systemHealth?.database ? 'text-green-700 dark:text-green-300' : 'text-red-700 dark:text-red-300'}`}>
-                  {healthLoading ? '...' : (systemHealth?.database ? 'Connected' : 'Disconnected')}
+                <CardDescription className={`text-2xl font-bold ${(systemHealth as any)?.database ? 'text-green-700 dark:text-green-300' : 'text-red-700 dark:text-red-300'}`}>
+                  {healthLoading ? '...' : ((systemHealth as any)?.database ? 'Connected' : 'Disconnected')}
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -161,14 +161,14 @@ export function DiagnosticsPanel() {
               </CardContent>
             </Card>
 
-            <Card className={`${systemHealth?.openai ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800' : 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800'}`}>
+            <Card className={`${(systemHealth as any)?.openai ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800' : 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800'}`}>
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm font-medium flex items-center gap-2">
                   <Brain className="h-4 w-4" />
                   AI Services
                 </CardTitle>
-                <CardDescription className={`text-2xl font-bold ${systemHealth?.openai ? 'text-green-700 dark:text-green-300' : 'text-red-700 dark:text-red-300'}`}>
-                  {healthLoading ? '...' : (systemHealth?.openai ? 'Online' : 'Offline')}
+                <CardDescription className={`text-2xl font-bold ${(systemHealth as any)?.openai ? 'text-green-700 dark:text-green-300' : 'text-red-700 dark:text-red-300'}`}>
+                  {healthLoading ? '...' : ((systemHealth as any)?.openai ? 'Online' : 'Offline')}
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -196,29 +196,29 @@ export function DiagnosticsPanel() {
 
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    {systemHealth?.database ? (
+                    {(systemHealth as any)?.database ? (
                       <CheckCircle className="h-5 w-5 text-green-500" />
                     ) : (
                       <AlertTriangle className="h-5 w-5 text-red-500" />
                     )}
                     <span>PostgreSQL Database</span>
                   </div>
-                  <Badge className={systemHealth?.database ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200" : "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"}>
-                    {systemHealth?.database ? 'Connected' : 'Error'}
+                  <Badge className={(systemHealth as any)?.database ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200" : "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"}>
+                    {(systemHealth as any)?.database ? 'Connected' : 'Error'}
                   </Badge>
                 </div>
 
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    {systemHealth?.openai ? (
+                    {(systemHealth as any)?.openai ? (
                       <CheckCircle className="h-5 w-5 text-green-500" />
                     ) : (
                       <AlertTriangle className="h-5 w-5 text-red-500" />
                     )}
                     <span>OpenAI API Integration</span>
                   </div>
-                  <Badge className={systemHealth?.openai ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200" : "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"}>
-                    {systemHealth?.openai ? 'Connected' : 'Error'}
+                  <Badge className={(systemHealth as any)?.openai ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200" : "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"}>
+                    {(systemHealth as any)?.openai ? 'Connected' : 'Error'}
                   </Badge>
                 </div>
 
@@ -251,8 +251,8 @@ export function DiagnosticsPanel() {
                   Response Time
                 </CardTitle>
                 <CardDescription className="text-2xl font-bold">
-                  {dataGatheringMetrics?.performanceMetrics?.averageLoadTime ? 
-                    `${Math.round(dataGatheringMetrics.performanceMetrics.averageLoadTime)}ms` : 
+                  {(dataGatheringMetrics as any)?.performanceMetrics?.averageLoadTime ? 
+                    `${Math.round((dataGatheringMetrics as any).performanceMetrics.averageLoadTime)}ms` : 
                     '350ms'
                   }
                 </CardDescription>
@@ -269,8 +269,8 @@ export function DiagnosticsPanel() {
                   Error Rate
                 </CardTitle>
                 <CardDescription className="text-2xl font-bold">
-                  {dataGatheringMetrics?.performanceMetrics?.errorRate ? 
-                    `${dataGatheringMetrics.performanceMetrics.errorRate.toFixed(2)}%` : 
+                  {(dataGatheringMetrics as any)?.performanceMetrics?.errorRate ? 
+                    `${(dataGatheringMetrics as any).performanceMetrics.errorRate.toFixed(2)}%` : 
                     '0.12%'
                   }
                 </CardDescription>
@@ -287,7 +287,7 @@ export function DiagnosticsPanel() {
                   Throughput
                 </CardTitle>
                 <CardDescription className="text-2xl font-bold">
-                  {liveAnalytics?.activeUsers || 0} RPS
+                  {(liveAnalytics as any)?.activeUsers || 0} RPS
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -302,11 +302,11 @@ export function DiagnosticsPanel() {
                   System Health
                 </CardTitle>
                 <CardDescription className="text-2xl font-bold">
-                  {dataGatheringMetrics?.performanceMetrics?.systemHealth || 95}%
+                  {(dataGatheringMetrics as any)?.performanceMetrics?.systemHealth || 95}%
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <Progress value={dataGatheringMetrics?.performanceMetrics?.systemHealth || 95} className="h-2" />
+                <Progress value={(dataGatheringMetrics as any)?.performanceMetrics?.systemHealth || 95} className="h-2" />
               </CardContent>
             </Card>
           </div>
@@ -324,7 +324,7 @@ export function DiagnosticsPanel() {
                 </div>
               ) : (
                 <div className="space-y-4">
-                  {dataGatheringMetrics?.performanceMetrics?.apiResponseTimes?.map((api: any, index: number) => (
+                  {(dataGatheringMetrics as any)?.performanceMetrics?.apiResponseTimes?.map((api: any, index: number) => (
                     <div key={index} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
                       <span className="font-mono text-sm">{api.endpoint}</span>
                       <div className="flex items-center gap-2">
@@ -352,12 +352,12 @@ export function DiagnosticsPanel() {
                   Total Users
                 </CardTitle>
                 <CardDescription className="text-2xl font-bold text-white">
-                  {analyticsLoading ? '...' : (liveAnalytics?.totalUsers?.toLocaleString() || '0')}
+                  {analyticsLoading ? '...' : ((liveAnalytics as any)?.totalUsers?.toLocaleString() || '0')}
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="text-xs opacity-90">
-                  {analyticsLoading ? '...' : (liveAnalytics?.newUsers || 0)} new today
+                  {analyticsLoading ? '...' : ((liveAnalytics as any)?.newUsers || 0)} new today
                 </div>
               </CardContent>
             </Card>
@@ -369,7 +369,7 @@ export function DiagnosticsPanel() {
                   Active Users
                 </CardTitle>
                 <CardDescription className="text-2xl font-bold text-white">
-                  {analyticsLoading ? '...' : (liveAnalytics?.activeUsers?.toLocaleString() || '0')}
+                  {analyticsLoading ? '...' : ((liveAnalytics as any)?.activeUsers?.toLocaleString() || '0')}
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -386,12 +386,12 @@ export function DiagnosticsPanel() {
                   Sessions Today
                 </CardTitle>
                 <CardDescription className="text-2xl font-bold text-white">
-                  {analyticsLoading ? '...' : (liveAnalytics?.sessionsToday?.toLocaleString() || '0')}
+                  {analyticsLoading ? '...' : ((liveAnalytics as any)?.sessionsToday?.toLocaleString() || '0')}
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="text-xs opacity-90">
-                  Avg duration: {analyticsLoading ? '...' : (liveAnalytics?.avgSessionDuration || '5.2')} min
+                  Avg duration: {analyticsLoading ? '...' : ((liveAnalytics as any)?.avgSessionDuration || '5.2')} min
                 </div>
               </CardContent>
             </Card>
@@ -403,12 +403,12 @@ export function DiagnosticsPanel() {
                   AI Interactions
                 </CardTitle>
                 <CardDescription className="text-2xl font-bold text-white">
-                  {dataGatheringMetrics?.featureUsage?.chatInteractions?.totalMessages?.toLocaleString() || '0'}
+                  {(dataGatheringMetrics as any)?.featureUsage?.chatInteractions?.totalMessages?.toLocaleString() || '0'}
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="text-xs opacity-90">
-                  {dataGatheringMetrics?.featureUsage?.chatInteractions?.successRate?.toFixed(1) || '95'}% success rate
+                  {(dataGatheringMetrics as any)?.featureUsage?.chatInteractions?.successRate?.toFixed(1) || '95'}% success rate
                 </div>
               </CardContent>
             </Card>
@@ -480,12 +480,12 @@ export function DiagnosticsPanel() {
                   <div>
                     <h4 className="font-medium mb-4">Page Visit Distribution</h4>
                     <div className="space-y-3">
-                      {dataGatheringMetrics?.pageMetrics?.mostVisited?.slice(0, 5).map((page: any, index: number) => (
+                      {(dataGatheringMetrics as any)?.pageMetrics?.mostVisited?.slice(0, 5).map((page: any, index: number) => (
                         <div key={index} className="flex justify-between items-center">
                           <span className="text-sm truncate">{page.page}</span>
                           <div className="flex items-center gap-2">
                             <span className="text-sm font-mono">{page.visits}</span>
-                            <Progress value={(page.visits / Math.max(...(dataGatheringMetrics?.pageMetrics?.mostVisited?.map((p: any) => p.visits) || [1]))) * 100} className="w-16 h-2" />
+                            <Progress value={(page.visits / Math.max(...((dataGatheringMetrics as any)?.pageMetrics?.mostVisited?.map((p: any) => p.visits) || [1]))) * 100} className="w-16 h-2" />
                           </div>
                         </div>
                       )) || (
@@ -497,7 +497,7 @@ export function DiagnosticsPanel() {
                   <div>
                     <h4 className="font-medium mb-4">User Journey Analytics</h4>
                     <div className="space-y-3">
-                      {dataGatheringMetrics?.userBehavior?.userJourneys?.slice(0, 5).map((journey: any, index: number) => (
+                      {(dataGatheringMetrics as any)?.userBehavior?.userJourneys?.slice(0, 5).map((journey: any, index: number) => (
                         <div key={index} className="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
                           <div className="text-sm font-medium">{journey.path}</div>
                           <div className="text-xs text-gray-600 dark:text-gray-400">
@@ -524,11 +524,11 @@ export function DiagnosticsPanel() {
                   AI Prediction Accuracy
                 </CardTitle>
                 <CardDescription className="text-2xl font-bold">
-                  {aiLoading ? '...' : `${aiPerformance?.predictionAccuracy?.toFixed(1) || '0'}%`}
+                  {aiLoading ? '...' : `${(aiPerformance as any)?.predictionAccuracy?.toFixed(1) || '0'}%`}
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <Progress value={aiPerformance?.predictionAccuracy || 0} className="h-2" />
+                <Progress value={(aiPerformance as any)?.predictionAccuracy || 0} className="h-2" />
               </CardContent>
             </Card>
 
@@ -539,11 +539,11 @@ export function DiagnosticsPanel() {
                   Model Efficiency
                 </CardTitle>
                 <CardDescription className="text-2xl font-bold">
-                  {aiLoading ? '...' : `${aiPerformance?.quantumModelEfficiency?.toFixed(1) || '0'}%`}
+                  {aiLoading ? '...' : `${(aiPerformance as any)?.quantumModelEfficiency?.toFixed(1) || '0'}%`}
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <Progress value={aiPerformance?.quantumModelEfficiency || 0} className="h-2" />
+                <Progress value={(aiPerformance as any)?.quantumModelEfficiency || 0} className="h-2" />
               </CardContent>
             </Card>
 
@@ -554,11 +554,11 @@ export function DiagnosticsPanel() {
                   User Satisfaction
                 </CardTitle>
                 <CardDescription className="text-2xl font-bold">
-                  {aiLoading ? '...' : `${aiPerformance?.userSatisfactionScore?.toFixed(1) || '0'}%`}
+                  {aiLoading ? '...' : `${(aiPerformance as any)?.userSatisfactionScore?.toFixed(1) || '0'}%`}
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <Progress value={aiPerformance?.userSatisfactionScore || 0} className="h-2" />
+                <Progress value={(aiPerformance as any)?.userSatisfactionScore || 0} className="h-2" />
               </CardContent>
             </Card>
           </div>
@@ -576,7 +576,7 @@ export function DiagnosticsPanel() {
                 </div>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  {dataGatheringMetrics?.featureUsage?.aiAdvisors?.map((advisor: any, index: number) => (
+                  {(dataGatheringMetrics as any)?.featureUsage?.aiAdvisors?.map((advisor: any, index: number) => (
                     <Card key={index} className="p-4">
                       <h4 className="font-medium flex items-center gap-2">
                         <Brain className="h-4 w-4" />

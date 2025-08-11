@@ -27,7 +27,6 @@ import { useAuth } from "@/hooks/useAuth";
 import UserSettingsModal from "@/components/settings/UserSettingsModal";
 
 import OnboardingForm from "@/components/financial/OnboardingForm";
-import FinancialGoalsDashboard from "@/components/dashboard/FinancialGoalsDashboard";
 import AdvisorSelection from "@/components/financial/AdvisorSelection";
 import { PersonalizedDecisionTreeView } from "@/components/financial/PersonalizedDecisionTreeView";
 
@@ -445,8 +444,9 @@ export default function FinAppHome() {
                   recognition.
                 </AlertDescription>
               </Alert>
-              <FinancialGoalsDashboard
+              <OnboardingForm
                 userId={(currentUser as any)?.id || "demo-user"}
+                onComplete={() => handleFlowChange("advisor-selection")}
               />
             </TabsContent>
 

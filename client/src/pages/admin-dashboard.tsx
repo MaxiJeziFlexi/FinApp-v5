@@ -5,7 +5,8 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { FinancialDashboardWidgets } from '@/components/dashboard/FinancialDashboardWidgets';
 import AdvancedAIControlCenter from "@/components/admin/AdvancedAIControlCenter";
-import { Users, MessageCircle, TrendingUp, Settings, Shield, Database, Activity, AlertTriangle, CheckCircle, RefreshCw, BarChart3, Brain, Bot } from 'lucide-react';
+import { WebScrapingPanel } from "@/components/admin/WebScrapingPanel";
+import { Users, MessageCircle, TrendingUp, Settings, Shield, Database, Activity, AlertTriangle, CheckCircle, RefreshCw, BarChart3, Brain, Bot, Globe } from 'lucide-react';
 import { apiRequest } from '@/lib/queryClient';
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '@/hooks/useAuth';
@@ -162,8 +163,8 @@ export function AdminDashboard() {
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="users">Users</TabsTrigger>
             <TabsTrigger value="analytics">Analytics</TabsTrigger>
+            <TabsTrigger value="webscraping">Web Scraping</TabsTrigger>
             <TabsTrigger value="ai-control">AI Control</TabsTrigger>
-            <TabsTrigger value="system">System</TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview" className="space-y-6">
@@ -386,6 +387,10 @@ export function AdminDashboard() {
             <div className="p-0 -m-6">
               <AdvancedAIControlCenter />
             </div>
+          </TabsContent>
+
+          <TabsContent value="webscraping" className="space-y-6">
+            <WebScrapingPanel />
           </TabsContent>
 
           <TabsContent value="system" className="space-y-6">

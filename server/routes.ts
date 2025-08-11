@@ -20,6 +20,7 @@ import { AuthUtils } from "./utils/auth";
 import { RealtimeDataService } from "./services/realtimeDataService";
 import { DiagnosticsService } from "./services/diagnosticsService";
 import { analyticsService } from "./services/analyticsService";
+import { webScrapingService } from "./services/webScrapingService";
 import { setupAuth, isAuthenticated } from "./replitAuth";
 import { requireAdmin, logAdminAction, validateAIParams } from "./middleware/adminAuth";
 import { aiMetricsService } from "./services/aiMetricsService";
@@ -3599,6 +3600,106 @@ What would you like me to help you with?`,
         error: 'Failed to execute AI control action',
         message: error instanceof Error ? error.message : 'Unknown error'
       });
+    }
+  });
+
+  // ==========================================
+  // WEBSCRAPING ROUTES (Admin Only)
+  // ==========================================
+  
+  // Create scraping job
+  app.post('/api/admin/webscraping/jobs', requireAdmin, async (req, res) => {
+    try {
+      const { urls, options } = req.body;
+      
+      if (!urls || !Array.isArray(urls) || urls.length === 0) {
+        return res.status(400).json({ error: 'URLs array is required' });
+      }
+
+      const jobId = await webScrapingService.createScrapingJob(urls, options || {});
+      
+      await logAdminAction(req.user?.id || 'unknown', 'create_scraping_job', { 
+        jobId, 
+        urlCount: urls.length,
+        options: options || {}
+      });
+
+      res.json({ 
+        success: true, 
+        jobId,
+        message: `Scraping job created for ${urls.length} URLs`
+      });
+    } catch (error: any) {
+      console.error('Create scraping job error:', error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Get all scraping jobs
+  app.get('/api/admin/webscraping/jobs', requireAdmin, async (req, res) => {
+    try {
+      const jobs = webScrapingService.getAllJobs();
+      res.json(jobs);
+    } catch (error: any) {
+      console.error('Get scraping jobs error:', error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Get specific scraping job
+  app.get('/api/admin/webscraping/jobs/:jobId', requireAdmin, async (req, res) => {
+    try {
+      const job = webScrapingService.getJob(req.params.jobId);
+      if (!job) {
+        return res.status(404).json({ error: 'Job not found' });
+      }
+      res.json(job);
+    } catch (error: any) {
+      console.error('Get scraping job error:', error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Delete scraping job
+  app.delete('/api/admin/webscraping/jobs/:jobId', requireAdmin, async (req, res) => {
+    try {
+      const deleted = webScrapingService.deleteJob(req.params.jobId);
+      if (!deleted) {
+        return res.status(404).json({ error: 'Job not found' });
+      }
+
+      await logAdminAction(req.user?.id || 'unknown', 'delete_scraping_job', { 
+        jobId: req.params.jobId 
+      });
+
+      res.json({ success: true, message: 'Job deleted successfully' });
+    } catch (error: any) {
+      console.error('Delete scraping job error:', error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Quick scrape single URL
+  app.post('/api/admin/webscraping/scrape', requireAdmin, async (req, res) => {
+    try {
+      const { url, options } = req.body;
+      
+      if (!url) {
+        return res.status(400).json({ error: 'URL is required' });
+      }
+
+      const result = await webScrapingService.scrapeUrl(url, options || {});
+      
+      await logAdminAction(req.user?.id || 'unknown', 'quick_scrape', { 
+        url,
+        success: result.status === 'success',
+        wordCount: result.metadata.wordCount
+      });
+
+      res.json(result);
+    } catch (error: any) {
+      console.error('Quick scrape error:', error);
+      res.status(500).json({ error: error.message });
     }
   });
 

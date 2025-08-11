@@ -52,6 +52,34 @@ Preferred communication style: Simple, everyday language.
 7.  **Real-Time Data Integration**: Live market feeds, economic indicators, tax regulations, and sentiment analysis.
 8.  **Speech Recognition Integration**: Client-side Web Speech API with server-side processing for transcript validation.
 
+# Recent Changes (August 11, 2025)
+
+## Latest Web Scraping Integration ✅
+✅ **Complete Web Scraping System**: 
+   - **Advanced Web Scraping Service**: Full-featured service supporting both Cheerio (fast) and Puppeteer (dynamic content) scraping
+   - **Admin Panel Integration**: New "Web Scraping" tab in admin dashboard with comprehensive interface
+   - **Batch Processing**: Support for multiple URLs with job management and real-time progress tracking
+   - **Data Extraction**: Title, content, metadata, images, links, and custom selector support
+   - **Security**: Admin-only access with comprehensive logging and audit trails
+
+✅ **Enhanced Admin Features**: 
+   - **Quick Scrape**: Instant single URL scraping with immediate results
+   - **Job Management**: Create, monitor, and delete scraping jobs with progress tracking
+   - **Custom Options**: Configurable timeouts, selectors, browser options, and extraction settings
+   - **Real-time Updates**: Live job status updates and progress monitoring
+   - **Error Handling**: Comprehensive error reporting and failed URL management
+
+✅ **Technical Implementation**: 
+   - **New Dependencies**: Added Cheerio, Puppeteer, and Node-fetch for comprehensive scraping capabilities
+   - **API Routes**: 5 new admin-only endpoints for complete scraping functionality
+   - **Type Safety**: Full TypeScript interfaces for all scraping data structures
+   - **Performance**: Optimized for both speed (Cheerio) and dynamic content (Puppeteer)
+
+✅ **Dark Mode Navigation Fix**: 
+   - Fixed sidebar text visibility in dark mode with proper white/light colors
+   - Updated all navigation sections (main, premium, admin) for dark mode support
+   - Enhanced mobile navigation with consistent dark mode theme
+
 # Recent Changes (August 10, 2025)
 
 ## Latest Supercharged AI Advisors Implementation ✅

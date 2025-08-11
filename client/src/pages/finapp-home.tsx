@@ -44,7 +44,7 @@ type AppFlow =
   | "decision-tree"
   | "chat"
   | "analytics";
-type Advisor = { id: string; name?: string; [k: string]: any };
+type Advisor = { id: string; name: string; specialty?: string; icon?: string; [k: string]: any };
 
 export default function FinAppHome() {
   const [currentFlow, setCurrentFlow] = useState<AppFlow>("onboarding");
@@ -409,7 +409,7 @@ export default function FinAppHome() {
               <TabsTrigger
                 value="decision-tree"
                 className="flex items-center gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-indigo-600 data-[state=active]:text-white text-gray-300 font-mono text-sm transition-all duration-300"
-                disabled={!selectedAdvisor?.id}
+                disabled={!selectedAdvisor}
               >
                 <BarChart3 className="w-4 h-4" />
                 DECISION MATRIX
@@ -418,7 +418,7 @@ export default function FinAppHome() {
               <TabsTrigger
                 value="chat"
                 className="flex items-center gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-green-500 data-[state=active]:to-emerald-600 data-[state=active]:text-white text-gray-300 font-mono text-sm transition-all duration-300"
-                disabled={!selectedAdvisor?.id}
+                disabled={!selectedAdvisor}
               >
                 <MessageSquare className="w-4 h-4" />
                 NEURAL CHAT
@@ -459,7 +459,6 @@ export default function FinAppHome() {
                 </AlertDescription>
               </Alert>
               <AdvisorSelection
-                userProfile={userProfile as any}
                 onAdvisorSelect={handleAdvisorSelected}
               />
             </TabsContent>

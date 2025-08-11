@@ -45,7 +45,7 @@ const navigationItems = [
     badge: 'AI'
   },
   {
-    path: '/',
+    path: '/budget-tools',
     label: 'Budżet & Cashflow',
     icon: Calculator,
     description: 'Automatyczne zarządzanie finansami',

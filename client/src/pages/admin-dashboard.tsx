@@ -6,6 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { FinancialDashboardWidgets } from '@/components/dashboard/FinancialDashboardWidgets';
 import AdvancedAIControlCenter from "@/components/admin/AdvancedAIControlCenter";
 import { WebScrapingPanel } from "@/components/admin/WebScrapingPanel";
+import { RealDataGatheringPanel } from "@/components/admin/RealDataGatheringPanel";
 import { Users, MessageCircle, TrendingUp, Settings, Shield, Database, Activity, AlertTriangle, CheckCircle, RefreshCw, BarChart3, Brain, Bot, Globe } from 'lucide-react';
 import { apiRequest } from '@/lib/queryClient';
 import { useQuery } from '@tanstack/react-query';
@@ -159,10 +160,11 @@ export function AdminDashboard() {
 
       <div className="p-6">
         <Tabs defaultValue="overview" className="w-full">
-          <TabsList className="grid w-full grid-cols-5">
+          <TabsList className="grid w-full grid-cols-6">
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="users">Users</TabsTrigger>
             <TabsTrigger value="analytics">Analytics</TabsTrigger>
+            <TabsTrigger value="data-gathering">Data Gathering</TabsTrigger>
             <TabsTrigger value="webscraping">Web Scraping</TabsTrigger>
             <TabsTrigger value="ai-control">AI Control</TabsTrigger>
           </TabsList>
@@ -387,6 +389,10 @@ export function AdminDashboard() {
             <div className="p-0 -m-6">
               <AdvancedAIControlCenter />
             </div>
+          </TabsContent>
+
+          <TabsContent value="data-gathering" className="space-y-6">
+            <RealDataGatheringPanel />
           </TabsContent>
 
           <TabsContent value="webscraping" className="space-y-6">

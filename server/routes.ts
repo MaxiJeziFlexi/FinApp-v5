@@ -3646,6 +3646,56 @@ What would you like me to help you with?`,
     }
   });
 
+  // ==========================================
+  // REAL DATA GATHERING ROUTES
+  // ==========================================
+  
+  // Get comprehensive app data metrics
+  app.get('/api/admin/data-gathering/metrics', requireAdmin, async (req, res) => {
+    try {
+      const { realDataGatheringService } = await import('./services/realDataGatheringService');
+      const metrics = await realDataGatheringService.gatherAllData();
+      res.json(metrics);
+    } catch (error: any) {
+      console.error('Data gathering error:', error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Get real-time app insights
+  app.get('/api/admin/data-gathering/insights', requireAdmin, async (req, res) => {
+    try {
+      const { realDataGatheringService } = await import('./services/realDataGatheringService');
+      const insights = realDataGatheringService.generateInsights();
+      res.json(insights);
+    } catch (error: any) {
+      console.error('Data insights error:', error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Trigger data collection from app usage
+  app.post('/api/admin/data-gathering/collect', requireAdmin, async (req, res) => {
+    try {
+      const { realDataGatheringService } = await import('./services/realDataGatheringService');
+      const metrics = await realDataGatheringService.gatherAllData();
+      
+      await logAdminAction(req.user?.id || 'unknown', 'trigger_data_collection', { 
+        timestamp: new Date().toISOString(),
+        metricsCollected: Object.keys(metrics).length
+      });
+
+      res.json({ 
+        success: true, 
+        message: 'Real data collection completed',
+        metrics 
+      });
+    } catch (error: any) {
+      console.error('Data collection trigger error:', error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+
   // Get specific scraping job
   app.get('/api/admin/webscraping/jobs/:jobId', requireAdmin, async (req, res) => {
     try {

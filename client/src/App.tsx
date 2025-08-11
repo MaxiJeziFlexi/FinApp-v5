@@ -36,14 +36,15 @@ import CommunityDiscussions from "@/pages/community-discussions";
 import UserProfile from "@/pages/user-profile";
 import AdminJarvis from "@/pages/AdminJarvis";
 import { ThemeProvider } from "@/contexts/ThemeContext";
-
-// Initialize heat map service to start tracking clicks
-import "@/services/heatMapService";
+import { useHeatMapTracking } from "@/hooks/useHeatMapTracking";
 
 
 function Router() {
   const { isAuthenticated, isLoading } = useAuth();
   const [location] = useLocation();
+  
+  // Enable heat map tracking
+  useHeatMapTracking();
   
   // Show loading state while checking authentication
   if (isLoading) {

@@ -38,6 +38,91 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Auth middleware
   await setupAuth(app);
   
+  // Public Analytics Routes (no authentication required for heat map tracking)
+  app.post('/api/public/analytics/button-click', async (req, res) => {
+    try {
+      const { buttonId, buttonText, page, position, timestamp, userId, sessionId } = req.body;
+      
+      const event = {
+        user_id: userId || 'anonymous',
+        session_id: sessionId || `anon_${Date.now()}`,
+        event_type: 'button_click',
+        page_url: page || '/',
+        element_type: 'button',
+        element_id: buttonId || 'unknown',
+        element_text: buttonText || 'Unknown Button',
+        click_position: position || { x: 0, y: 0 },
+        timestamp: new Date(timestamp || Date.now()),
+        metadata: { buttonId, buttonText, position }
+      };
+
+      await storage.createInteractionEvent(event);
+      
+      res.json({ 
+        success: true, 
+        message: 'Button click tracked successfully',
+        timestamp: new Date().toISOString()
+      });
+    } catch (error) {
+      console.error('Public button click tracking error:', error);
+      res.status(500).json({ message: 'Failed to track button click', error: error.message });
+    }
+  });
+
+  app.get('/api/public/analytics/heatmap', async (req, res) => {
+    try {
+      const { page } = req.query;
+      
+      const events = await storage.getInteractionEvents();
+      
+      const buttonClicks = events.filter(event => 
+        event.eventType === 'button_click' && 
+        (!page || event.pagePath === page)
+      );
+      
+      const aggregated = new Map<string, any>();
+      
+      buttonClicks.forEach(event => {
+        const key = `${event.pagePath}_${event.elementId}`;
+        
+        if (!aggregated.has(key)) {
+          aggregated.set(key, {
+            buttonId: event.elementId,
+            buttonText: event.elementText,
+            page: event.pagePath,
+            clickCount: 0,
+            uniqueUsers: new Set(),
+            lastClicked: event.timestamp,
+            positions: []
+          });
+        }
+        
+        const data = aggregated.get(key)!;
+        data.clickCount++;
+        data.uniqueUsers.add(event.userId);
+        data.lastClicked = event.timestamp > data.lastClicked ? event.timestamp : data.lastClicked;
+        
+        if (event.coordinates) {
+          data.positions.push({
+            x: event.coordinates.x,
+            y: event.coordinates.y,
+            count: 1
+          });
+        }
+      });
+      
+      const heatMapData = Array.from(aggregated.values()).map(item => ({
+        ...item,
+        uniqueUsers: item.uniqueUsers.size
+      })).sort((a, b) => b.clickCount - a.clickCount);
+      
+      res.json(heatMapData);
+    } catch (error) {
+      console.error('Public heat map error:', error);
+      res.status(500).json({ message: 'Failed to fetch heat map data', error: error.message });
+    }
+  });
+  
   // Enhanced data collection endpoints for AI training
   app.post('/api/data-collection/ai-interaction', async (req, res) => {
     try {
@@ -3619,17 +3704,52 @@ What would you like me to help you with?`,
         ORDER BY "clickCount" DESC
       `;
 
-      const result = await storage.query(query, params);
+      // Get interaction events from storage
+      const events = await storage.getInteractionEvents();
       
-      // Process positions data
-      const heatMapData = result.rows.map(row => ({
-        ...row,
-        positions: row.positions.map((pos: any) => ({
-          x: pos.x,
-          y: pos.y,
-          count: 1
-        }))
-      }));
+      // Filter by button clicks and optional page
+      const buttonClicks = events.filter(event => 
+        event.event_type === 'button_click' && 
+        (!page || event.page_url === page)
+      );
+      
+      // Aggregate data by element
+      const aggregated = new Map<string, any>();
+      
+      buttonClicks.forEach(event => {
+        const key = `${event.page_url}_${event.element_id}`;
+        
+        if (!aggregated.has(key)) {
+          aggregated.set(key, {
+            buttonId: event.element_id,
+            buttonText: event.element_text,
+            page: event.page_url,
+            clickCount: 0,
+            uniqueUsers: new Set(),
+            lastClicked: event.timestamp,
+            positions: []
+          });
+        }
+        
+        const data = aggregated.get(key)!;
+        data.clickCount++;
+        data.uniqueUsers.add(event.user_id);
+        data.lastClicked = event.timestamp > data.lastClicked ? event.timestamp : data.lastClicked;
+        
+        if (event.click_position) {
+          data.positions.push({
+            x: event.click_position.x,
+            y: event.click_position.y,
+            count: 1
+          });
+        }
+      });
+      
+      // Convert to array and format
+      const heatMapData = Array.from(aggregated.values()).map(item => ({
+        ...item,
+        uniqueUsers: item.uniqueUsers.size
+      })).sort((a, b) => b.clickCount - a.clickCount);
       
       res.json(heatMapData);
     } catch (error) {
@@ -3656,27 +3776,59 @@ What would you like me to help you with?`,
         ORDER BY page_url, "clickCount" DESC
       `;
 
-      const result = await storage.query(query, []);
+      // Get all interaction events
+      const events = await storage.getInteractionEvents();
+      
+      // Filter by button clicks
+      const buttonClicks = events.filter(event => event.event_type === 'button_click');
       
       // Group by page
       const pageGroups: Record<string, any[]> = {};
-      result.rows.forEach(row => {
-        if (!pageGroups[row.page]) {
-          pageGroups[row.page] = [];
+      const aggregated = new Map<string, any>();
+      
+      buttonClicks.forEach(event => {
+        const key = `${event.page_url}_${event.element_id}`;
+        
+        if (!aggregated.has(key)) {
+          aggregated.set(key, {
+            buttonId: event.element_id,
+            buttonText: event.element_text,
+            page: event.page_url,
+            clickCount: 0,
+            uniqueUsers: new Set(),
+            lastClicked: event.timestamp,
+            positions: []
+          });
         }
-        pageGroups[row.page].push({
-          buttonId: row.buttonId,
-          buttonText: row.buttonText,
-          page: row.page,
-          clickCount: row.clickCount,
-          uniqueUsers: row.uniqueUsers,
-          lastClicked: row.lastClicked,
-          positions: row.positions.map((pos: any) => ({
-            x: pos.x,
-            y: pos.y,
+        
+        const data = aggregated.get(key)!;
+        data.clickCount++;
+        data.uniqueUsers.add(event.user_id);
+        data.lastClicked = event.timestamp > data.lastClicked ? event.timestamp : data.lastClicked;
+        
+        if (event.click_position) {
+          data.positions.push({
+            x: event.click_position.x,
+            y: event.click_position.y,
             count: 1
-          }))
+          });
+        }
+      });
+      
+      // Group by page
+      Array.from(aggregated.values()).forEach(item => {
+        if (!pageGroups[item.page]) {
+          pageGroups[item.page] = [];
+        }
+        pageGroups[item.page].push({
+          ...item,
+          uniqueUsers: item.uniqueUsers.size
         });
+      });
+      
+      // Sort each page group by click count
+      Object.keys(pageGroups).forEach(page => {
+        pageGroups[page].sort((a, b) => b.clickCount - a.clickCount);
       });
       
       res.json(pageGroups);
@@ -3706,8 +3858,43 @@ What would you like me to help you with?`,
         LIMIT $1
       `;
 
-      const result = await storage.query(query, [parseInt(limit as string)]);
-      res.json(result.rows);
+      // Get all interaction events
+      const events = await storage.getInteractionEvents();
+      
+      // Filter by button clicks and aggregate
+      const buttonClicks = events.filter(event => event.event_type === 'button_click');
+      const aggregated = new Map<string, any>();
+      
+      buttonClicks.forEach(event => {
+        const key = `${event.page_url}_${event.element_id}`;
+        
+        if (!aggregated.has(key)) {
+          aggregated.set(key, {
+            buttonId: event.element_id,
+            buttonText: event.element_text,
+            page: event.page_url,
+            clickCount: 0,
+            uniqueUsers: new Set(),
+            lastClicked: event.timestamp
+          });
+        }
+        
+        const data = aggregated.get(key)!;
+        data.clickCount++;
+        data.uniqueUsers.add(event.user_id);
+        data.lastClicked = event.timestamp > data.lastClicked ? event.timestamp : data.lastClicked;
+      });
+      
+      // Convert to array, format, and sort by click count
+      const topElements = Array.from(aggregated.values())
+        .map(item => ({
+          ...item,
+          uniqueUsers: item.uniqueUsers.size
+        }))
+        .sort((a, b) => b.clickCount - a.clickCount)
+        .slice(0, parseInt(limit as string));
+      
+      res.json(topElements);
     } catch (error) {
       console.error('Top clicked elements error:', error);
       res.status(500).json({ message: 'Failed to fetch top clicked elements' });

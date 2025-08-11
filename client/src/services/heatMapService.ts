@@ -33,15 +33,18 @@ class HeatMapService {
   }
 
   private initializeGlobalClickTracking() {
-    // Track all button clicks globally
-    document.addEventListener('click', (event) => {
-      const target = event.target as HTMLElement;
-      
-      // Check if the clicked element is a button or has button-like behavior
-      if (this.isTrackableElement(target)) {
-        this.trackButtonClick(target, event);
-      }
-    });
+    // Only initialize if we're in the browser
+    if (typeof document !== 'undefined') {
+      // Track all button clicks globally
+      document.addEventListener('click', (event) => {
+        const target = event.target as HTMLElement;
+        
+        // Check if the clicked element is a button or has button-like behavior
+        if (this.isTrackableElement(target)) {
+          this.trackButtonClick(target, event);
+        }
+      });
+    }
   }
 
   private isTrackableElement(element: HTMLElement): boolean {
@@ -73,7 +76,7 @@ class HeatMapService {
   }
 
   private getCurrentPage(): string {
-    return window.location.pathname;
+    return typeof window !== 'undefined' ? window.location.pathname : '/';
   }
 
   private getUserId(): string {
@@ -85,7 +88,7 @@ class HeatMapService {
     if (localUser) return localUser;
     
     // Fallback to demo user or admin user based on current page
-    const path = window.location.pathname;
+    const path = typeof window !== 'undefined' ? window.location.pathname : '/';
     if (path.includes('admin')) return 'admin-user';
     
     return 'demo-user';
@@ -106,32 +109,30 @@ class HeatMapService {
         sessionId: this.sessionId
       };
 
-      // Send to backend immediately
-      await apiRequest('/api/analytics/button-click', {
-        method: 'POST',
-        body: buttonData
-      });
+      // Only try to send if we're in a browser environment
+      if (typeof window !== 'undefined') {
+        fetch('/api/analytics/button-click', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(buttonData)
+        }).catch(err => {
+          console.log('Heat map tracking error:', err.message);
+        });
+      }
 
       // Also store locally as backup
       this.storeLocalHeatMapData(buttonData);
     } catch (error) {
-      console.error('Failed to track button click:', error);
-      // Still store locally if API fails
-      const buttonData: ButtonClick = {
-        buttonId: this.getElementIdentifier(element),
-        buttonText: element.textContent?.trim() || 'Unknown',
-        page: this.getCurrentPage(),
-        position: { x: event.clientX, y: event.clientY },
-        timestamp: new Date().toISOString(),
-        userId: this.getUserId(),
-        sessionId: this.sessionId
-      };
-      this.storeLocalHeatMapData(buttonData);
+      console.log('Heat map service error:', error);
     }
   }
 
   private storeLocalHeatMapData(data: ButtonClick) {
     try {
+      if (typeof localStorage === 'undefined') return;
+      
       const existing = localStorage.getItem('heatMapData');
       const heatMapData = existing ? JSON.parse(existing) : [];
       
@@ -151,8 +152,9 @@ class HeatMapService {
   async getHeatMapData(page?: string): Promise<HeatMapData[]> {
     try {
       const params = page ? `?page=${encodeURIComponent(page)}` : '';
-      const response = await apiRequest(`/api/analytics/heatmap${params}`);
-      return response;
+      const response = await fetch(`/api/analytics/heatmap${params}`);
+      if (!response.ok) throw new Error('Failed to fetch');
+      return await response.json();
     } catch (error) {
       console.error('Failed to fetch heat map data:', error);
       return this.getLocalHeatMapData(page);
@@ -161,6 +163,8 @@ class HeatMapService {
 
   private getLocalHeatMapData(page?: string): HeatMapData[] {
     try {
+      if (typeof localStorage === 'undefined') return [];
+      
       const stored = localStorage.getItem('heatMapData');
       if (!stored) return [];
       
@@ -210,8 +214,9 @@ class HeatMapService {
 
   async getAllPagesHeatMap(): Promise<Record<string, HeatMapData[]>> {
     try {
-      const response = await apiRequest('/api/analytics/heatmap/all-pages');
-      return response;
+      const response = await fetch('/api/analytics/heatmap/all-pages');
+      if (!response.ok) throw new Error('Failed to fetch');
+      return await response.json();
     } catch (error) {
       console.error('Failed to fetch all pages heat map:', error);
       return {};
@@ -220,8 +225,9 @@ class HeatMapService {
 
   async getTopClickedElements(limit: number = 10): Promise<HeatMapData[]> {
     try {
-      const response = await apiRequest(`/api/analytics/heatmap/top-clicked?limit=${limit}`);
-      return response;
+      const response = await fetch(`/api/analytics/heatmap/top-clicked?limit=${limit}`);
+      if (!response.ok) throw new Error('Failed to fetch');
+      return await response.json();
     } catch (error) {
       console.error('Failed to fetch top clicked elements:', error);
       return [];

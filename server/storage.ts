@@ -19,6 +19,7 @@ import {
   aiEmotionalProfiles,
   aiInsights,
   decisionTreeSessions,
+  userInteractionEvents,
   type User, 
   type InsertUser,
   type UpsertUser,
@@ -163,6 +164,10 @@ export interface IStorage {
   // AI Insights operations
   saveAIInsights(insights: any): Promise<void>;
   getUserAIInsights(userId: string, advisorId: string): Promise<any[]>;
+  
+  // Analytics and Heat Map operations
+  createInteractionEvent(event: any): Promise<any>;
+  getInteractionEvents(): Promise<any[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -965,6 +970,31 @@ export class DatabaseStorage implements IStorage {
         eq(aiInsights.isActive, true)
       ))
       .orderBy(desc(aiInsights.createdAt));
+  }
+
+  // Analytics and Heat Map operations
+  async createInteractionEvent(event: any): Promise<any> {
+    const [created] = await db.insert(userInteractionEvents).values({
+      id: generateId('event'),
+      sessionId: event.session_id,
+      userId: event.user_id,
+      eventType: event.event_type,
+      eventCategory: event.event_category || 'general',
+      eventAction: event.event_action || 'click',
+      eventLabel: event.element_text,
+      elementId: event.element_id,
+      elementClass: event.element_class,
+      elementText: event.element_text,
+      pagePath: event.page_url,
+      coordinates: event.click_position,
+      timestamp: event.timestamp,
+      metadata: event.metadata
+    }).returning();
+    return created;
+  }
+
+  async getInteractionEvents(): Promise<any[]> {
+    return await db.select().from(userInteractionEvents);
   }
 }
 

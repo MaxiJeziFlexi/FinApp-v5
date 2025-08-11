@@ -17,7 +17,9 @@ import {
   Zap,
   RefreshCw,
   Bug,
-  Shield
+  Shield,
+  BarChart3,
+  Eye
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useQuery } from '@tanstack/react-query';

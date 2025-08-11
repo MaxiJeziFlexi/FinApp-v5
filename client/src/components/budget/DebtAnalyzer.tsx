@@ -60,15 +60,15 @@ export default function DebtAnalyzer() {
   const [extraPayment, setExtraPayment] = useState('0');
 
   // Fetch debt summary
-  const { data: debtSummary, isLoading: debtLoading } = useQuery<DebtSummary>({
+  const { data: debtSummary, isLoading: debtLoading } = useQuery({
     queryKey: ['debt-summary'],
-    queryFn: () => apiRequest('/api/budget/debts'),
+    queryFn: () => apiRequest('/api/budget/debts') as Promise<DebtSummary>,
   });
 
   // Fetch payoff scenarios
-  const { data: scenarios, isLoading: scenariosLoading } = useQuery<PayoffScenarios>({
+  const { data: scenarios, isLoading: scenariosLoading } = useQuery({
     queryKey: ['debt-scenarios', extraPayment],
-    queryFn: () => apiRequest(`/api/budget/debt-scenarios?extraPayment=${extraPayment}`),
+    queryFn: () => apiRequest(`/api/budget/debt-scenarios?extraPayment=${extraPayment}`) as Promise<PayoffScenarios>,
     enabled: !!debtSummary && debtSummary.debtCount > 0,
   });
 

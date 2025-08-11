@@ -352,21 +352,21 @@ export default function AnalyticsDashboard() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  <div className="p-4 bg-blue-50 rounded-lg">
-                    <h4 className="font-medium text-blue-900 mb-2">📖 Reading</h4>
-                    <p className="text-sm text-blue-700">AI-detected learning preference shows high retention with visual content. Recommend more chart-based explanations.</p>
+                  <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                    <h4 className="font-medium text-blue-900 dark:text-blue-100 mb-2">📖 Reading</h4>
+                    <p className="text-sm text-blue-700 dark:text-blue-300">AI-detected learning preference shows high retention with visual content. Recommend more chart-based explanations.</p>
                   </div>
-                  <div className="p-4 bg-green-50 rounded-lg">
-                    <h4 className="font-medium text-green-900 mb-2">🎯 Engagement Peak</h4>
-                    <p className="text-sm text-green-700">Most active during financial planning sessions. Consider scheduling key lessons during these periods.</p>
+                  <div className="p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                    <h4 className="font-medium text-green-900 dark:text-green-100 mb-2">🎯 Engagement Peak</h4>
+                    <p className="text-sm text-green-700 dark:text-green-300">Most active during financial planning sessions. Consider scheduling key lessons during these periods.</p>
                   </div>
-                  <div className="p-4 bg-purple-50 rounded-lg">
-                    <h4 className="font-medium text-purple-900 mb-2">⚖️ Moderate Risk Tolerance</h4>
-                    <p className="text-sm text-purple-700">Average session: {Math.round(liveAnalytics?.avgSessionTime || 0)} min</p>
+                  <div className="p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
+                    <h4 className="font-medium text-purple-900 dark:text-purple-100 mb-2">⚖️ Moderate Risk Tolerance</h4>
+                    <p className="text-sm text-purple-700 dark:text-purple-300">Average session: {Math.round((liveAnalytics as any)?.avgSessionTime || 0)} min</p>
                   </div>
-                  <div className="p-4 bg-orange-50 rounded-lg">
-                    <h4 className="font-medium text-orange-900 mb-2">🚀 AI-Powered Behavioral Insights</h4>
-                    <p className="text-sm text-orange-700">Learning Optimization: Mixed learning style detected. Engagement optimization active.</p>
+                  <div className="p-4 bg-orange-50 dark:bg-orange-900/20 rounded-lg">
+                    <h4 className="font-medium text-orange-900 dark:text-orange-100 mb-2">🚀 AI-Powered Behavioral Insights</h4>
+                    <p className="text-sm text-orange-700 dark:text-orange-300">Learning Optimization: Mixed learning style detected. Engagement optimization active.</p>
                   </div>
                 </div>
               </CardContent>
@@ -473,7 +473,7 @@ export default function AnalyticsDashboard() {
               <CardTitle>Engagement Trends</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="h-[200px] flex items-center justify-center bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg">
+              <div className="h-[200px] flex items-center justify-center bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 rounded-lg">
                 <div className="text-center">
                   <PieChart className="w-12 h-12 mx-auto mb-4 text-purple-600" />
                   <p className="text-purple-600 font-medium">Live engagement tracking active</p>

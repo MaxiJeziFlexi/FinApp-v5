@@ -117,6 +117,7 @@ export default function FinAppHome() {
     queryKey: ["userProfile", userId],
     enabled: !!userId, // dopiero gdy znamy usera
     queryFn: async () => {
+      if (!userId) return undefined;
       const res = await fetch(
         `/api/user/profile?userId=${encodeURIComponent(userId as string)}`,
       );
@@ -334,7 +335,7 @@ export default function FinAppHome() {
               </button>
             </div>
 
-            {currentUser && (
+            {currentUser ? (
               <div className="flex items-center justify-center mt-6">
                 <div className="bg-black/40 backdrop-blur-xl border border-cyan-500/50 rounded-2xl px-6 py-4">
                   <div className="flex items-center gap-4">
@@ -369,7 +370,7 @@ export default function FinAppHome() {
                   </div>
                 </div>
               </div>
-            )}
+            ) : null}
           </div>
         </div>
       </div>
@@ -444,7 +445,7 @@ export default function FinAppHome() {
                 </AlertDescription>
               </Alert>
               <OnboardingForm
-                userId={currentUser?.id || "demo-user"}
+                userId={(currentUser as any)?.id || "demo-user"}
                 onComplete={() => handleFlowChange("advisor-selection")}
               />
             </TabsContent>
@@ -476,7 +477,7 @@ export default function FinAppHome() {
               {selectedAdvisor ? (
                 <PersonalizedDecisionTreeView
                   advisorId={selectedAdvisor.id}
-                  userId={currentUser?.id || "demo-user"}
+                  userId={(currentUser as any)?.id || "demo-user"}
                   advisor={selectedAdvisor}
                   onComplete={(insights) => {
                     console.log(
@@ -523,8 +524,8 @@ export default function FinAppHome() {
                   </div>
 
                   <EnhancedChatWindow
-                    userId={currentUser?.id || "demo-user"}
-                    sessionId={`enhanced_${selectedAdvisor.id}_${currentUser?.id || "demo-user"}_${Date.now()}`}
+                    userId={(currentUser as any)?.id || "demo-user"}
+                    sessionId={`enhanced_${selectedAdvisor.id}_${(currentUser as any)?.id || "demo-user"}_${Date.now()}`}
                     advisorId={selectedAdvisor.id}
                     decisionTreeContext={{
                       advisor: selectedAdvisor,
@@ -578,14 +579,14 @@ export default function FinAppHome() {
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <FinancialDashboardWidgets userId={currentUser?.id || "demo-user"} />
+                    <FinancialDashboardWidgets userId={(currentUser as any)?.id || "demo-user"} />
                   </CardContent>
                 </Card>
               )}
 
               <FinancialVisualizations3D data={threeDData} />
               <AdvancedAnalyticsDashboard
-                userId={currentUser?.id || "demo-user"}
+                userId={(currentUser as any)?.id || "demo-user"}
               />
             </TabsContent>
           </Tabs>
@@ -610,7 +611,7 @@ export default function FinAppHome() {
       {currentUser &&
         ((currentUser as any)?.subscriptionTier ||
           (currentUser as any)?.subscription_tier) === "free" &&
-        !isAdmin && (
+        !isAdmin ? (
           <div className="mt-8 bg-gradient-to-r from-gray-900/80 to-black/90 backdrop-blur-xl border border-purple-500/50 rounded-2xl p-6">
             <div className="text-center">
               <div className="w-16 h-16 bg-gradient-to-br from-yellow-400 to-orange-600 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -629,7 +630,7 @@ export default function FinAppHome() {
               </Link>
             </div>
           </div>
-        )}
+        ) : null}
 
       <div className="mt-8 bg-gradient-to-r from-gray-900/60 to-black/80 backdrop-blur-md border border-cyan-500/20 rounded-2xl p-6">
         <div className="text-center">

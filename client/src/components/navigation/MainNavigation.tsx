@@ -44,13 +44,7 @@ const navigationItems = [
     description: 'Generate financial reports with AI',
     badge: 'AI'
   },
-  {
-    path: '/budget-tools',
-    label: 'Budżet & Cashflow',
-    icon: Calculator,
-    description: 'Automatyczne zarządzanie finansami',
-    badge: 'MVP Pro'
-  }
+
 ];
 
 // Premium features - moved outside for better organization

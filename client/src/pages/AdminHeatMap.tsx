@@ -113,27 +113,49 @@ export default function AdminHeatMap() {
             {heatMapData && heatMapData.length > 0 ? (
               <div className="space-y-4">
                 {heatMapData.map((item: any, index: number) => (
-                  <div key={index} className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                  <div key={index} className="flex items-center justify-between p-4 bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-700 rounded-lg border border-gray-200 dark:border-gray-600 hover:shadow-md transition-shadow">
                     <div className="flex-1">
-                      <h3 className="font-medium text-gray-900 dark:text-gray-100">
+                      <h3 className="font-medium text-gray-900 dark:text-gray-100 flex items-center gap-2">
                         {item.buttonText || 'Unknown Button'}
+                        {item.clickCount > 1 && (
+                          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                            Hot
+                          </span>
+                        )}
                       </h3>
                       <p className="text-sm text-gray-500 dark:text-gray-400">
-                        Page: {item.page || 'Unknown'} • ID: {item.buttonId || 'unknown'}
+                        Page: <span className="font-medium">{item.page || 'Unknown'}</span> • ID: <span className="font-mono text-xs">{item.buttonId || 'unknown'}</span>
+                      </p>
+                      <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
+                        Last clicked: {new Date(item.lastClicked).toLocaleString()}
                       </p>
                     </div>
                     <div className="flex items-center gap-6 text-sm">
                       <div className="text-center">
-                        <div className="font-semibold text-lg text-blue-600 dark:text-blue-400">
+                        <div className={`font-semibold text-lg ${item.clickCount > 1 ? 'text-orange-600 dark:text-orange-400' : 'text-blue-600 dark:text-blue-400'}`}>
                           {item.clickCount || 0}
                         </div>
-                        <div className="text-gray-500">Clicks</div>
+                        <div className="text-gray-500 text-xs">Clicks</div>
+                        {item.positions && (
+                          <div className="text-xs text-gray-400 mt-1">
+                            {item.positions.length} positions
+                          </div>
+                        )}
                       </div>
                       <div className="text-center">
                         <div className="font-semibold text-lg text-green-600 dark:text-green-400">
                           {item.uniqueUsers || 0}
                         </div>
-                        <div className="text-gray-500">Users</div>
+                        <div className="text-gray-500 text-xs">Users</div>
+                        <div className="text-xs text-gray-400 mt-1">
+                          {item.uniqueUsers === 1 ? 'Single user' : 'Multiple users'}
+                        </div>
+                      </div>
+                      <div className="text-center">
+                        <div className="font-semibold text-lg text-purple-600 dark:text-purple-400">
+                          {item.positions ? Math.round(item.positions.reduce((sum: number, pos: any) => sum + pos.x, 0) / item.positions.length) : 0}
+                        </div>
+                        <div className="text-gray-500 text-xs">Avg X</div>
                       </div>
                     </div>
                   </div>
@@ -142,6 +164,53 @@ export default function AdminHeatMap() {
             ) : (
               <div className="text-center py-8 text-gray-500 dark:text-gray-400">
                 {isLoading ? "Loading heat map data..." : "No click data available yet. Click the 'Generate Test Data' button to see live tracking in action!"}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Popular Pages Analysis */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Activity className="h-5 w-5" />
+              Page Performance
+            </CardTitle>
+            <CardDescription>
+              Click activity by page location
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {heatMapData && heatMapData.length > 0 ? (
+              <div className="space-y-3">
+                {Object.entries(
+                  heatMapData.reduce((acc: any, item: any) => {
+                    const page = item.page || 'Unknown';
+                    if (!acc[page]) {
+                      acc[page] = { totalClicks: 0, buttons: 0, users: new Set() };
+                    }
+                    acc[page].totalClicks += item.clickCount || 0;
+                    acc[page].buttons += 1;
+                    if (item.uniqueUsers) acc[page].users.add(`${item.buttonId}_users_${item.uniqueUsers}`);
+                    return acc;
+                  }, {})
+                )
+                .sort(([,a]: any, [,b]: any) => b.totalClicks - a.totalClicks)
+                .map(([page, data]: any) => (
+                  <div key={page} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                    <div>
+                      <h4 className="font-medium text-gray-900 dark:text-gray-100">{page}</h4>
+                      <p className="text-sm text-gray-500">{data.buttons} interactive elements</p>
+                    </div>
+                    <div className="text-right">
+                      <div className="font-semibold text-cyan-600 dark:text-cyan-400">{data.totalClicks} total clicks</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-6 text-gray-500 dark:text-gray-400">
+                No page data available yet
               </div>
             )}
           </CardContent>

@@ -120,8 +120,7 @@ const adminItems = [
     description: 'Developer tools & analytics',
     badge: 'Dev',
     restricted: true
-  },
-
+  }
 ];
 
 export default function MainNavigation() {

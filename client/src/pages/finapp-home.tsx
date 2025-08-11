@@ -5,6 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Link } from "wouter";
 import {
@@ -33,6 +34,7 @@ import EnhancedChatWindow from "@/components/chat/EnhancedChatWindow";
 import AchievementNotification from "@/components/financial/AchievementNotification";
 import { FinancialVisualizations3D } from "@/components/financial/FinancialVisualizations3D";
 import { AdvancedAnalyticsDashboard } from "@/components/financial/AdvancedAnalyticsDashboard";
+import { FinancialDashboardWidgets } from "@/components/dashboard/FinancialDashboardWidgets";
 
 import type { UserProfile as UserProfileType } from "@shared/schema";
 
@@ -563,6 +565,24 @@ export default function FinAppHome() {
                   education experiment.
                 </AlertDescription>
               </Alert>
+
+              {/* Financial Dashboard Widgets - Available after Neural Profile completion */}
+              {onboardingComplete && (
+                <Card className="mb-6">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <TrendingUp className="h-5 w-5 text-green-500" />
+                      Your Personal Financial Dashboard
+                    </CardTitle>
+                    <CardDescription>
+                      Personalized financial widgets based on your Neural Profile data
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <FinancialDashboardWidgets userId={currentUser?.id || "demo-user"} />
+                  </CardContent>
+                </Card>
+              )}
 
               <FinancialVisualizations3D data={threeDData} />
               <AdvancedAnalyticsDashboard

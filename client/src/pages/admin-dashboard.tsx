@@ -7,6 +7,7 @@ import { FinancialDashboardWidgets } from '@/components/dashboard/FinancialDashb
 import AdvancedAIControlCenter from "@/components/admin/AdvancedAIControlCenter";
 import { WebScrapingPanel } from "@/components/admin/WebScrapingPanel";
 import { RealDataGatheringPanel } from "@/components/admin/RealDataGatheringPanel";
+import AdminHeatMap from "@/pages/AdminHeatMap";
 import { Users, MessageCircle, TrendingUp, Settings, Shield, Database, Activity, AlertTriangle, CheckCircle, RefreshCw, BarChart3, Brain, Bot, Globe } from 'lucide-react';
 import { apiRequest } from '@/lib/queryClient';
 import { useQuery } from '@tanstack/react-query';
@@ -160,10 +161,11 @@ export function AdminDashboard() {
 
       <div className="p-6">
         <Tabs defaultValue="overview" className="w-full">
-          <TabsList className="grid w-full grid-cols-6">
+          <TabsList className="grid w-full grid-cols-7">
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="users">Users</TabsTrigger>
             <TabsTrigger value="analytics">Analytics</TabsTrigger>
+            <TabsTrigger value="heatmap">Heat Map</TabsTrigger>
             <TabsTrigger value="data-gathering">Data Gathering</TabsTrigger>
             <TabsTrigger value="webscraping">Web Scraping</TabsTrigger>
             <TabsTrigger value="ai-control">AI Control</TabsTrigger>
@@ -320,18 +322,7 @@ export function AdminDashboard() {
               </Card>
             </div>
 
-            {/* Financial Dashboard for Demo */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Sample Financial Dashboard</CardTitle>
-                <CardDescription>
-                  Preview of animated financial widgets available to users
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <FinancialDashboardWidgets userId="admin-user-finapp-2025" />
-              </CardContent>
-            </Card>
+
           </TabsContent>
 
           <TabsContent value="users" className="space-y-6">
@@ -383,6 +374,10 @@ export function AdminDashboard() {
                 <RealTimeAnalytics />
               </CardContent>
             </Card>
+          </TabsContent>
+
+          <TabsContent value="heatmap" className="space-y-6">
+            <AdminHeatMap />
           </TabsContent>
 
           <TabsContent value="ai-control" className="space-y-6">

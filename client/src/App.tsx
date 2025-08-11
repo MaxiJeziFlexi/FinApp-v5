@@ -35,7 +35,7 @@ import LearningHub from "@/pages/learning-hub";
 import CommunityDiscussions from "@/pages/community-discussions";
 import UserProfile from "@/pages/user-profile";
 import AdminJarvis from "@/pages/AdminJarvis";
-import AdminHeatMap from "@/pages/AdminHeatMap";
+
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { useHeatMapTracking } from "@/hooks/useHeatMapTracking";
 
@@ -97,7 +97,7 @@ function Router() {
           <Route path="/admin" component={AdminDashboard} />
           <Route path="/admin-jarvis" component={AdminJarvis} />
           <Route path="/admin-ai-control" component={AdvancedAIControlCenter} />
-          <Route path="/admin-heatmap" component={AdminHeatMap} />
+
 
           <Route path="/gaming" component={GamingHub} />
           <Route path="/enhanced-crypto" component={EnhancedCryptoMarketplace} />

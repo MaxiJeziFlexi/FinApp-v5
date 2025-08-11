@@ -302,27 +302,7 @@ export default function FinAppHome() {
               </div>
             </div>
 
-            <div className="flex items-center justify-center gap-4 mt-8">
-              {isAdmin && (
-                <div className="flex items-center gap-2">
-                  <Link href="/admin-dashboard">
-                    <button className="bg-gradient-to-r from-yellow-500 to-orange-600 text-black px-4 py-2 rounded-xl font-bold text-sm tracking-wider hover:shadow-lg transition-all duration-300">
-                      <div className="flex items-center gap-2">
-                        <Settings className="w-4 h-4" />
-                        ADMIN CORE
-                      </div>
-                    </button>
-                  </Link>
-                  <Link href="/developer-diagnostics">
-                    <button className="bg-gradient-to-r from-cyan-500 to-blue-600 text-white px-4 py-2 rounded-xl font-bold text-sm tracking-wider hover:shadow-lg transition-all duration-300">
-                      <div className="flex items-center gap-2">
-                        <Activity className="w-4 h-4" />
-                        DIAGNOSTICS
-                      </div>
-                    </button>
-                  </Link>
-                </div>
-              )}
+            
 
               <button
                 onClick={handleLogout}

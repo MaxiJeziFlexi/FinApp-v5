@@ -302,8 +302,7 @@ export default function FinAppHome() {
               </div>
             </div>
 
-            
-
+            <div className="flex justify-center mt-6">
               <button
                 onClick={handleLogout}
                 className="bg-gradient-to-r from-red-500 to-pink-600 text-white px-4 py-2 rounded-xl font-bold text-sm tracking-wider hover:shadow-lg transition-all duration-300"
@@ -591,7 +590,7 @@ export default function FinAppHome() {
       {currentUser &&
         ((currentUser as any)?.subscriptionTier ||
           (currentUser as any)?.subscription_tier) === "free" &&
-        !isAdmin ? (
+        !isAdmin && (
           <div className="mt-8 bg-gradient-to-r from-gray-100 to-gray-200 dark:from-gray-900/80 dark:to-black/90 backdrop-blur-xl border border-purple-500/50 rounded-2xl p-6">
             <div className="text-center">
               <div className="w-16 h-16 bg-gradient-to-br from-yellow-400 to-orange-600 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -610,7 +609,7 @@ export default function FinAppHome() {
               </Link>
             </div>
           </div>
-        ) : null}
+        )}
 
       <div className="mt-8 bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-900/60 dark:to-black/80 backdrop-blur-md border border-cyan-500/20 rounded-2xl p-6">
         <div className="text-center">

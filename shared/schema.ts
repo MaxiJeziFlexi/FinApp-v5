@@ -739,6 +739,280 @@ export const financialDataCollection = pgTable("financial_data_collection", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// FinApp MVP Pro Core - Budget & Cashflow Automation Tables
+
+// User Accounts (bank accounts, credit cards, etc.)
+export const userAccounts = pgTable("user_accounts", {
+  id: varchar("id", { length: 255 }).primaryKey(),
+  userId: varchar("user_id", { length: 255 }).references(() => users.id).notNull(),
+  accountName: varchar("account_name", { length: 255 }).notNull(),
+  accountType: varchar("account_type", { length: 50 }).notNull(), // checking, savings, credit_card, investment
+  institutionName: varchar("institution_name", { length: 255 }),
+  accountNumber: varchar("account_number", { length: 255 }), // encrypted
+  currentBalance: integer("current_balance_cents").notNull().default(0), // stored as cents
+  availableBalance: integer("available_balance_cents"),
+  currency: varchar("currency", { length: 3 }).default('PLN'),
+  isActive: boolean("is_active").default(true),
+  lastSynced: timestamp("last_synced"),
+  syncStatus: varchar("sync_status", { length: 50 }).default('active'), // active, error, disconnected
+  plaidAccountId: varchar("plaid_account_id", { length: 255 }),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Enhanced Transactions Table (with amounts as integers in cents)
+export const transactions = pgTable("transactions", {
+  id: varchar("id", { length: 255 }).primaryKey(),
+  userId: varchar("user_id", { length: 255 }).references(() => users.id).notNull(),
+  accountId: varchar("account_id", { length: 255 }).references(() => userAccounts.id).notNull(),
+  
+  // Core transaction data
+  amountCents: integer("amount_cents").notNull(), // Amount in cents/groszy
+  currency: varchar("currency", { length: 3 }).default('PLN'),
+  transactionDate: date("transaction_date").notNull(),
+  description: varchar("description", { length: 500 }).notNull(),
+  merchantName: varchar("merchant_name", { length: 255 }),
+  
+  // Categorization
+  categoryId: varchar("category_id", { length: 255 }),
+  subcategoryId: varchar("subcategory_id", { length: 255 }),
+  userCategoryOverride: varchar("user_category_override", { length: 100 }),
+  
+  // Import and deduplication
+  importHash: varchar("import_hash", { length: 255 }).unique(), // for idempotent imports
+  importSource: varchar("import_source", { length: 100 }), // csv, bank_api, manual
+  externalId: varchar("external_id", { length: 255 }), // from bank API
+  
+  // Transaction metadata
+  transactionType: varchar("transaction_type", { length: 50 }), // debit, credit, transfer
+  status: varchar("status", { length: 50 }).default('completed'), // pending, completed, cancelled
+  tags: jsonb("tags").default([]),
+  notes: text("notes"),
+  
+  // AI processing
+  aiCategoryConfidence: numeric("ai_category_confidence", { precision: 5, scale: 2 }),
+  aiProcessed: boolean("ai_processed").default(false),
+  anomalyScore: numeric("anomaly_score", { precision: 5, scale: 2 }),
+  
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (table) => ({
+  userDateIdx: index("transactions_user_date_idx").on(table.userId, table.transactionDate),
+  hashIdx: index("transactions_hash_idx").on(table.importHash),
+}));
+
+// Transaction Categories (hierarchical)
+export const transactionCategories = pgTable("transaction_categories", {
+  id: varchar("id", { length: 255 }).primaryKey(),
+  userId: varchar("user_id", { length: 255 }).references(() => users.id), // null for global categories
+  name: varchar("name", { length: 100 }).notNull(),
+  parentId: varchar("parent_id", { length: 255 }).references(() => transactionCategories.id),
+  color: varchar("color", { length: 7 }).default('#3B82F6'), // hex color
+  icon: varchar("icon", { length: 50 }),
+  budgetable: boolean("budgetable").default(true),
+  isIncome: boolean("is_income").default(false),
+  orderIndex: integer("order_index").default(0),
+  isDefault: boolean("is_default").default(false),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// User Budgets
+export const budgets = pgTable("budgets", {
+  id: varchar("id", { length: 255 }).primaryKey(),
+  userId: varchar("user_id", { length: 255 }).references(() => users.id).notNull(),
+  name: varchar("name", { length: 255 }).notNull(),
+  budgetType: varchar("budget_type", { length: 50 }).default('monthly'), // monthly, weekly, yearly
+  
+  // Budget period
+  startDate: date("start_date").notNull(),
+  endDate: date("end_date").notNull(),
+  
+  // Budget allocation (per category)
+  categoryLimits: jsonb("category_limits").notNull().default({}), // {categoryId: amountCents}
+  totalBudgetCents: integer("total_budget_cents").notNull().default(0),
+  
+  // Alert settings
+  alertThresholds: jsonb("alert_thresholds").default({
+    warning: 80, // percentage
+    danger: 100
+  }),
+  
+  // Status and metadata
+  isActive: boolean("is_active").default(true),
+  autoRollover: boolean("auto_rollover").default(true),
+  
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Financial Goals (savings targets, debt payoff, etc.)
+export const financialGoals = pgTable("financial_goals", {
+  id: varchar("id", { length: 255 }).primaryKey(),
+  userId: varchar("user_id", { length: 255 }).references(() => users.id).notNull(),
+  
+  // Goal details
+  name: varchar("name", { length: 255 }).notNull(),
+  description: text("description"),
+  goalType: varchar("goal_type", { length: 50 }).notNull(), // savings, debt_payoff, investment, emergency_fund
+  
+  // Target and progress
+  targetAmountCents: integer("target_amount_cents").notNull(),
+  currentAmountCents: integer("current_amount_cents").default(0),
+  
+  // Timeline
+  targetDate: date("target_date"),
+  startDate: date("start_date").defaultNow(),
+  
+  // Automation settings
+  autoContributionCents: integer("auto_contribution_cents").default(0), // monthly auto-transfer
+  linkedAccountId: varchar("linked_account_id", { length: 255 }).references(() => userAccounts.id),
+  
+  // Progress tracking
+  milestones: jsonb("milestones").default([]), // [{amount: number, date: string, achieved: boolean}]
+  priority: integer("priority").default(1), // 1-5 scale
+  
+  // Status
+  status: varchar("status", { length: 50 }).default('active'), // active, paused, completed, cancelled
+  
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Debt Tracking (credit cards, loans, etc.)
+export const debts = pgTable("debts", {
+  id: varchar("id", { length: 255 }).primaryKey(),
+  userId: varchar("user_id", { length: 255 }).references(() => users.id).notNull(),
+  
+  // Debt details
+  debtName: varchar("debt_name", { length: 255 }).notNull(),
+  debtType: varchar("debt_type", { length: 50 }).notNull(), // credit_card, student_loan, mortgage, personal_loan
+  creditorName: varchar("creditor_name", { length: 255 }),
+  
+  // Financial details
+  originalBalanceCents: integer("original_balance_cents").notNull(),
+  currentBalanceCents: integer("current_balance_cents").notNull(),
+  minimumPaymentCents: integer("minimum_payment_cents").notNull(),
+  interestRate: numeric("interest_rate", { precision: 5, scale: 4 }).notNull(), // as decimal (0.1995 for 19.95%)
+  
+  // Payment schedule
+  paymentDueDate: integer("payment_due_date").notNull(), // day of month (1-31)
+  paymentStrategy: varchar("payment_strategy", { length: 50 }).default('minimum'), // minimum, snowball, avalanche
+  targetPaymentCents: integer("target_payment_cents"),
+  
+  // Payoff projections
+  payoffDate: date("payoff_date"),
+  totalInterestCents: integer("total_interest_cents"),
+  
+  // Status and tracking
+  isActive: boolean("is_active").default(true),
+  linkedAccountId: varchar("linked_account_id", { length: 255 }).references(() => userAccounts.id),
+  lastPaymentDate: date("last_payment_date"),
+  lastPaymentAmountCents: integer("last_payment_amount_cents"),
+  
+  // Alerts
+  alertsEnabled: boolean("alerts_enabled").default(true),
+  alertDaysBefore: integer("alert_days_before").default(3),
+  
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Cashflow Predictions & Analytics
+export const cashflowPredictions = pgTable("cashflow_predictions", {
+  id: varchar("id", { length: 255 }).primaryKey(),
+  userId: varchar("user_id", { length: 255 }).references(() => users.id).notNull(),
+  
+  // Prediction details
+  predictionDate: date("prediction_date").notNull(),
+  predictionType: varchar("prediction_type", { length: 50 }).notNull(), // daily, weekly, monthly, end_of_month
+  
+  // Predicted values
+  predictedBalanceCents: integer("predicted_balance_cents").notNull(),
+  confidenceLevel: numeric("confidence_level", { precision: 5, scale: 2 }), // 0-100
+  
+  // Supporting data
+  expectedIncomeCents: integer("expected_income_cents").default(0),
+  expectedExpensesCents: integer("expected_expenses_cents").default(0),
+  recurringTransactions: jsonb("recurring_transactions").default([]),
+  
+  // Model metadata
+  modelVersion: varchar("model_version", { length: 50 }),
+  factors: jsonb("factors"), // what influenced the prediction
+  
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => ({
+  userPredictionIdx: index("cashflow_user_prediction_idx").on(table.userId, table.predictionDate),
+}));
+
+// AI Insights & Recommendations
+export const aiRecommendations = pgTable("ai_recommendations", {
+  id: varchar("id", { length: 255 }).primaryKey(),
+  userId: varchar("user_id", { length: 255 }).references(() => users.id).notNull(),
+  
+  // Recommendation details
+  title: varchar("title", { length: 255 }).notNull(),
+  description: text("description").notNull(),
+  category: varchar("category", { length: 100 }).notNull(), // budget, debt, savings, spending, investment
+  
+  // Action items
+  actionSteps: jsonb("action_steps").notNull(), // [{step: string, completed: boolean, link?: string}]
+  expectedImpact: text("expected_impact"),
+  priority: varchar("priority", { length: 20 }).default('medium'), // low, medium, high, urgent
+  
+  // Implementation tracking
+  status: varchar("status", { length: 50 }).default('new'), // new, viewed, in_progress, completed, dismissed
+  completedAt: timestamp("completed_at"),
+  dismissedAt: timestamp("dismissed_at"),
+  
+  // Deep links and automation
+  deepLink: varchar("deep_link", { length: 500 }), // link to relevant app section
+  automationAvailable: boolean("automation_available").default(false),
+  
+  // Validity and scheduling
+  validUntil: timestamp("valid_until"),
+  scheduleFor: timestamp("schedule_for"), // when to show this recommendation
+  
+  // Analytics
+  viewCount: integer("view_count").default(0),
+  clickCount: integer("click_count").default(0),
+  
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Recurring Transactions (subscriptions, bills, income)
+export const recurringTransactions = pgTable("recurring_transactions", {
+  id: varchar("id", { length: 255 }).primaryKey(),
+  userId: varchar("user_id", { length: 255 }).references(() => users.id).notNull(),
+  accountId: varchar("account_id", { length: 255 }).references(() => userAccounts.id).notNull(),
+  
+  // Transaction details
+  name: varchar("name", { length: 255 }).notNull(),
+  description: text("description"),
+  amountCents: integer("amount_cents").notNull(),
+  categoryId: varchar("category_id", { length: 255 }),
+  
+  // Recurrence pattern
+  frequency: varchar("frequency", { length: 50 }).notNull(), // daily, weekly, monthly, quarterly, yearly
+  interval: integer("interval").default(1), // every N periods
+  startDate: date("start_date").notNull(),
+  endDate: date("end_date"), // null for indefinite
+  
+  // Next occurrence
+  nextDueDate: date("next_due_date").notNull(),
+  lastProcessedDate: date("last_processed_date"),
+  
+  // Automation
+  autoCreate: boolean("auto_create").default(false), // automatically create transactions
+  reminderDaysBefore: integer("reminder_days_before").default(1),
+  
+  // Status
+  isActive: boolean("is_active").default(true),
+  
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 export const toolUsageAnalytics = pgTable("tool_usage_analytics", {
   id: varchar("id", { length: 255 }).primaryKey(),
   userId: varchar("user_id", { length: 255 }).references(() => users.id),

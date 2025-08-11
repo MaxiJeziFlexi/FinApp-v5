@@ -4094,6 +4094,224 @@ What would you like me to help you with?`,
     }
   });
 
+  // FinApp MVP Pro Core - Budget & Cashflow API Routes
+  
+  // Get budget performance
+  app.get('/api/budget/performance', async (req, res) => {
+    try {
+      const userId = req.session?.userId || 'demo-user';
+      const { budgetService } = await import('./services/budgetService');
+      
+      const performance = await budgetService.getBudgetPerformance(userId);
+      if (!performance) {
+        return res.status(404).json({ message: 'No active budget found' });
+      }
+      
+      res.json(performance);
+    } catch (error) {
+      console.error('Error getting budget performance:', error);
+      res.status(500).json({ message: 'Internal server error' });
+    }
+  });
+
+  // Get cashflow prediction
+  app.get('/api/budget/cashflow-prediction', async (req, res) => {
+    try {
+      const userId = req.session?.userId || 'demo-user';
+      const { budgetService } = await import('./services/budgetService');
+      
+      const prediction = await budgetService.predictEndOfMonthBalance(userId);
+      if (!prediction) {
+        return res.status(404).json({ message: 'Unable to generate prediction' });
+      }
+      
+      res.json(prediction);
+    } catch (error) {
+      console.error('Error getting cashflow prediction:', error);
+      res.status(500).json({ message: 'Internal server error' });
+    }
+  });
+
+  // Get AI recommendations
+  app.get('/api/budget/recommendations', async (req, res) => {
+    try {
+      const userId = req.session?.userId || 'demo-user';
+      const { budgetService } = await import('./services/budgetService');
+      
+      const recommendations = await budgetService.generateRecommendations(userId);
+      res.json(recommendations);
+    } catch (error) {
+      console.error('Error getting recommendations:', error);
+      res.status(500).json({ message: 'Internal server error' });
+    }
+  });
+
+  // Import transactions from CSV
+  app.post('/api/budget/import-transactions', async (req, res) => {
+    try {
+      const userId = req.session?.userId || 'demo-user';
+      const { transactions } = req.body;
+      
+      if (!transactions || !Array.isArray(transactions)) {
+        return res.status(400).json({ message: 'Invalid transaction data' });
+      }
+      
+      const { transactionService } = await import('./services/transactionService');
+      const result = await transactionService.importTransactions(userId, transactions);
+      
+      res.json(result);
+    } catch (error) {
+      console.error('Error importing transactions:', error);
+      res.status(500).json({ message: 'Internal server error' });
+    }
+  });
+
+  // Get transaction summary
+  app.get('/api/budget/transactions/summary', async (req, res) => {
+    try {
+      const userId = req.session?.userId || 'demo-user';
+      const { startDate, endDate } = req.query as { startDate?: string; endDate?: string };
+      
+      // Default to current month if no dates provided
+      const now = new Date();
+      const start = startDate || new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
+      const end = endDate || now.toISOString().split('T')[0];
+      
+      const { transactionService } = await import('./services/transactionService');
+      const summary = await transactionService.getTransactionSummary(userId, start, end);
+      
+      res.json(summary);
+    } catch (error) {
+      console.error('Error getting transaction summary:', error);
+      res.status(500).json({ message: 'Internal server error' });
+    }
+  });
+
+  // Get recent transactions
+  app.get('/api/budget/transactions/recent', async (req, res) => {
+    try {
+      const userId = req.session?.userId || 'demo-user';
+      const limit = parseInt(req.query.limit as string) || 10;
+      
+      const { transactionService } = await import('./services/transactionService');
+      const transactions = await transactionService.getRecentTransactions(userId, limit);
+      
+      res.json(transactions);
+    } catch (error) {
+      console.error('Error getting recent transactions:', error);
+      res.status(500).json({ message: 'Internal server error' });
+    }
+  });
+
+  // Create or update budget
+  app.post('/api/budget/create', async (req, res) => {
+    try {
+      const userId = req.session?.userId || 'demo-user';
+      const budgetData = req.body;
+      
+      // Validate required fields
+      if (!budgetData.name || !budgetData.categoryLimits || !budgetData.totalBudgetCents) {
+        return res.status(400).json({ message: 'Missing required budget data' });
+      }
+      
+      const { budgetService } = await import('./services/budgetService');
+      const budget = await budgetService.createOrUpdateBudget(userId, budgetData);
+      
+      res.json(budget);
+    } catch (error) {
+      console.error('Error creating budget:', error);
+      res.status(500).json({ message: 'Internal server error' });
+    }
+  });
+
+  // Import CSV transactions
+  app.post('/api/budget/import-csv', async (req, res) => {
+    try {
+      const userId = req.session?.userId || 'demo-user';
+      const { csvContent } = req.body;
+      
+      if (!csvContent || typeof csvContent !== 'string') {
+        return res.status(400).json({ message: 'CSV content is required' });
+      }
+      
+      const { csvImportService } = await import('./services/csvImportService');
+      const result = await csvImportService.importTransactionsFromCSV(userId, csvContent);
+      
+      res.json(result);
+    } catch (error) {
+      console.error('Error importing CSV:', error);
+      res.status(500).json({ message: 'Internal server error' });
+    }
+  });
+
+  // Get transaction categories
+  app.get('/api/budget/categories', async (req, res) => {
+    try {
+      const defaultCategories = [
+        { id: 'groceries', name: 'Zakupy spożywcze', color: '#10B981', icon: '🛒', budgetable: true },
+        { id: 'dining_out', name: 'Restauracje', color: '#F59E0B', icon: '🍽️', budgetable: true },
+        { id: 'transport', name: 'Transport', color: '#6366F1', icon: '🚗', budgetable: true },
+        { id: 'utilities', name: 'Rachunki', color: '#EF4444', icon: '💡', budgetable: true },
+        { id: 'entertainment', name: 'Rozrywka', color: '#8B5CF6', icon: '🎬', budgetable: true },
+        { id: 'healthcare', name: 'Zdrowie', color: '#06B6D4', icon: '🏥', budgetable: true },
+        { id: 'shopping', name: 'Zakupy', color: '#F97316', icon: '🛍️', budgetable: true },
+        { id: 'salary', name: 'Wynagrodzenie', color: '#22C55E', icon: '💰', budgetable: false },
+        { id: 'investment', name: 'Inwestycje', color: '#3B82F6', icon: '📈', budgetable: true },
+        { id: 'savings', name: 'Oszczędności', color: '#059669', icon: '🏦', budgetable: true }
+      ];
+      
+      res.json(defaultCategories);
+    } catch (error) {
+      console.error('Error getting categories:', error);
+      res.status(500).json({ message: 'Internal server error' });
+    }
+  });
+
+  // Get financial goals
+  app.get('/api/budget/goals', async (req, res) => {
+    try {
+      const userId = req.session?.userId || 'demo-user';
+      const { budgetService } = await import('./services/budgetService');
+      
+      const goals = await budgetService.getFinancialGoals(userId);
+      res.json(goals);
+    } catch (error) {
+      console.error('Error getting financial goals:', error);
+      res.status(500).json({ message: 'Internal server error' });
+    }
+  });
+
+  // Get debt summary
+  app.get('/api/budget/debts', async (req, res) => {
+    try {
+      const userId = req.session?.userId || 'demo-user';
+      const { debtService } = await import('./services/debtService');
+      
+      const debtSummary = await debtService.getDebtSummary(userId);
+      res.json(debtSummary);
+    } catch (error) {
+      console.error('Error getting debt summary:', error);
+      res.status(500).json({ message: 'Internal server error' });
+    }
+  });
+
+  // Calculate debt payoff scenarios
+  app.get('/api/budget/debt-scenarios', async (req, res) => {
+    try {
+      const userId = req.session?.userId || 'demo-user';
+      const extraPayment = parseFloat(req.query.extraPayment as string) || 0;
+      const extraPaymentCents = Math.round(extraPayment * 100);
+      
+      const { debtService } = await import('./services/debtService');
+      const scenarios = await debtService.calculatePayoffScenarios(userId, extraPaymentCents);
+      
+      res.json(scenarios);
+    } catch (error) {
+      console.error('Error calculating debt scenarios:', error);
+      res.status(500).json({ message: 'Internal server error' });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

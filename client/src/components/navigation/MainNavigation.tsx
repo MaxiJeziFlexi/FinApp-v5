@@ -43,6 +43,13 @@ const navigationItems = [
     icon: FileText,
     description: 'Generate financial reports with AI',
     badge: 'AI'
+  },
+  {
+    path: '/budget-dashboard',
+    label: 'Budżet & Cashflow',
+    icon: Calculator,
+    description: 'Automatyczne zarządzanie finansami',
+    badge: 'MVP Pro'
   }
 ];
 

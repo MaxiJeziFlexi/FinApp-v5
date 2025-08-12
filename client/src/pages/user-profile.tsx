@@ -55,12 +55,7 @@ export default function UserProfile() {
 
   // Fetch user profile
   const { data: profile, isLoading: profileLoading, error: profileError } = useQuery<UserProfile>({
-    queryKey: ['userProfile', userId],
-    queryFn: async () => {
-      if (!userId) throw new Error('No user ID available');
-      const response = await apiRequest('GET', `/api/user/profile/${userId}`);
-      return response.json();
-    },
+    queryKey: ['/api/user/profile'],
     enabled: !!userId,
     retry: false,
   });
@@ -77,7 +72,7 @@ export default function UserProfile() {
         description: "Profile updated successfully!",
       });
       setIsEditing(false);
-      queryClient.invalidateQueries({ queryKey: ['/api/user/profile', userId] });
+      queryClient.invalidateQueries({ queryKey: ['/api/user/profile'] });
     },
     onError: (error) => {
       toast({

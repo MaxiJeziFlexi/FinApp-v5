@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import PremiumGate from '@/components/premium/PremiumGate';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -94,6 +95,14 @@ interface MarketSentiment {
 }
 
 export default function EnhancedCryptoMarketplace() {
+  return (
+    <PremiumGate required="PRO" fallbackTitle="Enhanced Crypto Market - PRO Feature" fallbackDescription="Access advanced crypto trading platform with real-time data and analytics with your PRO subscription.">
+      <EnhancedCryptoMarketplaceContent />
+    </PremiumGate>
+  );
+}
+
+function EnhancedCryptoMarketplaceContent() {
   const [activeTab, setActiveTab] = useState('marketplace');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [sortBy, setSortBy] = useState('newest');

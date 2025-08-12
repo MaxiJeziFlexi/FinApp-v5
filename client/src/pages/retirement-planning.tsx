@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import PremiumGate from '@/components/premium/PremiumGate';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -26,6 +27,14 @@ import {
 } from 'lucide-react';
 
 export default function RetirementPlanning() {
+  return (
+    <PremiumGate required="PRO" fallbackTitle="Retirement Planning - PRO Feature" fallbackDescription="Access advanced retirement planning tools and projections with your PRO subscription.">
+      <RetirementPlanningContent />
+    </PremiumGate>
+  );
+}
+
+function RetirementPlanningContent() {
   const [currentAge, setCurrentAge] = useState('35');
   const [retirementAge, setRetirementAge] = useState('65');
   const [currentSavings, setCurrentSavings] = useState('125000');

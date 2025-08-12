@@ -28,6 +28,12 @@ import { aiMetricsService } from "./services/aiMetricsService";
 import { registerTestRoutes } from "./routes/testRoutes";
 import bcrypt from "bcryptjs";
 import Stripe from "stripe";
+import multer from "multer";
+
+const upload = multer({ 
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 10 * 1024 * 1024 } // 10MB limit
+});
 
 if (!process.env.STRIPE_SECRET_KEY) {
   throw new Error('Missing required Stripe secret: STRIPE_SECRET_KEY');
@@ -301,6 +307,101 @@ Format: Strukturalny raport PDF-ready`;
     } catch (error) {
       console.error('Conversation report error:', error);
       res.status(500).json({ error: 'Failed to generate conversation report' });
+    }
+  });
+
+  // Fanatic Agent Chat - Advanced AI with file upload and GPT-4o
+  app.post('/api/chat/fanatic-send', upload.array('files'), async (req, res) => {
+    try {
+      const { message, messageType, model, sessionId, userId } = req.body;
+      const files = req.files as Express.Multer.File[];
+      
+      if (!message && (!files || files.length === 0)) {
+        return res.status(400).json({ error: 'Message or files required' });
+      }
+
+      const { fanaticAgentService } = await import('./services/fanaticAgentService');
+      
+      const response = await fanaticAgentService.processMessage({
+        message,
+        messageType,
+        model,
+        userId,
+        sessionId,
+        files,
+        context: { timestamp: new Date().toISOString() }
+      });
+
+      res.json(response);
+    } catch (error) {
+      console.error('Fanatic Agent Error:', error);
+      res.status(500).json({ error: 'Failed to process message with Fanatic Agent' });
+    }
+  });
+
+  // Audio transcription for voice input
+  app.post('/api/chat/transcribe', upload.single('audio'), async (req, res) => {
+    try {
+      const audioFile = req.file;
+      if (!audioFile) {
+        return res.status(400).json({ error: 'Audio file required' });
+      }
+
+      const { fanaticAgentService } = await import('./services/fanaticAgentService');
+      
+      // Process audio transcription using OpenAI Whisper
+      const OpenAI = (await import('openai')).default;
+      const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+      
+      const audioBuffer = audioFile.buffer;
+      const audioBlob = new Blob([audioBuffer], { type: audioFile.mimetype });
+      const audioFileForOpenAI = new File([audioBlob], 'audio.webm', { type: audioFile.mimetype });
+      
+      const transcription = await openai.audio.transcriptions.create({
+        file: audioFileForOpenAI,
+        model: 'whisper-1',
+        language: 'pl'
+      });
+      
+      res.json({ transcript: transcription.text });
+    } catch (error) {
+      console.error('Transcription Error:', error);
+      res.status(500).json({ error: 'Failed to transcribe audio' });
+    }
+  });
+
+  // Report generation endpoint
+  app.post('/api/reports/generate', async (req, res) => {
+    try {
+      const { reportType, userId, sessionId, model } = req.body;
+      
+      if (!reportType || !userId) {
+        return res.status(400).json({ error: 'Report type and user ID required' });
+      }
+
+      const { fanaticAgentService } = await import('./services/fanaticAgentService');
+      
+      const report = await fanaticAgentService.generateReport(reportType, userId, sessionId, model || 'gpt-4o');
+      
+      res.json(report);
+    } catch (error) {
+      console.error('Report Generation Error:', error);
+      res.status(500).json({ error: 'Failed to generate report' });
+    }
+  });
+
+  // Chat messages endpoint for retrieving chat history
+  app.get('/api/chat/messages/:sessionId', async (req, res) => {
+    try {
+      const { sessionId } = req.params;
+      
+      // For now, return empty array - in production you'd fetch from database
+      const messages = [];
+      
+      res.json({ messages });
+    } catch (error) {
+      console.error('Chat messages error:', error);
+      res.status(500).json({ error: 'Failed to fetch chat messages' });
     }
   });
 

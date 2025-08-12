@@ -31,6 +31,7 @@ import AdvisorSelection from "@/components/financial/AdvisorSelection";
 import { PersonalizedDecisionTreeView } from "@/components/financial/PersonalizedDecisionTreeView";
 
 import EnhancedChatWindow from "@/components/chat/EnhancedChatWindow";
+import FanaticAgentChatWindow from "@/components/advanced/FanaticAgentChatWindow";
 import AchievementNotification from "@/components/financial/AchievementNotification";
 import { FinancialVisualizations3D } from "@/components/financial/FinancialVisualizations3D";
 import { AdvancedAnalyticsDashboard } from "@/components/financial/AdvancedAnalyticsDashboard";
@@ -488,31 +489,26 @@ export default function FinAppHome() {
 
               {selectedAdvisor && (
                 <div className="space-y-6">
-                  <div className="text-center">
-                    <h3 className="text-2xl font-bold mb-2">
-                      🎉 Decision Tree Completed!
-                    </h3>
-                    <p className="text-gray-600 mb-4">
-                      Teraz możesz korzystać z zaawansowanego AI chatu z
-                      nieograniczonym dostępem do wyszukiwania internetowego i
-                      generowania raportów
+                  <div className="bg-gradient-to-r from-purple-500 to-cyan-500 rounded-xl p-6 text-white">
+                    <h2 className="text-2xl font-bold mb-2">🚀 Fanatic AI Agent</h2>
+                    <p className="text-purple-100">
+                      Zaawansowany asystent AI z możliwościami GPT-4o, analizy plików, generowania raportów i więcej!
+                      Podobny do Replit Agent lub ChatGPT-5!
                     </p>
-                    <Badge variant="outline" className="mb-4">
-                      Enhanced AI Assistant Active
-                    </Badge>
+                    <div className="flex flex-wrap gap-2 mt-4">
+                      <Badge variant="secondary" className="bg-white/20">GPT-4o Integration</Badge>
+                      <Badge variant="secondary" className="bg-white/20">File Analysis</Badge>
+                      <Badge variant="secondary" className="bg-white/20">Report Generation</Badge>
+                      <Badge variant="secondary" className="bg-white/20">Voice Input</Badge>
+                    </div>
                   </div>
 
-                  <EnhancedChatWindow
+                  <FanaticAgentChatWindow 
                     userId={(currentUser as any)?.id || "demo-user"}
-                    sessionId={`enhanced_${selectedAdvisor.id}_${(currentUser as any)?.id || "demo-user"}_${Date.now()}`}
+                    sessionId={`fanatic_${selectedAdvisor.id}_${(currentUser as any)?.id || "demo-user"}_${Date.now()}`}
                     advisorId={selectedAdvisor.id}
-                    decisionTreeContext={{
-                      advisor: selectedAdvisor,
-                      completedResponses: true,
-                      userInsights: true,
-                    }}
                     onMessageSent={(message) => {
-                      console.log("Enhanced chat message:", message);
+                      console.log("Fanatic AI message:", message);
                     }}
                   />
 

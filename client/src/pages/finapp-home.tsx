@@ -362,10 +362,10 @@ export default function FinAppHome() {
             value={currentFlow}
             onValueChange={(v) => handleFlowChange(v as AppFlow)}
           >
-            <TabsList className="grid w-full grid-cols-2 sm:grid-cols-5 bg-white/40 dark:bg-black/40 border border-cyan-500/20 rounded-xl p-2 gap-1">
+            <TabsList className="grid w-full grid-cols-2 sm:grid-cols-5 bg-white/40 dark:bg-black/40 border border-cyan-500/20 rounded-xl p-2 gap-1 mobile-tabs">
               <TabsTrigger
                 value="onboarding"
-                className="flex items-center gap-1 sm:gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-cyan-500 data-[state=active]:to-blue-600 data-[state=active]:text-white text-gray-600 dark:text-gray-300 font-mono text-xs sm:text-sm transition-all duration-300"
+                className="flex items-center gap-1 sm:gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-cyan-500 data-[state=active]:to-blue-600 data-[state=active]:text-white text-gray-600 dark:text-gray-300 font-mono text-xs sm:text-sm transition-all duration-300 mobile-tab mobile-touch-target"
                 disabled={!!onboardingComplete}
               >
                 <UserIcon className="w-3 h-3 sm:w-4 sm:h-4" />
@@ -375,7 +375,7 @@ export default function FinAppHome() {
 
               <TabsTrigger
                 value="advisor-selection"
-                className="flex items-center gap-1 sm:gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-500 data-[state=active]:to-pink-600 data-[state=active]:text-white text-gray-600 dark:text-gray-300 font-mono text-xs sm:text-sm transition-all duration-300"
+                className="flex items-center gap-1 sm:gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-500 data-[state=active]:to-pink-600 data-[state=active]:text-white text-gray-600 dark:text-gray-300 font-mono text-xs sm:text-sm transition-all duration-300 mobile-tab mobile-touch-target"
                 disabled={!onboardingComplete}
               >
                 <Target className="w-3 h-3 sm:w-4 sm:h-4" />
@@ -385,7 +385,7 @@ export default function FinAppHome() {
 
               <TabsTrigger
                 value="decision-tree"
-                className="flex items-center gap-1 sm:gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-indigo-600 data-[state=active]:text-white text-gray-600 dark:text-gray-300 font-mono text-xs sm:text-sm transition-all duration-300 col-span-2 sm:col-span-1"
+                className="flex items-center gap-1 sm:gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-indigo-600 data-[state=active]:text-white text-gray-600 dark:text-gray-300 font-mono text-xs sm:text-sm transition-all duration-300 col-span-2 sm:col-span-1 mobile-tab mobile-touch-target"
                 disabled={!selectedAdvisor}
               >
                 <BarChart3 className="w-3 h-3 sm:w-4 sm:h-4" />
@@ -395,7 +395,7 @@ export default function FinAppHome() {
 
               <TabsTrigger
                 value="chat"
-                className="flex items-center gap-1 sm:gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-green-500 data-[state=active]:to-emerald-600 data-[state=active]:text-white text-gray-600 dark:text-gray-300 font-mono text-xs sm:text-sm transition-all duration-300"
+                className="flex items-center gap-1 sm:gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-green-500 data-[state=active]:to-emerald-600 data-[state=active]:text-white text-gray-600 dark:text-gray-300 font-mono text-xs sm:text-sm transition-all duration-300 mobile-tab mobile-touch-target"
                 disabled={!selectedAdvisor}
               >
                 <MessageSquare className="w-3 h-3 sm:w-4 sm:h-4" />
@@ -405,7 +405,7 @@ export default function FinAppHome() {
 
               <TabsTrigger
                 value="analytics"
-                className="flex items-center gap-1 sm:gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-500 data-[state=active]:to-red-600 data-[state=active]:text-white text-gray-600 dark:text-gray-300 font-mono text-xs sm:text-sm transition-all duration-300"
+                className="flex items-center gap-1 sm:gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-500 data-[state=active]:to-red-600 data-[state=active]:text-white text-gray-600 dark:text-gray-300 font-mono text-xs sm:text-sm transition-all duration-300 mobile-tab mobile-touch-target"
               >
                 <TrendingUp className="w-3 h-3 sm:w-4 sm:h-4" />
                 <span className="hidden sm:inline">ANALYTICS CORE</span>

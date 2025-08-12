@@ -44,7 +44,19 @@ const navigationItems = [
     description: 'Generate financial reports with AI',
     badge: 'AI'
   },
-
+  {
+    path: '/learning-hub',
+    label: 'Learning Hub',
+    icon: BookOpen,
+    description: 'Financial education & certifications',
+    badge: 'Popular'
+  },
+  {
+    path: '/community-discussions',
+    label: 'Community',
+    icon: Users,
+    description: 'Expert discussions & crypto rewards'
+  }
 ];
 
 // Premium features - moved outside for better organization
@@ -70,21 +82,6 @@ const premiumItems = [
     label: 'Retirement',
     icon: PiggyBank,
     description: 'Safe retirement planning tools',
-    premium: true
-  },
-  {
-    path: '/learning-hub',
-    label: 'Learning Hub',
-    icon: BookOpen,
-    description: 'Financial education & certifications',
-    badge: 'Popular',
-    premium: true
-  },
-  {
-    path: '/community-discussions',
-    label: 'Community',
-    icon: Users,
-    description: 'Expert discussions & crypto rewards',
     premium: true
   },
   {

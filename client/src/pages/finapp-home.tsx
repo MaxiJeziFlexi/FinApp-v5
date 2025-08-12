@@ -262,7 +262,7 @@ export default function FinAppHome() {
 
       {/* Header */}
       <div className="relative bg-gradient-to-r from-white/90 via-gray-50/95 to-white/90 dark:from-black/90 dark:via-gray-900/95 dark:to-black/90 backdrop-blur-xl border-b border-cyan-500/30 py-6">
-        <div className="container mx-auto px-4 sm:px-6">
+        <div className="w-full max-w-none px-4 sm:px-6 sm:max-w-6xl sm:mx-auto">
           <div className="text-center relative z-10">
             <div className="flex items-center justify-center mb-6">
               <div className="h-1 w-16 bg-gradient-to-r from-cyan-400 to-blue-600 rounded-full mr-4" />
@@ -349,7 +349,7 @@ export default function FinAppHome() {
         </div>
       </div>
 
-      <div className="container mx-auto px-4 sm:px-6 py-8 relative z-10">
+      <div className="w-full max-w-none px-4 sm:px-6 py-8 relative z-10">
         <div className="bg-gradient-to-r from-white/80 to-gray-100/90 dark:from-gray-900/80 dark:to-black/90 backdrop-blur-xl border border-cyan-500/30 rounded-2xl p-4 sm:p-6 mb-8">
           <div className="text-center mb-6">
             <div className="text-cyan-600 dark:text-cyan-400 font-mono text-sm tracking-wider mb-2">

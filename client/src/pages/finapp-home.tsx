@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
+import type { ReactNode } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -48,7 +49,7 @@ type AppFlow =
   | "analytics";
 type Advisor = { id: string; name: string; specialty?: string; icon?: string; [k: string]: any };
 
-export default function FinAppHome() {
+export default function FinAppHome(): ReactNode {
   const [currentFlow, setCurrentFlow] = useState<AppFlow>("onboarding");
   const [selectedAdvisor, setSelectedAdvisor] = useState<Advisor | null>(null);
   const [showAchievement, setShowAchievement] = useState<string | null>(null);
@@ -220,6 +221,35 @@ export default function FinAppHome() {
     localStorage.removeItem("finapp_admin_auth");
     localStorage.removeItem("finapp_user_auth");
     window.location.href = "/";
+  };
+
+  // Render upgrade section with proper typing
+  const renderUpgradeSection = (): ReactNode => {
+    const userTier = (currentUser as any)?.subscriptionTier || (currentUser as any)?.subscription_tier;
+    const showUpgrade = currentUser && userTier === "free" && !isAdmin;
+
+    if (!showUpgrade) return null;
+
+    return (
+      <div className="mt-8 bg-gradient-to-r from-gray-100 to-gray-200 dark:from-gray-900/80 dark:to-black/90 backdrop-blur-xl border border-purple-500/50 rounded-2xl p-6">
+        <div className="text-center">
+          <div className="w-16 h-16 bg-gradient-to-br from-yellow-400 to-orange-600 rounded-full flex items-center justify-center mx-auto mb-4">
+            <Crown className="w-8 h-8 text-black dark:text-black" />
+          </div>
+          <div className="text-2xl font-black bg-gradient-to-r from-yellow-400 to-orange-600 bg-clip-text text-transparent mb-2">
+            NEURAL CORE UPGRADE
+          </div>
+          <p className="text-gray-700 dark:text-gray-300 font-mono text-sm mb-6">
+            [ UNLOCK QUANTUM AI PROCESSING ]
+          </p>
+          <Link href="/checkout">
+            <button className="bg-gradient-to-r from-yellow-500 to-orange-600 text-black dark:text-black px-8 py-3 rounded-xl font-bold text-lg tracking-wider hover:shadow-lg transition-all duration-300">
+              Initialize Premium
+            </button>
+          </Link>
+        </div>
+      </div>
+    );
   };
 
   if (authLoading || profileLoading) {
@@ -583,29 +613,7 @@ export default function FinAppHome() {
         />
       )}
 
-      {currentUser &&
-        ((currentUser as any)?.subscriptionTier ||
-          (currentUser as any)?.subscription_tier) === "free" &&
-        !isAdmin && (
-          <div className="mt-8 bg-gradient-to-r from-gray-100 to-gray-200 dark:from-gray-900/80 dark:to-black/90 backdrop-blur-xl border border-purple-500/50 rounded-2xl p-6">
-            <div className="text-center">
-              <div className="w-16 h-16 bg-gradient-to-br from-yellow-400 to-orange-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Crown className="w-8 h-8 text-black dark:text-black" />
-              </div>
-              <div className="text-2xl font-black bg-gradient-to-r from-yellow-400 to-orange-600 bg-clip-text text-transparent mb-2">
-                NEURAL CORE UPGRADE
-              </div>
-              <p className="text-gray-700 dark:text-gray-300 font-mono text-sm mb-6">
-                [ UNLOCK QUANTUM AI PROCESSING ]
-              </p>
-              <Link href="/checkout">
-                <button className="bg-gradient-to-r from-yellow-500 to-orange-600 text-black dark:text-black px-8 py-3 rounded-xl font-bold text-lg tracking-wider hover:shadow-lg transition-all duration-300">
-                  Initialize Premium
-                </button>
-              </Link>
-            </div>
-          </div>
-        )}
+      {renderUpgradeSection() as ReactNode}
 
       <div className="mt-8 bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-900/60 dark:to-black/80 backdrop-blur-md border border-cyan-500/20 rounded-2xl p-6">
         <div className="text-center">

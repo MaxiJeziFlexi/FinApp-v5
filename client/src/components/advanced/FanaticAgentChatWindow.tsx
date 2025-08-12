@@ -427,7 +427,7 @@ export default function FanaticAgentChatWindow({
 
   // Load chat history
   useEffect(() => {
-    if (chatHistory && 'messages' in chatHistory && Array.isArray(chatHistory.messages)) {
+    if (chatHistory && typeof chatHistory === 'object' && 'messages' in chatHistory && Array.isArray(chatHistory.messages)) {
       setMessages(chatHistory.messages);
     }
   }, [chatHistory]);

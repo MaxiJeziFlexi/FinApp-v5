@@ -112,7 +112,7 @@ export function PersonalizedDecisionTreeView({
       answer: any;
       additionalData?: any;
     }) => {
-      return await apiRequest('/api/personalized-tree/respond', 'POST', responseData);
+      return await apiRequest('POST', '/api/personalized-tree/respond', responseData);
     },
     onSuccess: async (response) => {
       const result = await response.json();

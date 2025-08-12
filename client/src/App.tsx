@@ -36,6 +36,7 @@ import LearningHub from "@/pages/learning-hub";
 import CommunityDiscussions from "@/pages/community-discussions";
 import UserProfile from "@/pages/user-profile";
 import AdminJarvis from "@/pages/AdminJarvis";
+import UpgradePage from "@/pages/upgrade";
 
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { useHeatMapTracking } from "@/hooks/useHeatMapTracking";
@@ -65,6 +66,8 @@ function Router() {
           <Route path="/" component={Landing} />
           <Route path="/signin" component={SignIn} />
           <Route path="/checkout" component={Checkout} />
+          <Route path="/upgrade" component={UpgradePage} />
+          <Route path="/pricing" component={UpgradePage} />
           <Route path="/admin-login" component={AdminLogin} />
           <Route path="/about" component={About} />
           <Route path="/contact" component={Contact} />
@@ -90,6 +93,8 @@ function Router() {
           <Route path="/" component={FinAppHome} />
           <Route path="/finapp-home" component={FinAppHome} />
           <Route path="/crypto-marketplace" component={CryptoMarketplace} />
+          <Route path="/upgrade" component={UpgradePage} />
+          <Route path="/pricing" component={UpgradePage} />
           <Route path="/privacy" component={Privacy} />
           <Route path="/security" component={Security} />
           <Route path="/analytics" component={AnalyticsDashboard} />

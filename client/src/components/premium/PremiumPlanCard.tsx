@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { Link } from "wouter";
+import { ROUTES } from "@/constants/routes";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Check, X, Crown, Zap, Star, Sparkles } from "lucide-react";
@@ -188,24 +190,47 @@ export default function PremiumPlanCard({
         </div>
 
         {/* Action Button */}
-        <Button
-          onClick={() => onSelect(id)}
-          disabled={currentPlan || isLoading}
-          variant={getButtonVariant()}
-          className={`w-full h-12 font-medium ${
-            popular ? 'bg-purple-600 hover:bg-purple-700' : ''
-          }`}
-          size="lg"
-        >
-          {isLoading ? (
-            <div className="flex items-center space-x-2">
-              <div className="animate-spin h-4 w-4 border-2 border-current border-t-transparent rounded-full" />
-              <span>Processing...</span>
-            </div>
-          ) : (
-            getButtonText()
-          )}
-        </Button>
+        {currentPlan || price === 0 ? (
+          <Button
+            onClick={() => onSelect(id)}
+            disabled={currentPlan || isLoading}
+            variant={getButtonVariant()}
+            className={`w-full h-12 font-medium ${
+              popular ? 'bg-purple-600 hover:bg-purple-700' : ''
+            }`}
+            size="lg"
+          >
+            {isLoading ? (
+              <div className="flex items-center space-x-2">
+                <div className="animate-spin h-4 w-4 border-2 border-current border-t-transparent rounded-full" />
+                <span>Processing...</span>
+              </div>
+            ) : (
+              getButtonText()
+            )}
+          </Button>
+        ) : (
+          <Button
+            asChild
+            disabled={isLoading}
+            variant={getButtonVariant()}
+            className={`w-full h-12 font-medium ${
+              popular ? 'bg-purple-600 hover:bg-purple-700' : ''
+            }`}
+            size="lg"
+          >
+            <Link href="/upgrade">
+              {isLoading ? (
+                <div className="flex items-center space-x-2">
+                  <div className="animate-spin h-4 w-4 border-2 border-current border-t-transparent rounded-full" />
+                  <span>Processing...</span>
+                </div>
+              ) : (
+                `Upgrade to ${name}`
+              )}
+            </Link>
+          </Button>
+        )}
 
         {/* Additional Info */}
         {price > 0 && !currentPlan && (

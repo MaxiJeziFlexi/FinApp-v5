@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import PremiumGate from '@/components/premium/PremiumGate';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -24,6 +25,14 @@ import {
 } from 'lucide-react';
 
 export default function InvestmentConsultation() {
+  return (
+    <PremiumGate required="PRO" fallbackTitle="Investment Consultation - PRO Feature" fallbackDescription="Access personalized investment advice and portfolio analysis with your PRO subscription.">
+      <InvestmentConsultationContent />
+    </PremiumGate>
+  );
+}
+
+function InvestmentConsultationContent() {
   const [consultationType, setConsultationType] = useState('portfolio-review');
   const [investmentAmount, setInvestmentAmount] = useState('');
   const [riskTolerance, setRiskTolerance] = useState('moderate');

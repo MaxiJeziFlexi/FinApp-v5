@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import PremiumGate from '@/components/premium/PremiumGate';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -22,6 +23,14 @@ import {
 } from 'lucide-react';
 
 export default function TaxOptimization() {
+  return (
+    <PremiumGate required="PRO" fallbackTitle="Tax Optimization - PRO Feature" fallbackDescription="Access advanced tax strategies and optimization tools with your PRO subscription.">
+      <TaxOptimizationContent />
+    </PremiumGate>
+  );
+}
+
+function TaxOptimizationContent() {
   const [taxYear, setTaxYear] = useState('2025');
   const [analysisType, setAnalysisType] = useState('comprehensive');
 

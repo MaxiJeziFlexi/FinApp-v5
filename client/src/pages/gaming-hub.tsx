@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import PremiumGate from '@/components/premium/PremiumGate';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -77,6 +78,14 @@ interface LeaderboardEntry {
 }
 
 export default function GamingHub() {
+  return (
+    <PremiumGate required="PRO" fallbackTitle="Gaming Hub - PRO Feature" fallbackDescription="Unlock interactive financial games and challenges with your PRO subscription.">
+      <GamingHubContent />
+    </PremiumGate>
+  );
+}
+
+function GamingHubContent() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { user, isAdmin } = useAuth();

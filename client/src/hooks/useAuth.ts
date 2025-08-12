@@ -66,8 +66,8 @@ export function useAuth() {
         id: 'admin-user',
         email: localAuth.adminAuth.email,
         name: localAuth.adminAuth.name,
-        role: 'admin',
-        subscriptionTier: 'max',
+        role: 'ADMIN',
+        subscriptionTier: 'MAX_PRO',
         accountStatus: 'active'
       },
       isLoading: false,
@@ -83,8 +83,8 @@ export function useAuth() {
         id: 'demo-user',
         email: localAuth.userAuth.email,
         name: localAuth.userAuth.name,
-        role: 'user',
-        subscriptionTier: 'free',
+        role: 'FREE',
+        subscriptionTier: 'FREE',
         accountStatus: 'active'
       },
       isLoading: false,

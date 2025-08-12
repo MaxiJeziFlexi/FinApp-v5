@@ -14,9 +14,16 @@ export async function apiRequest(
 ): Promise<Response> {
   const headers: HeadersInit = data ? { "Content-Type": "application/json" } : {};
   
-  // Add admin headers for admin routes
-  if (url.includes('/api/admin/')) {
-    headers['x-user-id'] = 'admin-user';
+  // Add admin headers for admin routes or profile routes
+  if (url.includes('/api/admin/') || url.includes('/api/user/profile')) {
+    const adminAuth = localStorage.getItem('finapp_admin_auth');
+    const userAuth = localStorage.getItem('finapp_user_auth');
+    
+    if (adminAuth) {
+      headers['x-user-id'] = 'admin-user';
+    } else if (userAuth) {
+      headers['x-user-id'] = 'demo-user';
+    }
   }
   
   const res = await fetch(url, {
@@ -39,9 +46,16 @@ export const getQueryFn: <T>(options: {
     const url = queryKey.join("/") as string;
     const headers: HeadersInit = {};
     
-    // Add admin headers for admin routes
-    if (url.includes('/api/admin/')) {
-      headers['x-user-id'] = 'admin-user';
+    // Add admin headers for admin routes or profile routes
+    if (url.includes('/api/admin/') || url.includes('/api/user/profile')) {
+      const adminAuth = localStorage.getItem('finapp_admin_auth');
+      const userAuth = localStorage.getItem('finapp_user_auth');
+      
+      if (adminAuth) {
+        headers['x-user-id'] = 'admin-user';
+      } else if (userAuth) {
+        headers['x-user-id'] = 'demo-user';
+      }
     }
     
     const res = await fetch(url, {

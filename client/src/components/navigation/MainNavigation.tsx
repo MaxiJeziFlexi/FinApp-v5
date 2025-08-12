@@ -129,10 +129,10 @@ export default function MainNavigation() {
   const { user } = useAuth();
   
   // Check if user is on FREE plan
-  const isFreeUser = !user || user.subscriptionTier === 'FREE';
+  const isFreeUser = !user || (user as any)?.subscriptionTier === 'FREE';
   
   // Check if user is admin (has admin role or is logged in as admin)
-  const isAdmin = user?.role === 'admin' || user?.subscriptionTier === 'ADMIN';
+  const isAdmin = (user as any)?.role === 'admin' || (user as any)?.role === 'ADMIN' || (user as any)?.subscriptionTier === 'ADMIN';
 
   const isActive = (path: string) => {
     return location === path || (path !== '/' && location.startsWith(path));

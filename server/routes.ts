@@ -23,6 +23,7 @@ import { analyticsService } from "./services/analyticsService";
 import { webScrapingService } from "./services/webScrapingService";
 import { setupAuth, isAuthenticated } from "./replitAuth";
 import { requireAdmin, logAdminAction, validateAIParams } from "./middleware/adminAuth";
+import { requirePermission, requireQuota } from "./middleware/rbac";
 import { aiMetricsService } from "./services/aiMetricsService";
 import bcrypt from "bcryptjs";
 import Stripe from "stripe";
@@ -296,6 +297,18 @@ Format: Strukturalny raport PDF-ready`;
       res.status(500).json({ message: "Failed to fetch user" });
     }
   });
+
+  // RBAC Feature Flags Endpoint
+  app.get('/api/me/features', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const features = await storage.getUserFeatures(userId);
+      res.json({ features, userId, timestamp: new Date().toISOString() });
+    } catch (error) {
+      console.error("Error fetching user features:", error);
+      res.status(500).json({ message: "Failed to fetch user features" });
+    }
+  });
   
   // Health check endpoint
   app.get('/health', async (req, res) => {
@@ -331,7 +344,115 @@ Format: Strukturalny raport PDF-ready`;
     }
   });
 
-  // User endpoints
+  // Protected User Profile Endpoints (ALL tiers can access)
+  app.get('/api/user/profile', requirePermission('profile:read'), async (req: any, res) => {
+    try {
+      const userId = req.user?.id || req.user?.claims?.sub;
+      const profile = await storage.getUserProfile(userId);
+      
+      if (!profile) {
+        return res.status(404).json({ message: 'User profile not found' });
+      }
+      
+      res.json(profile);
+    } catch (error) {
+      console.error("Error fetching user profile:", error);
+      res.status(500).json({ message: "Failed to fetch user profile" });
+    }
+  });
+
+  // Protected Financial 3D Visualization (ALL tiers)
+  app.get('/api/financial/viz3d', requirePermission('viz3d:read'), async (req: any, res) => {
+    try {
+      const userId = req.user?.id || req.user?.claims?.sub;
+      // Return visualization data based on user's financial profile
+      const profile = await storage.getUserProfile(userId);
+      const mockViz3DData = {
+        nodes: [
+          { id: 'income', label: 'Income', value: 5000, x: 0, y: 0, z: 0, color: '#00ff00' },
+          { id: 'expenses', label: 'Expenses', value: 3500, x: 100, y: 0, z: 0, color: '#ff0000' },
+          { id: 'savings', label: 'Savings', value: 1500, x: 50, y: 100, z: 0, color: '#0000ff' }
+        ],
+        edges: [
+          { from: 'income', to: 'expenses', weight: 0.7 },
+          { from: 'income', to: 'savings', weight: 0.3 }
+        ]
+      };
+      res.json(mockViz3DData);
+    } catch (error) {
+      console.error("Error fetching 3D visualization:", error);
+      res.status(500).json({ message: "Failed to fetch 3D visualization data" });
+    }
+  });
+
+  // Transaction Import (with quotas)
+  app.post('/api/transactions/import', 
+    requirePermission('transactions:import_limited'), 
+    requireQuota('transactions_import'),
+    async (req: any, res) => {
+      try {
+        const userId = req.user?.id || req.user?.claims?.sub;
+        const { transactions } = req.body;
+        
+        // Increment usage counter
+        await storage.incrementUsageCounter(userId, 'transactions_import');
+        
+        // Import transactions (mock implementation)
+        res.json({ 
+          message: `Imported ${transactions?.length || 0} transactions successfully`,
+          imported: transactions?.length || 0,
+          userId 
+        });
+      } catch (error) {
+        console.error("Transaction import error:", error);
+        res.status(500).json({ message: "Failed to import transactions" });
+      }
+    }
+  );
+
+  // Chat Messages (with quotas and tier limits)
+  app.post('/api/chat', 
+    requirePermission('chat:limited'),
+    requireQuota('chat_messages'),
+    async (req: any, res) => {
+      try {
+        const userId = req.user?.id || req.user?.claims?.sub;
+        const { message, advisorId, model } = req.body;
+        
+        // Check user tier for model selection
+        const user = await storage.getUser(userId);
+        const userRole = user?.role || 'FREE';
+        
+        let allowedModel = 'gpt-3.5-turbo';
+        if (userRole === 'MAX_PRO') {
+          allowedModel = model || 'gpt-4o'; // MAX_PRO can select model
+        } else if (userRole === 'PRO') {
+          allowedModel = 'gpt-4o'; // PRO gets advanced model
+        }
+        
+        // Increment usage counter
+        await storage.incrementUsageCounter(userId, 'chat_messages');
+        
+        // Generate AI response
+        const response = await openAIService.generateResponse(message, {
+          model: allowedModel,
+          maxTokens: userRole === 'FREE' ? 150 : 500
+        });
+        
+        res.json({ 
+          response: response.content,
+          model: allowedModel,
+          tier: userRole,
+          remaining: 'quota info would be here'
+        });
+      } catch (error) {
+        console.error("Chat error:", error);
+        res.status(500).json({ message: "Failed to process chat message" });
+      }
+    }
+  );
+
+  // User endpoints (legacy - keep for backward compatibility)
   app.get('/api/user/profile/:userId', async (req, res) => {
     try {
       const { userId } = req.params;

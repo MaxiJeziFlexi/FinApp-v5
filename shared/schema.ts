@@ -37,8 +37,8 @@ export const users = pgTable("users", {
   sessionToken: varchar("session_token", { length: 255 }),
   lastLogin: timestamp("last_login"),
   
-  // User role and permissions
-  role: varchar("role", { enum: ['user', 'moderator', 'admin'] }).default('user'),
+  // User role and permissions - RBAC with subscription tiers
+  role: varchar("role", { enum: ['FREE', 'PRO', 'MAX_PRO', 'ADMIN'] }).default('FREE'),
   
   // Social authentication providers
   googleId: varchar("google_id", { length: 255 }),
@@ -46,8 +46,8 @@ export const users = pgTable("users", {
   githubId: varchar("github_id", { length: 255 }),
   discordId: varchar("discord_id", { length: 255 }),
   
-  // Premium subscription fields
-  subscriptionTier: varchar("subscription_tier", { enum: ['free', 'pro', 'max'] }).default('free'),
+  // Premium subscription fields (aligned with role)
+  subscriptionTier: varchar("subscription_tier", { enum: ['FREE', 'PRO', 'MAX_PRO', 'ADMIN'] }).default('FREE'),
   subscriptionStatus: varchar("subscription_status", { enum: ['active', 'cancelled', 'expired'] }).default('active'),
   subscriptionStartDate: timestamp("subscription_start_date"),
   subscriptionEndDate: timestamp("subscription_end_date"),
@@ -1305,6 +1305,41 @@ export const insertJarvisAiTrainingSchema = createInsertSchema(jarvisAiTraining)
   createdAt: true,
 });
 
+// RBAC Feature Flags Table
+export const featureFlags = pgTable("feature_flags", {
+  id: varchar("id", { length: 255 }).primaryKey(),
+  userId: varchar("user_id", { length: 255 }).references(() => users.id).notNull(),
+  flagName: varchar("flag_name", { length: 100 }).notNull(),
+  enabled: boolean("enabled").default(false),
+  value: jsonb("value").default(null),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Usage Counters Table for quota management
+export const usageCounters = pgTable("usage_counters", {
+  id: varchar("id", { length: 255 }).primaryKey(),
+  userId: varchar("user_id", { length: 255 }).references(() => users.id).notNull(),
+  counterType: varchar("counter_type", { length: 50 }).notNull(), // 'transactions_import', 'chat_messages', 'export_requests'
+  count: integer("count").default(0),
+  resetDate: timestamp("reset_date").defaultNow(), // Monthly reset in UTC
+  maxLimit: integer("max_limit").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Feature Flag Schema
+export const insertFeatureFlagSchema = createInsertSchema(featureFlags).omit({
+  createdAt: true,
+  updatedAt: true,
+});
+
+// Usage Counter Schema  
+export const insertUsageCounterSchema = createInsertSchema(usageCounters).omit({
+  createdAt: true,
+  updatedAt: true,
+});
+
 // Insert types
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type InsertUserProfile = z.infer<typeof insertUserProfileSchema>;
@@ -1324,3 +1359,20 @@ export type JarvisAiTask = typeof jarvisAiTasks.$inferSelect;
 export type InsertJarvisAiTask = z.infer<typeof insertJarvisAiTaskSchema>;
 export type JarvisAiTraining = typeof jarvisAiTraining.$inferSelect;
 export type InsertJarvisAiTraining = z.infer<typeof insertJarvisAiTrainingSchema>;
+
+// RBAC types
+export type FeatureFlag = typeof featureFlags.$inferSelect;
+export type InsertFeatureFlag = z.infer<typeof insertFeatureFlagSchema>;
+export type UsageCounter = typeof usageCounters.$inferSelect;
+export type InsertUsageCounter = z.infer<typeof insertUsageCounterSchema>;
+
+// RBAC Role definitions
+export type UserRole = 'FREE' | 'PRO' | 'MAX_PRO' | 'ADMIN';
+
+// Permission definitions for role-based access
+export const ROLE_PERMISSIONS: Record<UserRole, string[]> = {
+  FREE: ['dashboard:read', 'profile:read', 'profile:write', 'viz3d:read'],
+  PRO: ['dashboard:read', 'profile:read', 'profile:write', 'viz3d:read', 'transactions:import_limited', 'advice:advanced', 'chat:limited', 'analytics:basic', 'export:csv_limited'],
+  MAX_PRO: ['dashboard:read', 'profile:read', 'profile:write', 'viz3d:read', 'transactions:import_unlimited', 'advice:personalized', 'chat:unlimited', 'analytics:advanced', 'export:full'],
+  ADMIN: ['*'] // All permissions
+};

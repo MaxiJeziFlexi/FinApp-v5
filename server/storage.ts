@@ -20,6 +20,8 @@ import {
   aiInsights,
   decisionTreeSessions,
   userInteractionEvents,
+  featureFlags,
+  usageCounters,
   type User, 
   type InsertUser,
   type UpsertUser,
@@ -51,7 +53,12 @@ import {
   type JarvisAiTask,
   type InsertJarvisAiTask,
   type JarvisAiTraining,
-  type InsertJarvisAiTraining
+  type InsertJarvisAiTraining,
+  type FeatureFlag,
+  type InsertFeatureFlag,
+  type UsageCounter,
+  type InsertUsageCounter,
+  type UserRole
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, asc } from "drizzle-orm";
@@ -169,6 +176,13 @@ export interface IStorage {
   // Analytics and Heat Map operations
   createInteractionEvent(event: any): Promise<any>;
   getInteractionEvents(): Promise<any[]>;
+  
+  // RBAC operations
+  getUserFeatures(userId: string): Promise<Record<string, boolean>>;
+  setFeatureFlag(userId: string, flagName: string, enabled: boolean, value?: any): Promise<FeatureFlag>;
+  getUserUsageCounter(userId: string, counterType: string): Promise<UsageCounter | undefined>;
+  incrementUsageCounter(userId: string, counterType: string): Promise<UsageCounter>;
+  resetUsageCounters(userId: string): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1000,6 +1014,131 @@ export class DatabaseStorage implements IStorage {
 
   async getInteractionEvents(): Promise<any[]> {
     return await db.select().from(userInteractionEvents);
+  }
+
+  // RBAC operations
+  async getUserFeatures(userId: string): Promise<Record<string, boolean>> {
+    const user = await this.getUser(userId);
+    if (!user) return {};
+    
+    const userRole = user.role as UserRole;
+    const permissions = require("@shared/schema").ROLE_PERMISSIONS[userRole] || [];
+    
+    // Convert permissions to feature flags format
+    const features: Record<string, boolean> = {
+      dashboard_access: permissions.includes('dashboard:read') || permissions.includes('*'),
+      profile_access: permissions.includes('profile:read') || permissions.includes('*'),
+      viz3d_access: permissions.includes('viz3d:read') || permissions.includes('*'),
+      transactions_import_basic: permissions.includes('transactions:import_limited') || permissions.includes('*'),
+      transactions_import_unlimited: permissions.includes('transactions:import_unlimited') || permissions.includes('*'),
+      advice_advanced: permissions.includes('advice:advanced') || permissions.includes('*'),
+      advice_personalized: permissions.includes('advice:personalized') || permissions.includes('*'),
+      chat_limited: permissions.includes('chat:limited') || permissions.includes('*'),
+      chat_unlimited: permissions.includes('chat:unlimited') || permissions.includes('*'),
+      analytics_basic: permissions.includes('analytics:basic') || permissions.includes('*'),
+      analytics_advanced: permissions.includes('analytics:advanced') || permissions.includes('*'),
+      export_csv_limited: permissions.includes('export:csv_limited') || permissions.includes('*'),
+      export_full: permissions.includes('export:full') || permissions.includes('*'),
+      admin_access: permissions.includes('*')
+    };
+    
+    return features;
+  }
+
+  async setFeatureFlag(userId: string, flagName: string, enabled: boolean, value?: any): Promise<FeatureFlag> {
+    const [flag] = await db.insert(featureFlags).values({
+      id: generateId('flag'),
+      userId,
+      flagName,
+      enabled,
+      value: value || null
+    }).onConflictDoUpdate({
+      target: [featureFlags.userId, featureFlags.flagName],
+      set: { enabled, value: value || null, updatedAt: new Date() }
+    }).returning();
+    return flag;
+  }
+
+  async getUserUsageCounter(userId: string, counterType: string): Promise<UsageCounter | undefined> {
+    const [counter] = await db
+      .select()
+      .from(usageCounters)
+      .where(and(
+        eq(usageCounters.userId, userId),
+        eq(usageCounters.counterType, counterType)
+      ));
+    return counter;
+  }
+
+  async incrementUsageCounter(userId: string, counterType: string): Promise<UsageCounter> {
+    const user = await this.getUser(userId);
+    const userRole = user?.role as UserRole || 'FREE';
+    
+    // Define limits per role
+    const LIMITS: Record<UserRole, Record<string, number>> = {
+      FREE: { transactions_import: 500, chat_messages: 10, export_requests: 5 },
+      PRO: { transactions_import: 10000, chat_messages: 100, export_requests: 50 },
+      MAX_PRO: { transactions_import: -1, chat_messages: 500, export_requests: -1 },
+      ADMIN: { transactions_import: -1, chat_messages: -1, export_requests: -1 }
+    };
+    
+    const maxLimit = LIMITS[userRole][counterType] || 0;
+    
+    // Try to get existing counter
+    let counter = await this.getUserUsageCounter(userId, counterType);
+    
+    if (!counter) {
+      // Create new counter
+      const [newCounter] = await db.insert(usageCounters).values({
+        id: generateId('counter'),
+        userId,
+        counterType,
+        count: 1,
+        maxLimit
+      }).returning();
+      return newCounter;
+    }
+    
+    // Check if reset is needed (monthly reset)
+    const now = new Date();
+    const resetDate = counter.resetDate ? new Date(counter.resetDate) : new Date();
+    const shouldReset = now.getMonth() !== resetDate.getMonth() || now.getFullYear() !== resetDate.getFullYear();
+    
+    if (shouldReset) {
+      const [resetCounter] = await db
+        .update(usageCounters)
+        .set({
+          count: 1,
+          resetDate: now,
+          updatedAt: now
+        })
+        .where(eq(usageCounters.id, counter.id))
+        .returning();
+      return resetCounter;
+    }
+    
+    // Increment existing counter
+    const [updatedCounter] = await db
+      .update(usageCounters)
+      .set({
+        count: (counter.count || 0) + 1,
+        updatedAt: now
+      })
+      .where(eq(usageCounters.id, counter.id))
+      .returning();
+    
+    return updatedCounter;
+  }
+
+  async resetUsageCounters(userId: string): Promise<void> {
+    await db
+      .update(usageCounters)
+      .set({
+        count: 0,
+        resetDate: new Date(),
+        updatedAt: new Date()
+      })
+      .where(eq(usageCounters.userId, userId));
   }
 }
 

@@ -12,8 +12,9 @@ import { useToast } from "@/hooks/use-toast";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useAuth } from "@/hooks/useAuth";
-import { User, Settings, CreditCard, Bell, Shield, Crown, Star, Zap } from "lucide-react";
+import { User, Settings, CreditCard, Bell, Shield, Crown, Star, Zap, Sun, Moon, Monitor } from "lucide-react";
 import type { User as UserType } from "@shared/schema";
+import { useTheme } from "@/contexts/ThemeContext";
 
 interface UserProfile {
   id: string;
@@ -41,6 +42,7 @@ interface UserProfile {
 export default function UserProfile() {
   const { toast } = useToast();
   const { user, isAuthenticated } = useAuth();
+  const { theme, setTheme, toggleTheme } = useTheme();
   const userId = (user as UserType)?.id;
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
@@ -375,6 +377,43 @@ export default function UserProfile() {
                   ) : (
                     <p className="text-sm capitalize">{profile?.learningStyle || 'Not set'}</p>
                   )}
+                </div>
+
+                {/* Theme Settings */}
+                <div>
+                  <Label>Theme Preference</Label>
+                  <div className="flex items-center gap-2 mt-2">
+                    <Button
+                      variant={theme === 'light' ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => setTheme('light')}
+                      className="flex items-center gap-2"
+                    >
+                      <Sun className="h-4 w-4" />
+                      Light
+                    </Button>
+                    <Button
+                      variant={theme === 'dark' ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => setTheme('dark')}
+                      className="flex items-center gap-2"
+                    >
+                      <Moon className="h-4 w-4" />
+                      Dark
+                    </Button>
+                    <Button
+                      variant={theme === 'system' ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => setTheme('system')}
+                      className="flex items-center gap-2"
+                    >
+                      <Monitor className="h-4 w-4" />
+                      System
+                    </Button>
+                  </div>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Current: {theme === 'system' ? 'Following system preference' : `${theme} mode`}
+                  </p>
                 </div>
 
                 {profile?.achievements && profile.achievements.length > 0 && (

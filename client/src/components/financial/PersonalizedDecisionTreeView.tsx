@@ -147,8 +147,8 @@ export function PersonalizedDecisionTreeView({
     },
   });
 
-  const currentQuestion = (treeDefinition as PersonalizedTreeDefinition)?.questions[currentQuestionIndex];
-  const progress = (treeDefinition as PersonalizedTreeDefinition) ? 
+  const currentQuestion = (treeDefinition as PersonalizedTreeDefinition)?.questions?.[currentQuestionIndex];
+  const progress = (treeDefinition as PersonalizedTreeDefinition) && (treeDefinition as PersonalizedTreeDefinition).questions ? 
     ((currentQuestionIndex) / (treeDefinition as PersonalizedTreeDefinition).questions.length) * 100 : 0;
 
   const handleSubmitResponse = () => {

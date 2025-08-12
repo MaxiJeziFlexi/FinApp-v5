@@ -114,16 +114,8 @@ export default function FinAppHome() {
   const { data: userProfile, isLoading: profileLoading } = useQuery<
     UserProfileType | undefined
   >({
-    queryKey: ["userProfile", userId],
+    queryKey: ["/api/user/profile"],
     enabled: !!userId, // dopiero gdy znamy usera
-    queryFn: async () => {
-      if (!userId) return undefined;
-      const res = await fetch(
-        `/api/user/profile?userId=${encodeURIComponent(userId as string)}`,
-      );
-      if (!res.ok) return undefined;
-      return res.json();
-    },
     retry: 1,
   });
 

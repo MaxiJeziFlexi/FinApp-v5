@@ -24,6 +24,8 @@ import {
   BarChart3,
   DollarSign
 } from 'lucide-react';
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 interface ChatMessage {
   id: string;
@@ -376,7 +378,11 @@ export default function EnhancedChatWindow({
               )}
             </div>
             
-            <div className="whitespace-pre-wrap">{message.content}</div>
+            <div className="prose prose-sm dark:prose-invert max-w-none">
+              <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                {message.content}
+              </ReactMarkdown>
+            </div>
             
             {message.metadata?.sources && (
               <div className="mt-2 pt-2 border-t border-gray-200 dark:border-gray-600">

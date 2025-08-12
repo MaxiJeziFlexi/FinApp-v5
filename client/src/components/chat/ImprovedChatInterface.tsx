@@ -21,6 +21,8 @@ import {
   TrendingUp,
   Loader2
 } from 'lucide-react';
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 interface Message {
   id: string;
@@ -312,7 +314,11 @@ export default function ImprovedChatInterface({
                         ? 'bg-primary text-primary-foreground'
                         : 'bg-secondary'
                     }`}>
-                      <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                      <div className="text-sm prose prose-sm dark:prose-invert max-w-none">
+                        <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                          {message.content}
+                        </ReactMarkdown>
+                      </div>
                       {message.responseTime && (
                         <p className="text-xs opacity-70 mt-1">
                           {message.model} • {message.responseTime}ms

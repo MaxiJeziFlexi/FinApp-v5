@@ -1,0 +1,109 @@
+1) Setup (once)
+Create 4 test users (FREE, PRO, MAX_PRO, ADMIN) and get JWTs or API keys:
+
+cpp
+Kopiuj
+Edytuj
+export API=https://<your-app>
+export T_FREE=Bearer <token_free>
+export T_PRO=Bearer <token_pro>
+export T_MAX=Bearer <token_max>
+export T_ADMIN=Bearer <token_admin>
+2) Must-pass checks (manual)
+A. Function-level authorization (RBAC)
+
+Non-admin blocked from admin routes:
+
+bash
+Kopiuj
+Edytuj
+curl -i -H "Authorization: $T_PRO" $API/api/admin/users
+# Expect 403
+Admin allowed:
+
+bash
+Kopiuj
+Edytuj
+curl -i -H "Authorization: $T_ADMIN" $API/api/admin/users
+# Expect 200
+(Prevents Broken Function Level Authorization.) 
+owasp.org
+
+B. Object-level authorization (BOLA)
+Try to read/update another user’s data by changing IDs:
+
+nginx
+Kopiuj
+Edytuj
+curl -i -H "Authorization: $T_PRO" "$API/api/user/profile?userId=someone_else"
+# Expect 403 (never 200)
+(Every endpoint that takes an ID must re-check ownership server-side.) 
+owasp.org
++1
+
+C. Feature flags reflect role (UI can’t overrule server)
+
+bash
+Kopiuj
+Edytuj
+curl -s -H "Authorization: $T_FREE"  $API/api/me/features
+curl -s -H "Authorization: $T_MAX"   $API/api/me/features
+# Verify differences (chat limits, imports, exports)
+(Authorization logic lives server-side; UI is only cosmetic.) 
+cheatsheetseries.owasp.org
+
+D. Quotas & rate limits return the right code
+
+FREE transactions import (cap 500/mo), 501st ⇒ 429:
+
+bash
+Kopiuj
+Edytuj
+for i in $(seq 1 500); do
+  curl -s -o /dev/null -w "%{http_code}\n" -H "Authorization: $T_FREE" \
+   -H "Content-Type: application/json" \
+   -d '{"amount_cents":100,"booked_at":"2025-08-01T00:00:00Z","category":"Test"}' \
+   $API/api/transactions/import
+done
+curl -i -H "Authorization: $T_FREE" -H "Content-Type: application/json" \
+ -d '{"amount_cents":100,"booked_at":"2025-08-01T00:00:00Z","category":"Test"}' \
+ $API/api/transactions/import
+# Expect HTTP/1.1 429 Too Many Requests
+(Use 429 for quota/rate-limit breaches; monthly window should be UTC.) 
+cheatsheetseries.owasp.org
+owasp.org
+
+E. Tier-gated features
+
+Chat limits: FREE 10/day vs PRO 100/day vs MAX_PRO 500/day (11th/101st/501st ⇒ 429).
+
+Exports: FREE month CSV only vs PRO 12m CSV/XLSX vs MAX_PRO CSV/XLSX/JSON + webhooks (verify 403/429 when exceeding role). 
+owasp.org
+
+F. Basic security headers on protected routes
+Check Helmet in prod:
+
+bash
+Kopiuj
+Edytuj
+curl -i $API/healthz | grep -Ei 'x-frame-options|content-security-policy|x-content-type-options'
+# Expect standard Helmet headers
+expressjs.com
+
+3) Negative tests (quick)
+JWT tamper: modify the role claim in a token (without re-signing) → should be rejected (401/403). (Never trust role from client.) 
+cheatsheetseries.owasp.org
+
+CORS bypass: direct curl (no browser) must still enforce RBAC/quota; UI gating alone is insufficient. 
+cheatsheetseries.owasp.org
+
+IDOR/Path fuzzing: change IDs in path/query/body; ensure every handler checks userId against auth context (prevents BOLA). 
+owasp.org
+
+4) Automation next (nice-to-have)
+Write minimal supertest/Jest cases for the matrix (roles × endpoints × expected codes).
+
+Add k6/Postman collection to assert 429 at limits and 403 on forbidden routes.
+
+Monitor logs for deny events; alert on any 200 where 403/429 was expected (cheap canary).
+(These align with OWASP testing guidance & cheat sheets.)

@@ -1140,6 +1140,13 @@ export class DatabaseStorage implements IStorage {
       })
       .where(eq(usageCounters.userId, userId));
   }
+
+  // Reset user usage counters (for testing)
+  async resetUsageCounters(userId: string): Promise<void> {
+    await db
+      .delete(usageCounters)
+      .where(eq(usageCounters.userId, userId));
+  }
 }
 
 export const storage = new DatabaseStorage();

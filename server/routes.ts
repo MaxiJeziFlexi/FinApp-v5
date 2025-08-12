@@ -25,6 +25,7 @@ import { setupAuth, isAuthenticated } from "./replitAuth";
 import { requireAdmin, logAdminAction, validateAIParams } from "./middleware/adminAuth";
 import { requirePermission, requireQuota } from "./middleware/rbac";
 import { aiMetricsService } from "./services/aiMetricsService";
+import { registerTestRoutes } from "./routes/testRoutes";
 import bcrypt from "bcryptjs";
 import Stripe from "stripe";
 
@@ -4432,6 +4433,9 @@ What would you like me to help you with?`,
       res.status(500).json({ message: 'Internal server error' });
     }
   });
+
+  // Register RBAC test routes (development only)
+  registerTestRoutes(app);
 
   const httpServer = createServer(app);
   return httpServer;

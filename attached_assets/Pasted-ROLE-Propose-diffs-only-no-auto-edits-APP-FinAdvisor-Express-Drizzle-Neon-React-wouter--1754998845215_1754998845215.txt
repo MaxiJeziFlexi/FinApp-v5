@@ -1,0 +1,56 @@
+ROLE: Propose diffs only (no auto-edits).
+APP: FinAdvisor (Express + Drizzle/Neon, React + wouter + shadcn + react-query). RBAC already live (FREE/PRO/MAX_PRO/ADMIN).
+GOAL:
+
+Use one canonical upgrade page for all premium tools.
+
+Fix “Upgrade to Pro” buttons (404) by routing to a single absolute path (e.g., /upgrade).
+
+CONSTRAINTS:
+
+Don’t modify deploy/secrets or .replit.
+
+Keep server code as is; this task is FE routing & paywall only.
+
+Use wouter <Link href=\"/...\"> with a leading slash (no relative paths). 
+GitHub
+npm
+
+If checkout uses Stripe, centralize redirect on the /upgrade page (server creates Checkout Session and redirects). 
+Dokumentacja Stripe
++1
+
+MAKE THESE CHANGES (diffs only):
+
+Add src/constants/routes.ts with ROUTES.UPGRADE = "/upgrade" and ROUTES.DASHBOARD = "/".
+
+Add route mapping: in AppRoutes.tsx, mount <Route path="/upgrade" component={UpgradePage} /> (reuse landing pricing/checkout component). Also add alias <Route path="/pricing" component={UpgradePage} />.
+
+Create reusable paywall:
+
+src/components/premium/PremiumPaywall.tsx (CTA links to ROUTES.UPGRADE; secondary to dashboard).
+
+src/components/premium/PremiumGate.tsx (reads /api/me/features or role; if user < required tier → render PremiumPaywall, else render children).
+
+Wrap every premium page (Crypto Market, Gaming Hub, Investment AI, Tax Strategy, etc.) with <PremiumGate required="PRO" /> (or MAX_PRO where needed).
+
+Replace all CTAs like /checkout, pricing, or relative upgrade with <Link href={ROUTES.UPGRADE}>…</Link> (must be absolute to avoid 404). 
+GitHub
+
+DELIVERABLES:
+
+Short plan + unified diffs for: constants/routes.ts, AppRoutes.tsx, components/premium/PremiumPaywall.tsx, components/premium/PremiumGate.tsx, and the touched premium pages.
+
+A grep list of replaced CTAs.
+
+Smoke tests:
+
+As FREE: visit /crypto (or any premium tool) → paywall shows. Click Upgrade → navigates to /upgrade (no 404).
+
+As PRO/MAX_PRO: same pages render content (no paywall).
+
+Direct visit /pricing → same upgrade page.
+
+Rollback steps (file list + git commands).
+
+Ask before altering backend or payment env variables.

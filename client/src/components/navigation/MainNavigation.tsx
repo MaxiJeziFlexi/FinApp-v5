@@ -126,7 +126,7 @@ export default function MainNavigation() {
   const [location] = useLocation();
   const [isProfileExpanded, setIsProfileExpanded] = useState(false);
   const { theme, setTheme } = useTheme();
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   
   // Check if user is on FREE plan
   const isFreeUser = !user || (user as any)?.subscriptionTier === 'FREE';
@@ -138,16 +138,21 @@ export default function MainNavigation() {
     return location === path || (path !== '/' && location.startsWith(path));
   };
 
+  // Close mobile menu when clicking on links
+  const handleLinkClick = () => {
+    setIsOpen(false);
+  };
+
   return (
     <>
-      {/* Mobile Menu Button */}
+      {/* Mobile Menu Button - Improved positioning and styling */}
       <Button
         variant="ghost"
         size="sm"
-        className="fixed top-4 left-4 z-50 md:hidden bg-white/90 backdrop-blur-sm border border-gray-200 shadow-lg"
+        className="fixed top-4 left-4 z-50 md:hidden bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm border border-gray-200 dark:border-gray-700 shadow-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
         onClick={() => setIsOpen(!isOpen)}
       >
-        {isOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+        {isOpen ? <X className="h-5 w-5 text-gray-700 dark:text-gray-200" /> : <Menu className="h-5 w-5 text-gray-700 dark:text-gray-200" />}
       </Button>
 
       {/* Desktop Sidebar */}
@@ -424,30 +429,31 @@ export default function MainNavigation() {
               animate={{ x: 0 }}
               exit={{ x: -300 }}
               transition={{ duration: 0.3 }}
-              className="fixed left-0 top-0 h-full w-80 bg-white dark:bg-gray-900 z-50 flex-col shadow-xl md:hidden"
+              className="fixed left-0 top-0 h-full w-full max-w-sm bg-white/98 dark:bg-gray-900/98 backdrop-blur-lg z-50 flex flex-col shadow-2xl md:hidden border-r border-gray-200 dark:border-gray-700"
             >
-              <div className="p-6 border-b border-gray-200 dark:border-gray-700">
+              <div className="p-4 border-b border-gray-200 dark:border-gray-700">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-gradient-to-br from-cyan-500 to-violet-600 rounded-lg flex items-center justify-center">
-                      <Brain className="h-6 w-6 text-white" />
+                    <div className="w-8 h-8 bg-gradient-to-br from-cyan-500 to-violet-600 rounded-lg flex items-center justify-center">
+                      <Brain className="h-5 w-5 text-white" />
                     </div>
                     <div>
-                      <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100">FinApp</h1>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">AI Financial Platform</p>
+                      <h1 className="text-lg font-bold text-gray-900 dark:text-gray-100">FinApp</h1>
+                      <p className="text-xs text-gray-600 dark:text-gray-400">AI Financial Platform</p>
                     </div>
                   </div>
                   <Button
                     variant="ghost"
                     size="sm"
                     onClick={() => setIsOpen(false)}
+                    className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100"
                   >
                     <X className="h-5 w-5" />
                   </Button>
                 </div>
               </div>
 
-              <div className="flex-1 overflow-y-auto p-4">
+              <div className="flex-1 overflow-y-auto p-4 space-y-1">
                 <div className="space-y-2">
                   {navigationItems.map((item) => {
                     const Icon = item.icon;
@@ -463,7 +469,7 @@ export default function MainNavigation() {
                               ? 'bg-gradient-to-r from-cyan-500 to-violet-500 text-white shadow-lg' 
                               : 'hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-200'
                           }`}
-                          onClick={() => setIsOpen(false)}
+                          onClick={handleLinkClick}
                         >
                           <Icon className={`h-5 w-5 ${active ? 'text-white' : 'text-gray-500 dark:text-gray-400'}`} />
                           <div className="flex-1">
@@ -508,7 +514,7 @@ export default function MainNavigation() {
                                 ? 'bg-gradient-to-r from-emerald-500 to-cyan-500 text-white shadow-lg' 
                                 : 'hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-200'
                             }`}
-                            onClick={() => setIsOpen(false)}
+                            onClick={handleLinkClick}
                           >
                             <Icon className={`h-5 w-5 ${active ? 'text-white' : 'text-gray-500 dark:text-gray-400'}`} />
                             <div className="flex-1">

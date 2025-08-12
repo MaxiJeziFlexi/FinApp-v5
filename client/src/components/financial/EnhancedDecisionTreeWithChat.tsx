@@ -28,6 +28,8 @@ import {
   Activity,
   Loader2
 } from 'lucide-react';
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 interface DecisionTreeQuestion {
   id: string;
@@ -563,7 +565,11 @@ export function EnhancedDecisionTreeWithChat({
                         {message.timestamp.toLocaleTimeString()}
                       </span>
                     </div>
-                    <p className="text-sm">{message.content}</p>
+                    <div className="prose prose-sm dark:prose-invert max-w-none">
+                      <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                        {message.content}
+                      </ReactMarkdown>
+                    </div>
                     {message.questionContext && (
                       <Badge variant="outline" className="mt-2 text-xs">
                         Re: {message.questionContext.category}

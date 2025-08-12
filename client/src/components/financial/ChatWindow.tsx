@@ -23,6 +23,8 @@ import {
   Home,
   PiggyBank
 } from "lucide-react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 interface ChatWindowProps {
   advisor: any;
@@ -283,7 +285,11 @@ export default function ChatWindow({
                   ? 'bg-yellow-50 border border-yellow-200 text-yellow-800 rounded-tl-sm'
                   : 'chat-bubble-ai rounded-tl-sm'
               }`}>
-                <p className="whitespace-pre-wrap">{message.content}</p>
+                <div className="prose prose-sm dark:prose-invert max-w-none">
+                  <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                    {message.content}
+                  </ReactMarkdown>
+                </div>
                 
                 {/* Show embedded content for financial advice */}
                 {message.role === 'assistant' && message.content.includes('payoff timeline') && (

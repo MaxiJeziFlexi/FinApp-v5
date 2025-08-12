@@ -51,11 +51,12 @@ export default function PremiumSubscriptionPlans({
   // Subscribe mutation
   const subscribeMutation = useMutation({
     mutationFn: async (planId: string) => {
-      return await apiRequest("POST", "/api/subscription/create", {
+      const response = await apiRequest("POST", "/api/subscription/create", {
         userId,
         planId,
         billingInterval,
       });
+      return await response.json();
     },
     onSuccess: (data) => {
       toast({
@@ -79,7 +80,7 @@ export default function PremiumSubscriptionPlans({
       id: 'free',
       name: 'Free',
       description: 'Perfect for getting started with AI financial education',
-      price: 0,
+      price: "0",
       currency: 'USD',
       interval: 'month' as const,
       features: {
@@ -100,7 +101,7 @@ export default function PremiumSubscriptionPlans({
       id: 'premium',
       name: 'Premium',
       description: 'Enhanced AI learning with advanced analytics and priority support',
-      price: billingInterval === 'month' ? 1999 : 19990, // $19.99/month or $199.99/year
+      price: billingInterval === 'month' ? "1999" : "19990", // $19.99/month or $199.99/year
       currency: 'USD',
       interval: billingInterval,
       features: {
@@ -121,7 +122,7 @@ export default function PremiumSubscriptionPlans({
       id: 'pro',
       name: 'Pro',
       description: 'Complete AI financial education platform with unlimited access',
-      price: billingInterval === 'month' ? 4999 : 49990, // $49.99/month or $499.99/year
+      price: billingInterval === 'month' ? "4999" : "49990", // $49.99/month or $499.99/year
       currency: 'USD',
       interval: billingInterval,
       features: {
@@ -142,8 +143,8 @@ export default function PremiumSubscriptionPlans({
 
   const displayPlans = plans || defaultPlans;
 
-  const formatPrice = (price: number, currency: string, interval: string) => {
-    const amount = price / 100;
+  const formatPrice = (price: string, currency: string, interval: string) => {
+    const amount = parseInt(price) / 100;
     if (amount === 0) return 'Free';
     
     const formatted = new Intl.NumberFormat('en-US', {
@@ -292,9 +293,9 @@ export default function PremiumSubscriptionPlans({
                 <div className="text-3xl font-bold mb-1">
                   {formatPrice(plan.price, plan.currency, plan.interval)}
                 </div>
-                {plan.price > 0 && billingInterval === 'year' && (
+                {parseInt(plan.price) > 0 && billingInterval === 'year' && (
                   <p className="text-sm text-gray-500">
-                    ${(plan.price / 100 / 12).toFixed(2)} per month, billed annually
+                    ${(parseInt(plan.price) / 100 / 12).toFixed(2)} per month, billed annually
                   </p>
                 )}
                 <CardDescription className="mt-2">{plan.description}</CardDescription>
@@ -329,7 +330,7 @@ export default function PremiumSubscriptionPlans({
                     ? 'Current Plan' 
                     : subscribeMutation.isPending 
                     ? 'Processing...' 
-                    : plan.price === 0 
+                    : parseInt(plan.price) === 0 
                     ? 'Get Started' 
                     : `Upgrade to ${plan.name}`
                   }

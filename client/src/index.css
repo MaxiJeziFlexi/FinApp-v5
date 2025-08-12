@@ -2,6 +2,70 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Mobile-First Responsive Design */
+@media (max-width: 768px) {
+  .mobile-hidden {
+    display: none !important;
+  }
+  
+  .mobile-full-width {
+    width: 100% !important;
+  }
+  
+  .mobile-padding {
+    padding: 1rem !important;
+  }
+  
+  .mobile-text-sm {
+    font-size: 0.875rem !important;
+  }
+  
+  .mobile-grid-1 {
+    grid-template-columns: repeat(1, 1fr) !important;
+  }
+  
+  .mobile-flex-col {
+    flex-direction: column !important;
+  }
+  
+  .mobile-gap-2 {
+    gap: 0.5rem !important;
+  }
+  
+  /* Mobile touch targets */
+  .mobile-touch-target {
+    min-height: 44px !important;
+    min-width: 44px !important;
+  }
+  
+  /* Mobile font sizes */
+  .mobile-text-xs {
+    font-size: 0.75rem !important;
+  }
+  
+  /* Mobile scrolling */
+  .mobile-scroll {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+}
+
+/* Touch-friendly interactions */
+@media (pointer: coarse) {
+  button, .clickable {
+    min-height: 44px;
+    min-width: 44px;
+  }
+}
+
+/* High DPI mobile screens */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  .high-dpi-text {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
+
 /* 3D Neural Advisor Animations */
 @keyframes spin-slow {
   from {

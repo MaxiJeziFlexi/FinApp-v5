@@ -37,6 +37,7 @@ import { AdvancedAnalyticsDashboard } from "@/components/financial/AdvancedAnaly
 import { FinancialDashboardWidgets } from "@/components/dashboard/FinancialDashboardWidgets";
 
 import type { UserProfile as UserProfileType } from "@shared/schema";
+import MobileViewportMeta from "@/components/mobile/MobileViewportMeta";
 
 type AppFlow =
   | "onboarding"
@@ -246,7 +247,9 @@ export default function FinAppHome() {
   }
 
   return (
-    <div className="min-h-screen bg-white dark:bg-black relative">
+    <>
+      <MobileViewportMeta />
+      <div className="min-h-screen bg-white dark:bg-black relative">
       {/* Background */}
       <div className="absolute inset-0 bg-gradient-to-br from-cyan-200/20 via-emerald-200/20 to-violet-200/20 dark:from-cyan-500/10 dark:via-purple-500/10 dark:to-blue-500/10" />
       <div
@@ -259,11 +262,11 @@ export default function FinAppHome() {
 
       {/* Header */}
       <div className="relative bg-gradient-to-r from-white/90 via-gray-50/95 to-white/90 dark:from-black/90 dark:via-gray-900/95 dark:to-black/90 backdrop-blur-xl border-b border-cyan-500/30 py-6">
-        <div className="container mx-auto px-4">
+        <div className="container mx-auto px-4 sm:px-6">
           <div className="text-center relative z-10">
             <div className="flex items-center justify-center mb-6">
               <div className="h-1 w-16 bg-gradient-to-r from-cyan-400 to-blue-600 rounded-full mr-4" />
-              <div className="text-5xl font-black bg-gradient-to-r from-cyan-400 via-purple-500 to-blue-600 bg-clip-text text-transparent">
+              <div className="text-2xl sm:text-5xl font-black bg-gradient-to-r from-cyan-400 via-purple-500 to-blue-600 bg-clip-text text-transparent">
                 FINAPP NEURAL CORE
               </div>
               <div className="h-1 w-16 bg-gradient-to-r from-blue-600 to-purple-400 rounded-full ml-4" />
@@ -273,7 +276,7 @@ export default function FinAppHome() {
               [ QUANTUM FINANCIAL CONSCIOUSNESS SYSTEM ]
             </div>
 
-            <div className="grid grid-cols-3 gap-8 mt-6 max-w-4xl mx-auto">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-8 mt-6 max-w-4xl mx-auto">
               <div className="bg-white/30 dark:bg-black/30 backdrop-blur-md border border-cyan-500/30 rounded-xl p-4 text-center">
                 <div className="text-2xl font-bold text-cyan-600 dark:text-cyan-400">10,000+</div>
                 <div className="text-gray-700 dark:text-gray-300 font-mono text-sm">
@@ -346,8 +349,8 @@ export default function FinAppHome() {
         </div>
       </div>
 
-      <div className="container mx-auto px-4 py-8 relative z-10">
-        <div className="bg-gradient-to-r from-white/80 to-gray-100/90 dark:from-gray-900/80 dark:to-black/90 backdrop-blur-xl border border-cyan-500/30 rounded-2xl p-6 mb-8">
+      <div className="container mx-auto px-4 sm:px-6 py-8 relative z-10">
+        <div className="bg-gradient-to-r from-white/80 to-gray-100/90 dark:from-gray-900/80 dark:to-black/90 backdrop-blur-xl border border-cyan-500/30 rounded-2xl p-4 sm:p-6 mb-8">
           <div className="text-center mb-6">
             <div className="text-cyan-600 dark:text-cyan-400 font-mono text-sm tracking-wider mb-2">
               NEURAL INTERFACE SELECTION
@@ -359,49 +362,54 @@ export default function FinAppHome() {
             value={currentFlow}
             onValueChange={(v) => handleFlowChange(v as AppFlow)}
           >
-            <TabsList className="grid w-full grid-cols-5 bg-white/40 dark:bg-black/40 border border-cyan-500/20 rounded-xl p-2">
+            <TabsList className="grid w-full grid-cols-2 sm:grid-cols-5 bg-white/40 dark:bg-black/40 border border-cyan-500/20 rounded-xl p-2 gap-1">
               <TabsTrigger
                 value="onboarding"
-                className="flex items-center gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-cyan-500 data-[state=active]:to-blue-600 data-[state=active]:text-white text-gray-600 dark:text-gray-300 font-mono text-sm transition-all duration-300"
+                className="flex items-center gap-1 sm:gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-cyan-500 data-[state=active]:to-blue-600 data-[state=active]:text-white text-gray-600 dark:text-gray-300 font-mono text-xs sm:text-sm transition-all duration-300"
                 disabled={!!onboardingComplete}
               >
-                <UserIcon className="w-4 h-4" />
-                NEURAL PROFILE
+                <UserIcon className="w-3 h-3 sm:w-4 sm:h-4" />
+                <span className="hidden sm:inline">NEURAL PROFILE</span>
+                <span className="sm:hidden">SETUP</span>
               </TabsTrigger>
 
               <TabsTrigger
                 value="advisor-selection"
-                className="flex items-center gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-500 data-[state=active]:to-pink-600 data-[state=active]:text-white text-gray-600 dark:text-gray-300 font-mono text-sm transition-all duration-300"
+                className="flex items-center gap-1 sm:gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-500 data-[state=active]:to-pink-600 data-[state=active]:text-white text-gray-600 dark:text-gray-300 font-mono text-xs sm:text-sm transition-all duration-300"
                 disabled={!onboardingComplete}
               >
-                <Target className="w-4 h-4" />
-                AI ADVISORS
+                <Target className="w-3 h-3 sm:w-4 sm:h-4" />
+                <span className="hidden sm:inline">AI ADVISORS</span>
+                <span className="sm:hidden">AI</span>
               </TabsTrigger>
 
               <TabsTrigger
                 value="decision-tree"
-                className="flex items-center gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-indigo-600 data-[state=active]:text-white text-gray-600 dark:text-gray-300 font-mono text-sm transition-all duration-300"
+                className="flex items-center gap-1 sm:gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-indigo-600 data-[state=active]:text-white text-gray-600 dark:text-gray-300 font-mono text-xs sm:text-sm transition-all duration-300 col-span-2 sm:col-span-1"
                 disabled={!selectedAdvisor}
               >
-                <BarChart3 className="w-4 h-4" />
-                DECISION MATRIX
+                <BarChart3 className="w-3 h-3 sm:w-4 sm:h-4" />
+                <span className="hidden sm:inline">DECISION MATRIX</span>
+                <span className="sm:hidden">ANALYSIS</span>
               </TabsTrigger>
 
               <TabsTrigger
                 value="chat"
-                className="flex items-center gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-green-500 data-[state=active]:to-emerald-600 data-[state=active]:text-white text-gray-600 dark:text-gray-300 font-mono text-sm transition-all duration-300"
+                className="flex items-center gap-1 sm:gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-green-500 data-[state=active]:to-emerald-600 data-[state=active]:text-white text-gray-600 dark:text-gray-300 font-mono text-xs sm:text-sm transition-all duration-300"
                 disabled={!selectedAdvisor}
               >
-                <MessageSquare className="w-4 h-4" />
-                NEURAL CHAT
+                <MessageSquare className="w-3 h-3 sm:w-4 sm:h-4" />
+                <span className="hidden sm:inline">NEURAL CHAT</span>
+                <span className="sm:hidden">CHAT</span>
               </TabsTrigger>
 
               <TabsTrigger
                 value="analytics"
-                className="flex items-center gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-500 data-[state=active]:to-red-600 data-[state=active]:text-white text-gray-600 dark:text-gray-300 font-mono text-sm transition-all duration-300"
+                className="flex items-center gap-1 sm:gap-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-orange-500 data-[state=active]:to-red-600 data-[state=active]:text-white text-gray-600 dark:text-gray-300 font-mono text-xs sm:text-sm transition-all duration-300"
               >
-                <TrendingUp className="w-4 h-4" />
-                ANALYTICS CORE
+                <TrendingUp className="w-3 h-3 sm:w-4 sm:h-4" />
+                <span className="hidden sm:inline">ANALYTICS CORE</span>
+                <span className="sm:hidden">STATS</span>
               </TabsTrigger>
             </TabsList>
 
@@ -615,7 +623,7 @@ export default function FinAppHome() {
             [ QUANTUM AI CONSCIOUSNESS CONTINUOUSLY PROCESSES BEHAVIORAL
             PATTERNS TO ENHANCE FINANCIAL EDUCATION ALGORITHMS ]
           </p>
-          <div className="grid grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
             <div className="bg-white/60 dark:bg-black/40 border border-green-500/30 rounded-lg p-3">
               <div className="text-green-600 dark:text-green-400 font-bold text-sm">
                 PRIVACY SHIELDED
@@ -643,5 +651,6 @@ export default function FinAppHome() {
         />
       )}
     </div>
+    </>
   );
 }

@@ -28,7 +28,7 @@ import {
   Activity
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { logout } from '@/hooks/useAuth';
+import { logout, useAuth } from '@/hooks/useAuth';
 
 const navigationItems = [
   {
@@ -129,6 +129,10 @@ export default function MainNavigation() {
   const [location] = useLocation();
   const [isProfileExpanded, setIsProfileExpanded] = useState(false);
   const { theme, setTheme } = useTheme();
+  const { user } = useAuth();
+  
+  // Check if user is on FREE plan
+  const isFreeUser = !user || user.subscriptionTier === 'FREE';
 
   const isActive = (path: string) => {
     return location === path || (path !== '/' && location.startsWith(path));
@@ -231,6 +235,7 @@ export default function MainNavigation() {
                       <div className="flex-1">
                         <div className="flex items-center gap-2">
                           <span className="font-medium">{item.label}</span>
+                          {/* Show existing badge */}
                           {item.badge && (
                             <Badge 
                               variant={active ? "secondary" : "outline"}
@@ -239,6 +244,15 @@ export default function MainNavigation() {
                               }`}
                             >
                               {item.badge}
+                            </Badge>
+                          )}
+                          {/* Show PRO indicator for FREE users on premium features */}
+                          {isFreeUser && item.premium && (
+                            <Badge 
+                              variant="outline"
+                              className="text-xs bg-orange-100 dark:bg-orange-900 text-orange-700 dark:text-orange-300 border-orange-300 dark:border-orange-700"
+                            >
+                              PRO
                             </Badge>
                           )}
                         </div>
@@ -472,6 +486,62 @@ export default function MainNavigation() {
                       </Link>
                     );
                   })}
+                </div>
+
+                {/* Mobile Premium Features Section */}
+                <div className="mt-6">
+                  <h3 className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-3 px-3">Premium Features</h3>
+                  <div className="space-y-2">
+                    {premiumItems.map((item) => {
+                      const Icon = item.icon;
+                      const active = isActive(item.path);
+                      
+                      return (
+                        <Link key={item.path} href={item.path}>
+                          <motion.div
+                            whileHover={{ scale: 1.02 }}
+                            whileTap={{ scale: 0.98 }}
+                            className={`flex items-center gap-3 p-3 rounded-lg transition-all cursor-pointer ${
+                              active 
+                                ? 'bg-gradient-to-r from-emerald-500 to-cyan-500 text-white shadow-lg' 
+                                : 'hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-200'
+                            }`}
+                            onClick={() => setIsOpen(false)}
+                          >
+                            <Icon className={`h-5 w-5 ${active ? 'text-white' : 'text-gray-500 dark:text-gray-400'}`} />
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2">
+                                <span className="font-medium">{item.label}</span>
+                                {/* Show existing badge */}
+                                {item.badge && (
+                                  <Badge 
+                                    variant={active ? "secondary" : "outline"}
+                                    className={`text-xs ${
+                                      active ? 'bg-white/20 text-white' : 'bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200'
+                                    }`}
+                                  >
+                                    {item.badge}
+                                  </Badge>
+                                )}
+                                {/* Show PRO indicator for FREE users on premium features */}
+                                {isFreeUser && item.premium && (
+                                  <Badge 
+                                    variant="outline"
+                                    className="text-xs bg-orange-100 dark:bg-orange-900 text-orange-700 dark:text-orange-300 border-orange-300 dark:border-orange-700"
+                                  >
+                                    PRO
+                                  </Badge>
+                                )}
+                              </div>
+                              <p className={`text-xs ${active ? 'text-white/80' : 'text-gray-500 dark:text-gray-400'}`}>
+                                {item.description}
+                              </p>
+                            </div>
+                          </motion.div>
+                        </Link>
+                      );
+                    })}
+                  </div>
                 </div>
               </div>
 

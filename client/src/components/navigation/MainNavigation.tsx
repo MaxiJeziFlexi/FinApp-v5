@@ -130,6 +130,9 @@ export default function MainNavigation() {
   
   // Check if user is on FREE plan
   const isFreeUser = !user || user.subscriptionTier === 'FREE';
+  
+  // Check if user is admin (has admin role or is logged in as admin)
+  const isAdmin = user?.role === 'admin' || user?.subscriptionTier === 'ADMIN';
 
   const isActive = (path: string) => {
     return location === path || (path !== '/' && location.startsWith(path));
@@ -264,11 +267,12 @@ export default function MainNavigation() {
             </div>
           </div>
 
-          {/* Admin Section */}
-          <div className="mb-6">
-            <h3 className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-3 px-3">Admin</h3>
-            <div className="space-y-2">
-              {adminItems.map((item) => {
+          {/* Admin Section - Only show for admin users */}
+          {isAdmin && (
+            <div className="mb-6">
+              <h3 className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-3 px-3">Admin</h3>
+              <div className="space-y-2">
+                {adminItems.map((item) => {
                 const Icon = item.icon;
                 const active = isActive(item.path);
                 
@@ -305,9 +309,10 @@ export default function MainNavigation() {
                     </motion.div>
                   </Link>
                 );
-              })}
+                })}
+              </div>
             </div>
-          </div>
+          )}
         </div>
 
         <div className="p-4 border-t border-gray-200 dark:border-gray-700">
@@ -540,6 +545,54 @@ export default function MainNavigation() {
                     })}
                   </div>
                 </div>
+
+                {/* Mobile Admin Section - Only show for admin users */}
+                {isAdmin && (
+                  <div className="mt-6">
+                    <h3 className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-3 px-3">Admin</h3>
+                    <div className="space-y-2">
+                      {adminItems.map((item) => {
+                        const Icon = item.icon;
+                        const active = isActive(item.path);
+                        
+                        return (
+                          <Link key={item.path} href={item.path}>
+                            <motion.div
+                              whileHover={{ scale: 1.02 }}
+                              whileTap={{ scale: 0.98 }}
+                              className={`flex items-center gap-3 p-3 rounded-lg transition-all cursor-pointer ${
+                                active 
+                                  ? 'bg-gradient-to-r from-violet-500 to-purple-500 text-white shadow-lg' 
+                                  : 'hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-200'
+                              }`}
+                              onClick={() => setIsOpen(false)}
+                            >
+                              <Icon className={`h-5 w-5 ${active ? 'text-white' : 'text-gray-500 dark:text-gray-400'}`} />
+                              <div className="flex-1">
+                                <div className="flex items-center gap-2">
+                                  <span className="font-medium">{item.label}</span>
+                                  {item.badge && (
+                                    <Badge 
+                                      variant={active ? "secondary" : "outline"}
+                                      className={`text-xs ${
+                                        active ? 'bg-white/20 text-white' : 'bg-violet-100 dark:bg-violet-900 text-violet-800 dark:text-violet-200'
+                                      }`}
+                                    >
+                                      {item.badge}
+                                    </Badge>
+                                  )}
+                                </div>
+                                <p className={`text-xs ${active ? 'text-white/80' : 'text-gray-500 dark:text-gray-400'}`}>
+                                  {item.description}
+                                </p>
+                              </div>
+                            </motion.div>
+                          </Link>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
               </div>
 
               <div className="p-4 border-t border-gray-200 dark:border-gray-700">

@@ -36,6 +36,7 @@ export default function AdvisorSelection({ onAdvisorSelect }: AdvisorSelectionPr
       case 'financial_planner': return Calculator;
       case 'investment_specialist': return TrendingUp;
       case 'risk_analyst': return PiggyBank;
+      case 'finapp_agent': return Star;
       default: return Calculator;
     }
   };
@@ -73,13 +74,26 @@ export default function AdvisorSelection({ onAdvisorSelect }: AdvisorSelectionPr
             <div className="flex items-center justify-center mb-4">
               <div className="w-3 h-3 bg-cyan-400 rounded-full animate-pulse mr-2"></div>
               <div className="text-cyan-600 dark:text-cyan-400 font-mono text-sm tracking-wider">ADVANCED AI ADVISORS ONLINE</div>
+            </div>
+            <div className="bg-gradient-to-r from-purple-600/20 to-blue-600/20 border border-purple-400/40 rounded-xl p-4 mb-4">
+              <div className="flex items-center justify-center space-x-2 mb-2">
+                <Star className="w-4 h-4 text-yellow-400" />
+                <span className="text-sm font-bold text-purple-700 dark:text-purple-300">NEW: FinApp Agent Premium</span>
+                <Star className="w-4 h-4 text-yellow-400" />
+              </div>
+              <p className="text-xs text-center text-purple-600 dark:text-purple-400">
+                Secure Financial Copilot with Voice, Real-time Data & Advanced Strategy Tools
+              </p>
+            </div>
+            <div className="flex items-center justify-center">
+              <div className="w-3 h-3 bg-cyan-400 rounded-full animate-pulse mr-2"></div>
+              <p className="text-gray-800 dark:text-gray-300 text-base leading-relaxed text-center">
+                Experience next-generation financial AI with <span className="text-cyan-500 font-semibold">full system access</span>, 
+                <span className="text-emerald-500 font-semibold"> advanced predictions</span>, and 
+                <span className="text-violet-500 font-semibold"> intelligent analysis</span>
+              </p>
               <div className="w-3 h-3 bg-cyan-400 rounded-full animate-pulse ml-2"></div>
             </div>
-            <p className="text-gray-800 dark:text-gray-300 text-base leading-relaxed">
-              Experience next-generation financial AI with <span className="text-cyan-500 font-semibold">full system access</span>, 
-              <span className="text-emerald-500 font-semibold"> advanced predictions</span>, and 
-              <span className="text-violet-500 font-semibold"> intelligent analysis</span>
-            </p>
           </div>
         </div>
       </div>
@@ -113,6 +127,13 @@ export default function AdvisorSelection({ onAdvisorSelect }: AdvisorSelectionPr
                   secondary: 'from-violet-200/30 to-purple-300/40',
                   accent: 'border-violet-400/60',
                   glow: 'shadow-violet-400/30'
+                };
+              case 'finapp_agent':
+                return {
+                  primary: 'from-purple-400 to-blue-500',
+                  secondary: 'from-purple-200/30 to-blue-300/40',
+                  accent: 'border-purple-500/60',
+                  glow: 'shadow-purple-500/30'
                 };
               default:
                 return {

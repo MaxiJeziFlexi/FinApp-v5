@@ -33,6 +33,7 @@ import { PersonalizedDecisionTreeView } from "@/components/financial/Personalize
 
 import EnhancedChatWindow from "@/components/chat/EnhancedChatWindow";
 import FanaticAgentChatWindow from "@/components/advanced/FanaticAgentChatWindow";
+import FinAppAgent from "@/components/ai/FinAppAgent";
 import AchievementNotification from "@/components/financial/AchievementNotification";
 import { FinancialVisualizations3D } from "@/components/financial/FinancialVisualizations3D";
 import { AdvancedAnalyticsDashboard } from "@/components/financial/AdvancedAnalyticsDashboard";
@@ -519,28 +520,53 @@ export default function FinAppHome(): ReactNode {
 
               {selectedAdvisor && (
                 <div className="space-y-6">
-                  <div className="bg-gradient-to-r from-purple-500 to-cyan-500 rounded-xl p-6 text-white">
-                    <h2 className="text-2xl font-bold mb-2">🚀 Fanatic AI Agent</h2>
-                    <p className="text-purple-100">
-                      Zaawansowany asystent AI z możliwościami GPT-4o, analizy plików, generowania raportów i więcej!
-                      Podobny do Replit Agent lub ChatGPT-5!
-                    </p>
-                    <div className="flex flex-wrap gap-2 mt-4">
-                      <Badge variant="secondary" className="bg-white/20">GPT-4o Integration</Badge>
-                      <Badge variant="secondary" className="bg-white/20">File Analysis</Badge>
-                      <Badge variant="secondary" className="bg-white/20">Report Generation</Badge>
-                      <Badge variant="secondary" className="bg-white/20">Voice Input</Badge>
-                    </div>
-                  </div>
+                  {selectedAdvisor.id === 'finapp_agent' ? (
+                    <>
+                      <div className="bg-gradient-to-r from-purple-600 to-blue-600 rounded-xl p-6 text-white">
+                        <h2 className="text-2xl font-bold mb-2">🚀 FinApp Agent Premium</h2>
+                        <p className="text-purple-100">
+                          Secure, role-aware financial copilot with voice chat, real-time market data, and advanced strategy tools
+                        </p>
+                        <div className="flex flex-wrap gap-2 mt-4">
+                          <Badge variant="secondary" className="bg-white/20">Voice + Chat</Badge>
+                          <Badge variant="secondary" className="bg-white/20">Real-time Data</Badge>
+                          <Badge variant="secondary" className="bg-white/20">Strategy Tools</Badge>
+                          <Badge variant="secondary" className="bg-white/20">Role-based Security</Badge>
+                        </div>
+                      </div>
 
-                  <FanaticAgentChatWindow 
-                    userId={(currentUser as any)?.id || "demo-user"}
-                    sessionId={`fanatic_${selectedAdvisor.id}_${(currentUser as any)?.id || "demo-user"}_${Date.now()}`}
-                    advisorId={selectedAdvisor.id}
-                    onMessageSent={(message) => {
-                      console.log("Fanatic AI message:", message);
-                    }}
-                  />
+                      <FinAppAgent 
+                        userId={(currentUser as any)?.id || "demo-user"}
+                        userProfile={currentUser}
+                        onBack={() => setCurrentFlow("advisor-selection")}
+                      />
+                    </>
+                  ) : (
+                    <>
+                      <div className="bg-gradient-to-r from-purple-500 to-cyan-500 rounded-xl p-6 text-white">
+                        <h2 className="text-2xl font-bold mb-2">🚀 Fanatic AI Agent</h2>
+                        <p className="text-purple-100">
+                          Zaawansowany asystent AI z możliwościami GPT-4o, analizy plików, generowania raportów i więcej!
+                        Podobny do Replit Agent lub ChatGPT-5!
+                        </p>
+                        <div className="flex flex-wrap gap-2 mt-4">
+                          <Badge variant="secondary" className="bg-white/20">GPT-4o Integration</Badge>
+                          <Badge variant="secondary" className="bg-white/20">File Analysis</Badge>
+                          <Badge variant="secondary" className="bg-white/20">Report Generation</Badge>
+                          <Badge variant="secondary" className="bg-white/20">Voice Input</Badge>
+                        </div>
+                      </div>
+
+                      <FanaticAgentChatWindow 
+                        userId={(currentUser as any)?.id || "demo-user"}
+                        sessionId={`fanatic_${selectedAdvisor.id}_${(currentUser as any)?.id || "demo-user"}_${Date.now()}`}
+                        advisorId={selectedAdvisor.id}
+                        onMessageSent={(message) => {
+                          console.log("Fanatic AI message:", message);
+                        }}
+                      />
+                    </>
+                  )}
 
                   <div className="flex gap-2 justify-center">
                     <Button

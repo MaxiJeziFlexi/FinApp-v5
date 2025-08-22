@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
@@ -126,15 +127,14 @@ async function initializeServer() {
     return new Promise<void>((resolve, reject) => {
       const serverInstance = server.listen({
         port,
-        host: "0.0.0.0",
-        reusePort: true,
+        host: "localhost",
       }, (err?: Error) => {
         if (err) {
           log(`✗ Failed to start server: ${err.message}`);
           reject(err);
         } else {
           log(`✓ Server running successfully on port ${port}`);
-          log(`🌐 Server accessible at http://0.0.0.0:${port}`);
+          log(`🌐 Server accessible at http://localhost:${port}`);
           resolve();
         }
       });

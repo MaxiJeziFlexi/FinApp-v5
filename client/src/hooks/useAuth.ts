@@ -14,6 +14,10 @@ export function useAuth() {
   
   // Check for authentication in localStorage
   useEffect(() => {
+    // Clear any existing auth for demo - comment this out to test the full flow
+    localStorage.removeItem('finapp_admin_auth');
+    localStorage.removeItem('finapp_user_auth');
+    
     let adminAuth = null;
     let userAuth = null;
 

@@ -90,10 +90,10 @@ export default function ImprovedChatInterface({
 
   // Load history on mount
   useEffect(() => {
-    if (chatHistory && chatHistory.length > 0) {
+    if (chatHistory && Array.isArray(chatHistory) && chatHistory.length > 0) {
       const formattedHistory = chatHistory.map((msg: any) => ({
         id: msg.id,
-        role: msg.sender === 'user' ? 'user' : 'assistant',
+        role: (msg.sender === 'user' ? 'user' : 'assistant') as 'user' | 'assistant',
         content: msg.message,
         timestamp: new Date(msg.createdAt),
         model: msg.metadata?.modelUsed,

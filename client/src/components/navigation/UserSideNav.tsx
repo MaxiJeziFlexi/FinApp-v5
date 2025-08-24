@@ -43,7 +43,7 @@ export default function UserSideNav({
   collapsed = false, 
   onCollapsedChange 
 }: UserSideNavProps) {
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   const [location, setLocation] = useLocation();
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -63,13 +63,12 @@ export default function UserSideNav({
     setIsMobileOpen(false);
   };
 
-  const handleLogout = async () => {
-    try {
-      await logout();
-      setLocation('/signin');
-    } catch (error) {
-      console.error('Logout failed:', error);
-    }
+  const handleLogout = () => {
+    // Clear all authentication data
+    localStorage.removeItem('finapp_user_auth');
+    localStorage.removeItem('finapp_admin_auth');
+    // Redirect to landing page
+    window.location.href = '/';
   };
 
   const sidebarContent = (

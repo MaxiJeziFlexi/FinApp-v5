@@ -1,0 +1,121 @@
+PROMPT — “Landing → Sign-in → Onboarding (USER) → Chat (USER, nowy side nav)”, z zachowaniem starego UI dla ADMINA
+
+Wprowadź zmiany, zachowując aktualny wygląd i strukturę projektu. Absolutna zasada:
+
+ADMIN zachowuje obecny admin-interface (stary side nav / main navigation, Admin Panel, Diagnostics, Gaming, Community itd.).
+
+USER dostaje nowy onboarding (OnboardingWizard) oraz nowy chat z nowym bocznym panelem historii i przyciskiem “Add New Chat”.
+
+1) Role i RBAC
+
+Role: USER, ADMIN.
+
+USER: dostępne wyłącznie / (Landing), /signin (jeśli istnieje), /onboarding (one-time), /chat (nowy widok czatu z nowym side nav).
+
+ADMIN: pełen dostęp do dotychczasowych stron/admin-panelu + może wejść na /chat, ale jego globalna nawigacja i layout admina nie ulega zmianie.
+
+W routerze front/back wymuś RBAC: próba wejścia USERA na trasy admina → redirect do /chat.
+
+2) Landing i logowanie
+
+Landing (/): zawsze pokazuj Sign in / Zaloguj.
+
+Po udanym logowaniu:
+
+jeśli onboardingCompleted === false i rola = USER → redirect /onboarding (użyć istniejącego OnboardingWizard z pliku).
+
+jeśli onboardingCompleted === true i rola = USER → redirect /chat (nowy chat z nowym side nav).
+
+jeśli rola = ADMIN → zostaw istniejący admin-layout i nawigację; opcjonalnie pokaż link do /chat, ale nie podmieniaj admin-UI.
+
+3) Onboarding (USER only)
+
+Użyj istniejącego komponentu OnboardingWizard (podałeś kod) bez zmian merytorycznych.
+
+Po ukończeniu:
+
+ustaw onboardingCompleted = true (persist),
+
+redirect do /chat.
+
+/onboarding jest dostępne wyłącznie, gdy onboardingCompleted === false. W innym wypadku redirect do /chat.
+
+ADMIN nie przechodzi nowego onboardingu (chyba że świadomie wejdziesz w tryb testowy) — domyślnie pomijamy.
+
+4) Chat (USER = nowy, ADMIN = może używać, ale UI admina bez zmian)
+
+/chat korzysta z ImprovedChatInterface (podałeś kod) i NOWEGO bocznego panelu:
+
+lista historii konwersacji (scroll),
+
+przycisk “Add New Chat”,
+
+obszar rozmowy po prawej; wsparcie voice opcjonalnie, tryby chat/report/search.
+
+Dla USERA: /chat jest głównym miejscem pracy (z nowym side nav).
+
+Dla ADMINA: /chat dostępny, ale nie zmieniaj globalnej nawigacji admina (zachowujemy “starą wersję” panelu admina). Administrator może wejść/reactować na czacie, ale jego layout pozostaje adminowski.
+
+5) Nawigacja i widoczność
+
+USER:
+
+w głównej nawigacji widzi Chat (→ /chat), ukryte są wszystkie elementy admina;
+
+po zalogowaniu auto-przejście do /onboarding (jeśli nieukończone) lub /chat.
+
+ADMIN:
+
+zachowana stara nawigacja admina (Admin Panel, Diagnostics, Gaming, Community, itp.),
+
++ może mieć link do /chat, ale nie podmieniaj admin-layoutu na nowy czatowy side nav usera.
+
+Usuń/wyłącz stare “user-dashboard” (jeśli istniał) i przekieruj jego ścieżki do /chat.
+
+6) Routing i przekierowania (twarde reguły)
+
+/ (Landing):
+
+jeśli zalogowany USER i onboardingCompleted === false → /onboarding;
+
+jeśli zalogowany USER i onboardingCompleted === true → /chat;
+
+jeśli zalogowany ADMIN → pozostaje w admin-interfejsie (nie wpychaj go do nowego chat-layoutu), może wejść na /chat z admin-nav.
+
+/onboarding: tylko gdy onboardingCompleted === false (USER). Po submit → /chat.
+
+/chat: dostępne dla USER (nowy chat + nowy side nav) i ADMIN (dostępne, ale bez zmiany admin-UI).
+
+Legacy /dashboard (user) → redirect /chat.
+
+7) Persystencja i sesja
+
+Flaga profilu onboardingCompleted (bool) — ustawiana po ukończeniu OnboardingWizard.
+
+Historia czatów skojarzona z użytkownikiem (id, tytuł, timestamp, last message).
+
+“Add New Chat” tworzy nową konwersację i aktywuje ją.
+
+Stabilny session_id dla analityki i brak błędów FK.
+
+8) UI i spójność
+
+Używamy podanych komponentów OnboardingWizard i ImprovedChatInterface bez zmiany estetyki globalnej.
+
+Nowy side nav dotyczy tylko widoku czatu USERA.
+
+Adminowi nie podmieniamy globalnego nav/sidebara — zachowujemy “starą wersję” admin-interfejsu.
+
+9) Kryteria akceptacji
+
+USER (nowy): / → Sign-in → /onboarding → po zapisie → /chat (nowy side nav + “Add New Chat”).
+
+USER (wracający): / → Sign-in → /chat (bez ponownego onboardingu).
+
+ADMIN: po zalogowaniu widzi stary admin-interface i wszystkie admin-strony; może wejść na /chat, ale jego globalny nav/admin-layout pozostaje bez zmian.
+
+Próba wejścia USERA na trasy admina → redirect /chat.
+
+Stary “user-dashboard” nie istnieje / przekierowuje do /chat.
+
+Brak błędów FK, stabilna sesja.

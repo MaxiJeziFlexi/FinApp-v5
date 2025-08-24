@@ -517,6 +517,142 @@ Format: Strukturalny raport PDF-ready`;
     }
   });
 
+  // Onboarding API endpoints
+  app.get('/api/onboarding/progress/:userId', async (req, res) => {
+    try {
+      const { userId } = req.params;
+      const user = await storage.getUser(userId);
+      const profile = await storage.getUserProfile(userId);
+      
+      if (!user) {
+        return res.status(404).json({ message: 'User not found' });
+      }
+      
+      // Return saved onboarding progress
+      const progress = {
+        currentStep: profile?.onboardingProgress || 1,
+        completed: user.onboardingCompleted || false,
+        step1: {
+          firstName: user.firstName || '',
+          lastName: user.lastName || '',
+          dateOfBirth: user.dateOfBirth || '',
+          occupation: user.occupation || '',
+          experience: profile?.experienceLevel || 'beginner'
+        },
+        step2: {
+          communicationStyle: profile?.communicationStyle || 'casual',
+          learningPreference: profile?.learningPreference || 'visual', 
+          riskTolerance: profile?.riskTolerance || 'moderate',
+          primaryGoals: profile?.financialGoals || [],
+          preferredAdvisors: profile?.preferredAdvisors || []
+        },
+        step3: {
+          dataCollection: profile?.consents?.dataAnalyticsOptIn || true,
+          analytics: profile?.consents?.profiling || true,
+          personalization: profile?.consents?.personalization || true,
+          marketing: profile?.consents?.marketingOptIn || false,
+          thirdParty: profile?.consents?.thirdParty || false
+        }
+      };
+      
+      res.json(progress);
+    } catch (error) {
+      console.error('Error fetching onboarding progress:', error);
+      res.status(500).json({ message: 'Failed to fetch onboarding progress' });
+    }
+  });
+
+  app.post('/api/onboarding/save-progress', async (req, res) => {
+    try {
+      const { userId, currentStep, step1, step2, step3 } = req.body;
+      
+      // Update user basic info if step1 is provided
+      if (step1) {
+        await storage.updateUser(userId, {
+          firstName: step1.firstName,
+          lastName: step1.lastName,
+          dateOfBirth: step1.dateOfBirth ? new Date(step1.dateOfBirth) : undefined,
+          occupation: step1.occupation
+        });
+      }
+      
+      // Update profile with progress
+      const profileData: any = {
+        onboardingProgress: currentStep,
+        ...(step1 && { experienceLevel: step1.experience }),
+        ...(step2 && {
+          communicationStyle: step2.communicationStyle,
+          learningPreference: step2.learningPreference,
+          riskTolerance: step2.riskTolerance,
+          financialGoals: step2.primaryGoals,
+          preferredAdvisors: step2.preferredAdvisors
+        }),
+        ...(step3 && {
+          consents: {
+            dataAnalyticsOptIn: step3.dataCollection,
+            profiling: step3.analytics,
+            personalization: step3.personalization,
+            marketingOptIn: step3.marketing,
+            thirdParty: step3.thirdParty,
+            termsAccepted: true,
+            privacyAccepted: true
+          }
+        })
+      };
+      
+      await storage.updateUserProfile(userId, profileData);
+      
+      res.json({ success: true, message: 'Progress saved successfully' });
+    } catch (error) {
+      console.error('Error saving onboarding progress:', error);
+      res.status(500).json({ message: 'Failed to save progress' });
+    }
+  });
+
+  app.post('/api/onboarding/complete', async (req, res) => {
+    try {
+      const { userId, step1, step2, step3 } = req.body;
+      
+      // Update user with final data
+      await storage.updateUser(userId, {
+        firstName: step1.firstName,
+        lastName: step1.lastName,
+        dateOfBirth: step1.dateOfBirth ? new Date(step1.dateOfBirth) : undefined,
+        occupation: step1.occupation,
+        onboardingCompleted: true
+      });
+      
+      // Update profile with complete data
+      await storage.updateUserProfile(userId, {
+        onboardingComplete: true,
+        experienceLevel: step1.experience,
+        communicationStyle: step2.communicationStyle,
+        learningPreference: step2.learningPreference,
+        riskTolerance: step2.riskTolerance,
+        financialGoals: step2.primaryGoals,
+        preferredAdvisors: step2.preferredAdvisors,
+        consents: {
+          dataAnalyticsOptIn: step3.dataCollection,
+          profiling: step3.analytics,
+          personalization: step3.personalization,
+          marketingOptIn: step3.marketing,
+          thirdParty: step3.thirdParty,
+          termsAccepted: true,
+          privacyAccepted: true
+        }
+      });
+      
+      res.json({ 
+        success: true, 
+        message: 'Onboarding completed successfully',
+        redirectUrl: '/chat'
+      });
+    } catch (error) {
+      console.error('Error completing onboarding:', error);
+      res.status(500).json({ message: 'Failed to complete onboarding' });
+    }
+  });
+
   // Protected Financial 3D Visualization (ALL tiers)
   app.get('/api/financial/viz3d', requirePermission('viz3d:read'), async (req: any, res) => {
     try {

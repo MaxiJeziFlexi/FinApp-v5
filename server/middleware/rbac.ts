@@ -1,13 +1,14 @@
 import type { Request, Response, NextFunction } from "express";
-import { UserRole, ROLE_PERMISSIONS } from "@shared/schema";
+import { UserRole, SystemRole, ROLE_PERMISSIONS, SYSTEM_ROLE_PERMISSIONS } from "@shared/schema";
 import { storage } from "../storage";
 
-// Extend Express Request type to include user
 // Interface for RBAC user
 interface RBACUser {
   id: string;
   role: UserRole;
   subscriptionTier: UserRole;
+  systemRole?: SystemRole;
+  onboardingCompleted?: boolean;
 }
 
 // Permission check function
@@ -20,6 +21,19 @@ export function hasPermission(userRole: UserRole, requiredPermission: string): b
   }
   
   // Check specific permission
+  return permissions.includes(requiredPermission);
+}
+
+// System role permission check function
+export function hasSystemPermission(systemRole: SystemRole, requiredPermission: string): boolean {
+  const permissions = SYSTEM_ROLE_PERMISSIONS[systemRole] || [];
+  
+  // Check if user has admin access (all permissions)
+  if (permissions.includes('*')) {
+    return true;
+  }
+  
+  // Check if user has specific permission
   return permissions.includes(requiredPermission);
 }
 
@@ -39,20 +53,36 @@ export function requirePermission(permission: string) {
       }
       
       const userRole = (user as any).role as UserRole;
+      const systemRole = (user as any).systemRole as SystemRole || 'USER';
+      const onboardingCompleted = (user as any).onboardingCompleted || false;
       
-      if (!hasPermission(userRole, permission)) {
+      // Check system-level permissions first
+      if (!hasSystemPermission(systemRole, permission)) {
         return res.status(403).json({ 
-          message: 'Insufficient permissions', 
+          message: 'Insufficient system permissions', 
           required: permission,
-          current: userRole 
+          current: systemRole 
         });
+      }
+      
+      // For USER role, check if onboarding is completed for certain permissions
+      if (systemRole === 'USER' && !onboardingCompleted) {
+        const onboardingRequiredPerms = ['chat:access'];
+        if (onboardingRequiredPerms.includes(permission)) {
+          return res.status(403).json({ 
+            message: 'Onboarding required', 
+            required: 'onboarding_completion'
+          });
+        }
       }
       
       // Attach user to request for further use
       req.user = {
         id: user.id,
         role: userRole,
-        subscriptionTier: user.subscriptionTier as UserRole
+        subscriptionTier: user.subscriptionTier as UserRole,
+        systemRole,
+        onboardingCompleted
       };
       
       next();

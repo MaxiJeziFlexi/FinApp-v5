@@ -39,6 +39,8 @@ export const users = pgTable("users", {
   
   // User role and permissions - RBAC with subscription tiers
   role: varchar("role", { enum: ['FREE', 'PRO', 'MAX_PRO', 'ADMIN'] }).default('FREE'),
+  systemRole: varchar("system_role", { enum: ['USER', 'ADMIN'] }).default('USER'),
+  onboardingCompleted: boolean("onboarding_completed").default(false),
   
   // Social authentication providers
   googleId: varchar("google_id", { length: 255 }),
@@ -1368,6 +1370,7 @@ export type InsertUsageCounter = z.infer<typeof insertUsageCounterSchema>;
 
 // RBAC Role definitions
 export type UserRole = 'FREE' | 'PRO' | 'MAX_PRO' | 'ADMIN';
+export type SystemRole = 'USER' | 'ADMIN';
 
 // Permission definitions for role-based access
 export const ROLE_PERMISSIONS: Record<UserRole, string[]> = {
@@ -1375,4 +1378,10 @@ export const ROLE_PERMISSIONS: Record<UserRole, string[]> = {
   PRO: ['dashboard:read', 'profile:read', 'profile:write', 'viz3d:read', 'transactions:import_limited', 'advice:advanced', 'chat:limited', 'analytics:basic', 'export:csv_limited'],
   MAX_PRO: ['dashboard:read', 'profile:read', 'profile:write', 'viz3d:read', 'transactions:import_unlimited', 'advice:personalized', 'chat:unlimited', 'analytics:advanced', 'export:full'],
   ADMIN: ['*'] // All permissions
+};
+
+// System role permissions for USER/ADMIN flow
+export const SYSTEM_ROLE_PERMISSIONS: Record<SystemRole, string[]> = {
+  USER: ['chat:access', 'onboarding:access', 'profile:read', 'profile:write'],
+  ADMIN: ['*'] // All permissions including admin panel
 };

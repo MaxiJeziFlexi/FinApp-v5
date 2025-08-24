@@ -993,6 +993,11 @@ export class DatabaseStorage implements IStorage {
 
   // Analytics and Heat Map operations
   async createInteractionEvent(event: any): Promise<any> {
+    // Ensure user session exists first to avoid FK constraint errors
+    if (event.session_id && event.user_id) {
+      await this.getOrCreateUserSession(event.user_id, event.session_id);
+    }
+    
     const [created] = await db.insert(userInteractionEvents).values({
       id: generateId('event'),
       sessionId: event.session_id,
@@ -1014,6 +1019,33 @@ export class DatabaseStorage implements IStorage {
 
   async getInteractionEvents(): Promise<any[]> {
     return await db.select().from(userInteractionEvents);
+  }
+
+  // User session management for analytics
+  async getOrCreateUserSession(userId: string, sessionId: string): Promise<any> {
+    // Check if session exists
+    const [existingSession] = await db
+      .select()
+      .from(userSessions)
+      .where(eq(userSessions.id, sessionId));
+    
+    if (existingSession) {
+      return existingSession;
+    }
+    
+    // Create new session
+    const [newSession] = await db
+      .insert(userSessions)
+      .values({
+        id: sessionId,
+        userId: userId || 'anonymous',
+        sessionToken: `token_${sessionId}`,
+        startTime: new Date(),
+        createdAt: new Date()
+      })
+      .returning();
+    
+    return newSession;
   }
 
   // RBAC operations

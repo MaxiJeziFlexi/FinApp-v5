@@ -40,11 +40,11 @@ export default function SignIn() {
 
       toast({
         title: "Welcome to FinApp!",
-        description: "Sign in successful. Redirecting to your dashboard...",
+        description: "Sign in successful. Redirecting...",
       });
       
       setTimeout(() => {
-        window.location.href = '/finapp-home';
+        window.location.href = '/';
       }, 1500);
     } catch (error) {
       toast({
@@ -75,7 +75,7 @@ export default function SignIn() {
       });
       
       setTimeout(() => {
-        window.location.href = '/finapp-home';
+        window.location.href = '/';
       }, 1500);
     } catch (error) {
       toast({

@@ -1179,7 +1179,7 @@ export class DatabaseStorage implements IStorage {
   // Agent context methods
   async createAgentContext(data: any): Promise<void> {
     try {
-      await this.db.insert(agentContext).values(data);
+      await db.insert(agentContext).values(data);
     } catch (error) {
       console.error('Error creating agent context:', error);
       throw error;
@@ -1188,7 +1188,7 @@ export class DatabaseStorage implements IStorage {
 
   async getAgentContext(userId: string): Promise<any> {
     try {
-      const context = await this.db
+      const context = await db
         .select()
         .from(agentContext)
         .where(eq(agentContext.userId, userId))

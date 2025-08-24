@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Input } from '@/components/ui/input';
 import { 
   MessageSquare, 
   User, 
@@ -15,7 +16,10 @@ import {
   X,
   Sparkles,
   Brain,
-  Home
+  Home,
+  Plus,
+  Search,
+  ChevronLeft
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { cn } from '@/lib/utils';
@@ -42,33 +46,20 @@ export default function UserSideNav({
   const { user, logout } = useAuth();
   const [location, setLocation] = useLocation();
   const [isMobileOpen, setIsMobileOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
 
-  const navItems: NavItem[] = [
+  // Mock chat history for demo
+  const chatHistory = [
     {
-      title: 'Home',
-      href: '/',
-      icon: Home,
-    },
-    {
-      title: 'Chat with AI',
-      href: '/chat',
-      icon: MessageSquare,
-      badge: 'AI'
-    },
-    {
-      title: 'Profile',
-      href: '/profile',
-      icon: User,
-    },
-    {
-      title: 'Settings',
-      href: '/settings',
-      icon: Settings,
+      id: '1',
+      title: 'Niestety, nie mam dostępu do aktualny',
+      preview: 'Niestety, nie mam dostępu do aktualnych dar',
+      timestamp: '1d ago'
     }
   ];
 
-  const handleNavigation = (href: string) => {
-    setLocation(href);
+  const handleNewChat = () => {
+    setLocation('/chat');
     setIsMobileOpen(false);
   };
 
@@ -81,106 +72,115 @@ export default function UserSideNav({
     }
   };
 
-  const isActive = (href: string) => {
-    if (href === '/') {
-      return location.pathname === '/';
-    }
-    return location.pathname.startsWith(href);
-  };
-
   const sidebarContent = (
-    <div className="h-full flex flex-col">
+    <div className="h-full flex flex-col bg-slate-900 text-white">
       {/* Header */}
-      <div className="p-4">
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
-            <Sparkles className="h-4 w-4 text-white" />
+      <div className="p-4 border-b border-slate-700">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
+              <Sparkles className="h-4 w-4 text-white" />
+            </div>
+            {!collapsed && (
+              <div>
+                <h2 className="font-semibold text-lg text-white">FinApp Chat</h2>
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                  <p className="text-xs text-slate-300">Online • Secure</p>
+                </div>
+              </div>
+            )}
           </div>
           {!collapsed && (
-            <div>
-              <h2 className="font-semibold text-lg">FinApp</h2>
-              <p className="text-xs text-muted-foreground">Your AI Financial Assistant</p>
-            </div>
+            <Button variant="ghost" size="icon" className="text-slate-300 hover:text-white">
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
           )}
         </div>
       </div>
 
-      <Separator />
+      {/* New Chat Button */}
+      {!collapsed && (
+        <div className="p-4">
+          <Button 
+            onClick={handleNewChat}
+            className="w-full h-12 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-medium rounded-lg flex items-center justify-center gap-2"
+          >
+            <Plus className="h-5 w-5" />
+            Nowy Chat
+          </Button>
+        </div>
+      )}
 
-      {/* User Profile */}
-      <div className="p-4">
-        <div className="flex items-center gap-3">
-          <Avatar className="h-10 w-10">
-            <AvatarImage src={user?.profileImageUrl} />
-            <AvatarFallback>
-              {user?.firstName?.[0]}{user?.lastName?.[0]}
-            </AvatarFallback>
-          </Avatar>
-          {!collapsed && (
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium truncate">
-                {user?.firstName} {user?.lastName}
-              </p>
-              <p className="text-xs text-muted-foreground truncate">
-                {user?.email}
-              </p>
-              <Badge variant="secondary" className="text-xs mt-1">
-                {user?.systemRole || 'USER'}
-              </Badge>
+      {/* Chat History Section */}
+      {!collapsed && (
+        <div className="flex-1 px-4 pb-4">
+          <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">
+            HISTORIA CHATÓW
+          </h3>
+          
+          {/* Search */}
+          <div className="relative mb-4">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400" />
+            <Input 
+              placeholder="Szukaj chatów..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10 bg-slate-800 border-slate-600 text-white placeholder:text-slate-400 focus:border-slate-500"
+            />
+          </div>
+
+          {/* Chat History List */}
+          <ScrollArea className="flex-1">
+            <div className="space-y-2">
+              {chatHistory.map((chat) => (
+                <div 
+                  key={chat.id}
+                  className="p-3 rounded-lg bg-slate-800 hover:bg-slate-700 cursor-pointer transition-colors border border-slate-700"
+                >
+                  <div className="flex items-start gap-3">
+                    <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center flex-shrink-0">
+                      <Brain className="h-4 w-4 text-white" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h4 className="text-sm font-medium text-white truncate">
+                        {chat.title}
+                      </h4>
+                      <p className="text-xs text-slate-400 truncate">
+                        {chat.preview}
+                      </p>
+                      <p className="text-xs text-slate-500 mt-1">
+                        {chat.timestamp}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
-          )}
+          </ScrollArea>
         </div>
-      </div>
+      )}
 
-      <Separator />
-
-      {/* Navigation */}
-      <ScrollArea className="flex-1 px-2">
-        <div className="space-y-1 p-2">
-          {navItems.map((item) => {
-            const active = isActive(item.href);
-            return (
-              <Button
-                key={item.href}
-                variant={active ? "secondary" : "ghost"}
-                className={cn(
-                  "w-full justify-start h-10",
-                  collapsed ? "px-2" : "px-3",
-                  active && "bg-primary/10 text-primary font-medium"
-                )}
-                onClick={() => handleNavigation(item.href)}
-                disabled={item.disabled}
-              >
-                <item.icon className={cn("h-4 w-4", collapsed ? "" : "mr-3")} />
-                {!collapsed && (
-                  <>
-                    <span className="flex-1 text-left">{item.title}</span>
-                    {item.badge && (
-                      <Badge variant="outline" className="text-xs">
-                        {item.badge}
-                      </Badge>
-                    )}
-                  </>
-                )}
-              </Button>
-            );
-          })}
+      {/* Footer Navigation */}
+      <div className="p-4 border-t border-slate-700">
+        <div className="space-y-2">
+          <Button
+            variant="ghost"
+            className="w-full justify-start h-10 text-slate-300 hover:text-white hover:bg-slate-800"
+            onClick={() => setLocation('/profile')}
+          >
+            <User className="h-4 w-4 mr-3" />
+            {!collapsed && "Profil"}
+          </Button>
+          <Button
+            variant="ghost"
+            className="w-full justify-start h-10 text-slate-300 hover:text-white hover:bg-slate-800"
+            onClick={handleLogout}
+          >
+            <LogOut className="h-4 w-4 mr-3" />
+            {!collapsed && "Wyloguj"}
+          </Button>
         </div>
-      </ScrollArea>
-
-      {/* Footer */}
-      <div className="p-4 border-t">
-        <Button
-          variant="ghost"
-          className={cn(
-            "w-full justify-start h-10 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950",
-            collapsed ? "px-2" : "px-3"
-          )}
-          onClick={handleLogout}
-        >
-          <LogOut className={cn("h-4 w-4", collapsed ? "" : "mr-3")} />
-          {!collapsed && "Sign Out"}
-        </Button>
       </div>
     </div>
   );
@@ -210,15 +210,13 @@ export default function UserSideNav({
       )}
 
       {/* Desktop Sidebar */}
-      <Card className={cn(
-        "hidden md:flex h-full border-r transition-all duration-300",
-        collapsed ? "w-16" : "w-72",
+      <div className={cn(
+        "hidden md:flex h-full transition-all duration-300 bg-slate-900",
+        collapsed ? "w-16" : "w-80",
         className
       )}>
-        <CardContent className="p-0 h-full w-full">
-          {sidebarContent}
-        </CardContent>
-      </Card>
+        {sidebarContent}
+      </div>
 
       {/* Collapse Toggle for Desktop */}
       {onCollapsedChange && (

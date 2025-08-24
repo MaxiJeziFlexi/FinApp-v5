@@ -4,24 +4,131 @@ import { useLocation } from 'wouter';
 import { Button } from '@/components/ui/button';
 import { useTheme } from '@/contexts/ThemeContext';
 import { 
+  Home, 
+  Gamepad2, 
+  Bitcoin, 
   Brain, 
+  BarChart3, 
   Settings, 
   Menu, 
   X,
   User,
   LogOut,
+  Shield,
+  FileText,
+  TrendingUp,
+  Calculator,
+  PiggyBank,
+  BookOpen,
+  Users,
+  MessageCircle,
   Moon,
   Sun,
+  Palette,
+  Activity,
   Plus,
   Search,
   ChevronLeft,
   ChevronRight
 } from 'lucide-react';
-import { motion } from 'framer-motion';
-import { useAuth } from '@/hooks/useAuth';
+import { motion, AnimatePresence } from 'framer-motion';
+import { logout, useAuth } from '@/hooks/useAuth';
 import { useQuery } from '@tanstack/react-query';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Badge } from '@/components/ui/badge';
+import { Link } from 'wouter';
+
+const navigationItems = [
+  {
+    path: '/',
+    label: 'Dashboard',
+    icon: Home,
+    description: 'Main FinApp Dashboard'
+  },
+  {
+    path: '/ai-report-generator',
+    label: 'AI Reports',
+    icon: FileText,
+    description: 'Generate financial reports with AI',
+    badge: 'AI'
+  },
+  {
+    path: '/learning-hub',
+    label: 'Learning Hub',
+    icon: BookOpen,
+    description: 'Financial education & certifications',
+    badge: 'Popular'
+  },
+  {
+    path: '/community-discussions',
+    label: 'Community',
+    icon: Users,
+    description: 'Expert discussions & crypto rewards'
+  }
+];
+
+// Premium features - moved outside for better organization
+const premiumItems = [
+  {
+    path: '/investment-consultation',
+    label: 'Investment AI',
+    icon: TrendingUp,
+    description: 'AI-powered investment advice',
+    badge: 'Expert',
+    premium: true
+  },
+  {
+    path: '/tax-optimization',
+    label: 'Tax Strategy',
+    icon: Calculator,
+    description: 'Tax optimization & legal strategies',
+    badge: 'Premium',
+    premium: true
+  },
+  {
+    path: '/retirement-planning',
+    label: 'Retirement',
+    icon: PiggyBank,
+    description: 'Safe retirement planning tools',
+    premium: true
+  },
+  {
+    path: '/gaming',
+    label: 'Gaming Hub',
+    icon: Gamepad2,
+    description: 'Financial games & challenges',
+    badge: 'Fun',
+    premium: true
+  },
+  {
+    path: '/enhanced-crypto',
+    label: 'Crypto Market',
+    icon: Bitcoin,
+    description: 'Cryptocurrency trading platform',
+    badge: 'Live',
+    premium: true
+  }
+];
+
+// Admin restricted items
+const adminItems = [
+  {
+    path: '/admin',
+    label: 'Admin Panel',
+    icon: Settings,
+    description: 'System management',
+    restricted: true
+  },
+  {
+    path: '/developer-diagnostics',
+    label: 'Diagnostics',
+    icon: BarChart3,
+    description: 'Developer tools & analytics',
+    badge: 'Dev',
+    restricted: true
+  }
+];
 
 export default function MainNavigation() {
   const [isOpen, setIsOpen] = useState(false);
@@ -30,6 +137,16 @@ export default function MainNavigation() {
   const [searchQuery, setSearchQuery] = useState('');
   const { theme, setTheme } = useTheme();
   const { user } = useAuth();
+
+  // Check if user is on FREE plan
+  const isFreeUser = !user || (user as any)?.subscriptionTier === 'FREE';
+  
+  // Check if user is admin (has admin role or is logged in as admin)
+  const isAdmin = (user as any)?.role === 'admin' || (user as any)?.role === 'ADMIN' || (user as any)?.subscriptionTier === 'ADMIN';
+
+  const isActive = (path: string) => {
+    return location === path || (path !== '/' && location.startsWith(path));
+  };
 
   // Load real chat history
   const { data: chatHistoryData } = useQuery({
@@ -239,39 +356,455 @@ export default function MainNavigation() {
     </div>
   );
 
+  // Close mobile menu when clicking on links
+  const handleLinkClick = () => {
+    setIsOpen(false);
+  };
+
+  // For regular users - show chat interface
+  if (!isAdmin) {
+    return (
+      <>
+        {/* Mobile Menu Button */}
+        <Button
+          variant="ghost"
+          size="icon"
+          className="md:hidden fixed top-4 left-4 z-50 bg-slate-800 text-white hover:bg-slate-700"
+          onClick={() => setIsOpen(!isOpen)}
+        >
+          {isOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
+        </Button>
+
+        {/* Mobile Sidebar */}
+        {isOpen && (
+          <div className="md:hidden fixed inset-0 z-40">
+            <div className="absolute inset-0 bg-background/80 backdrop-blur-sm" onClick={() => setIsOpen(false)} />
+            <div className="absolute left-0 top-0 h-full w-80">
+              {sidebarContent}
+            </div>
+          </div>
+        )}
+
+        {/* Desktop Sidebar */}
+        <motion.nav
+          initial={{ x: -300 }}
+          animate={{ x: 0 }}
+          transition={{ duration: 0.3 }}
+          className={`hidden md:flex fixed left-0 top-0 h-full transition-all duration-300 z-40 ${
+            collapsed ? 'w-16' : 'w-80'
+          }`}
+        >
+          {sidebarContent}
+        </motion.nav>
+      </>
+    );
+  }
+
+  // For admins - show full navigation
   return (
     <>
-      {/* Mobile Menu Button */}
+      {/* Mobile Menu Button - Improved positioning and styling */}
       <Button
         variant="ghost"
-        size="icon"
-        className="md:hidden fixed top-4 left-4 z-50 bg-slate-800 text-white hover:bg-slate-700"
+        size="sm"
+        className="fixed top-4 left-4 z-50 md:hidden bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm border border-gray-200 dark:border-gray-700 shadow-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors mobile-touch-target"
         onClick={() => setIsOpen(!isOpen)}
+        style={{ minHeight: '44px', minWidth: '44px' }}
       >
-        {isOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
+        {isOpen ? <X className="h-5 w-5 text-gray-700 dark:text-gray-200" /> : <Menu className="h-5 w-5 text-gray-700 dark:text-gray-200" />}
       </Button>
-
-      {/* Mobile Sidebar */}
-      {isOpen && (
-        <div className="md:hidden fixed inset-0 z-40">
-          <div className="absolute inset-0 bg-background/80 backdrop-blur-sm" onClick={() => setIsOpen(false)} />
-          <div className="absolute left-0 top-0 h-full w-80">
-            {sidebarContent}
-          </div>
-        </div>
-      )}
 
       {/* Desktop Sidebar */}
       <motion.nav
         initial={{ x: -300 }}
         animate={{ x: 0 }}
         transition={{ duration: 0.3 }}
-        className={`hidden md:flex fixed left-0 top-0 h-full transition-all duration-300 z-40 ${
-          collapsed ? 'w-16' : 'w-80'
-        }`}
+        className="hidden md:flex fixed left-0 top-0 h-full w-72 bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm border-r border-gray-200 dark:border-gray-700 z-40 flex-col shadow-xl"
       >
-        {sidebarContent}
+        <div className="p-6 border-b border-gray-200 dark:border-gray-700">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-gradient-to-br from-cyan-500 to-violet-600 rounded-lg flex items-center justify-center">
+              <Brain className="h-6 w-6 text-white" />
+            </div>
+            <div>
+              <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100">FinApp</h1>
+              <p className="text-sm text-gray-600 dark:text-gray-400">AI Financial Platform</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="flex-1 overflow-y-auto p-4">
+          {/* Main Navigation */}
+          <div className="space-y-2 mb-6">
+            {navigationItems.map((item) => {
+              const Icon = item.icon;
+              const active = isActive(item.path);
+              
+              return (
+                <Link key={item.path} href={item.path}>
+                  <motion.div
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    className={`flex items-center gap-3 p-3 rounded-lg transition-all cursor-pointer ${
+                      active 
+                        ? 'bg-gradient-to-r from-cyan-500 to-violet-500 text-white shadow-lg' 
+                        : 'hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-200'
+                    }`}
+                  >
+                    <Icon className={`h-5 w-5 ${active ? 'text-white' : 'text-gray-500 dark:text-gray-400'}`} />
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium">{item.label}</span>
+                        {item.badge && (
+                          <Badge 
+                            variant={active ? "secondary" : "outline"}
+                            className={`text-xs ${
+                              active ? 'bg-white/20 text-white' : ''
+                            }`}
+                          >
+                            {item.badge}
+                          </Badge>
+                        )}
+                      </div>
+                      <p className={`text-xs ${active ? 'text-white/80' : 'text-gray-500 dark:text-gray-400'}`}>
+                        {item.description}
+                      </p>
+                    </div>
+                  </motion.div>
+                </Link>
+              );
+            })}
+          </div>
+
+          {/* Premium Features Section */}
+          <div className="mb-6">
+            <h3 className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-3 px-3">Premium Features</h3>
+            <div className="space-y-2">
+              {premiumItems.map((item) => {
+                const Icon = item.icon;
+                const active = isActive(item.path);
+                
+                return (
+                  <Link key={item.path} href={item.path}>
+                    <motion.div
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      className={`flex items-center gap-3 p-3 rounded-lg transition-all cursor-pointer ${
+                        active 
+                          ? 'bg-gradient-to-r from-emerald-500 to-cyan-500 text-white shadow-lg' 
+                          : 'hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-200'
+                      }`}
+                    >
+                      <Icon className={`h-5 w-5 ${active ? 'text-white' : 'text-gray-500 dark:text-gray-400'}`} />
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2">
+                          <span className="font-medium">{item.label}</span>
+                          {item.badge && (
+                            <Badge 
+                              variant={active ? "secondary" : "outline"}
+                              className={`text-xs ${
+                                active ? 'bg-white/20 text-white' : 'bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200'
+                              }`}
+                            >
+                              {item.badge}
+                            </Badge>
+                          )}
+                          {isFreeUser && item.premium && (
+                            <Badge 
+                              variant="outline"
+                              className="text-xs bg-orange-100 dark:bg-orange-900 text-orange-700 dark:text-orange-300 border-orange-300 dark:border-orange-700"
+                            >
+                              PRO
+                            </Badge>
+                          )}
+                        </div>
+                        <p className={`text-xs ${active ? 'text-white/80' : 'text-gray-500 dark:text-gray-400'}`}>
+                          {item.description}
+                        </p>
+                      </div>
+                    </motion.div>
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Admin Section - Only show for admin users */}
+          <div className="mb-6">
+            <h3 className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-3 px-3">Admin</h3>
+            <div className="space-y-2">
+              {adminItems.map((item) => {
+                const Icon = item.icon;
+                const active = isActive(item.path);
+                
+                return (
+                  <Link key={item.path} href={item.path}>
+                    <motion.div
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      className={`flex items-center gap-3 p-3 rounded-lg transition-all cursor-pointer ${
+                        active 
+                          ? 'bg-gradient-to-r from-violet-500 to-purple-500 text-white shadow-lg' 
+                          : 'hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-200'
+                      }`}
+                    >
+                      <Icon className={`h-5 w-5 ${active ? 'text-white' : 'text-gray-500 dark:text-gray-400'}`} />
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2">
+                          <span className="font-medium">{item.label}</span>
+                          {item.badge && (
+                            <Badge 
+                              variant={active ? "secondary" : "outline"}
+                              className={`text-xs ${
+                                active ? 'bg-white/20 text-white' : 'bg-violet-100 dark:bg-violet-900 text-violet-800 dark:text-violet-200'
+                              }`}
+                            >
+                              {item.badge}
+                            </Badge>
+                          )}
+                        </div>
+                        <p className={`text-xs ${active ? 'text-white/80' : 'text-gray-500 dark:text-gray-400'}`}>
+                          {item.description}
+                        </p>
+                      </div>
+                    </motion.div>
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+
+        <div className="p-4 border-t border-gray-200 dark:border-gray-700">
+          <div className="space-y-2">
+            <Link href="/user-profile">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="w-full justify-start gap-3 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100"
+                onClick={handleLinkClick}
+              >
+                <User className="h-4 w-4" />
+                Profil Użytkownika
+              </Button>
+            </Link>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="w-full justify-start gap-3 text-gray-600 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400"
+              onClick={() => window.location.href = '/api/logout'}
+            >
+              <LogOut className="h-4 w-4" />
+              Wyloguj się
+            </Button>
+          </div>
+        </div>
       </motion.nav>
+
+      {/* Mobile Menu */}
+      <AnimatePresence>
+        {isOpen && (
+          <div className="md:hidden fixed inset-0 z-40">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="absolute inset-0 bg-background/80 backdrop-blur-sm"
+              onClick={() => setIsOpen(false)}
+            />
+            <motion.nav
+              initial={{ x: -300 }}
+              animate={{ x: 0 }}
+              exit={{ x: -300 }}
+              transition={{ duration: 0.3 }}
+              className="absolute left-0 top-0 h-full w-80 bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm border-r border-gray-200 dark:border-gray-700 flex flex-col shadow-xl"
+            >
+              <div className="p-6 border-b border-gray-200 dark:border-gray-700">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-gradient-to-br from-cyan-500 to-violet-600 rounded-lg flex items-center justify-center">
+                    <Brain className="h-6 w-6 text-white" />
+                  </div>
+                  <div>
+                    <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100">FinApp</h1>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">AI Financial Platform</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex-1 overflow-y-auto p-4">
+                {/* Main Navigation */}
+                <div className="space-y-2 mb-6">
+                  {navigationItems.map((item) => {
+                    const Icon = item.icon;
+                    const active = isActive(item.path);
+                    
+                    return (
+                      <Link key={item.path} href={item.path}>
+                        <motion.div
+                          whileHover={{ scale: 1.02 }}
+                          whileTap={{ scale: 0.98 }}
+                          className={`flex items-center gap-3 p-3 rounded-lg transition-all cursor-pointer ${
+                            active 
+                              ? 'bg-gradient-to-r from-cyan-500 to-violet-500 text-white shadow-lg' 
+                              : 'hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-200'
+                          }`}
+                          onClick={handleLinkClick}
+                        >
+                          <Icon className={`h-5 w-5 ${active ? 'text-white' : 'text-gray-500 dark:text-gray-400'}`} />
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2">
+                              <span className="font-medium">{item.label}</span>
+                              {item.badge && (
+                                <Badge 
+                                  variant={active ? "secondary" : "outline"}
+                                  className={`text-xs ${
+                                    active ? 'bg-white/20 text-white' : ''
+                                  }`}
+                                >
+                                  {item.badge}
+                                </Badge>
+                              )}
+                            </div>
+                            <p className={`text-xs ${active ? 'text-white/80' : 'text-gray-500 dark:text-gray-400'}`}>
+                              {item.description}
+                            </p>
+                          </div>
+                        </motion.div>
+                      </Link>
+                    );
+                  })}
+                </div>
+
+                {/* Premium Features */}
+                <div className="mb-6">
+                  <h3 className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-3 px-3">Premium Features</h3>
+                  <div className="space-y-2">
+                    {premiumItems.map((item) => {
+                      const Icon = item.icon;
+                      const active = isActive(item.path);
+                      
+                      return (
+                        <Link key={item.path} href={item.path}>
+                          <motion.div
+                            whileHover={{ scale: 1.02 }}
+                            whileTap={{ scale: 0.98 }}
+                            className={`flex items-center gap-3 p-3 rounded-lg transition-all cursor-pointer ${
+                              active 
+                                ? 'bg-gradient-to-r from-emerald-500 to-cyan-500 text-white shadow-lg' 
+                                : 'hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-200'
+                            }`}
+                            onClick={handleLinkClick}
+                          >
+                            <Icon className={`h-5 w-5 ${active ? 'text-white' : 'text-gray-500 dark:text-gray-400'}`} />
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2">
+                                <span className="font-medium">{item.label}</span>
+                                {item.badge && (
+                                  <Badge 
+                                    variant={active ? "secondary" : "outline"}
+                                    className={`text-xs ${
+                                      active ? 'bg-white/20 text-white' : 'bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200'
+                                    }`}
+                                  >
+                                    {item.badge}
+                                  </Badge>
+                                )}
+                                {isFreeUser && item.premium && (
+                                  <Badge 
+                                    variant="outline"
+                                    className="text-xs bg-orange-100 dark:bg-orange-900 text-orange-700 dark:text-orange-300 border-orange-300 dark:border-orange-700"
+                                  >
+                                    PRO
+                                  </Badge>
+                                )}
+                              </div>
+                              <p className={`text-xs ${active ? 'text-white/80' : 'text-gray-500 dark:text-gray-400'}`}>
+                                {item.description}
+                              </p>
+                            </div>
+                          </motion.div>
+                        </Link>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Admin Section */}
+                <div className="mb-6">
+                  <h3 className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-3 px-3">Admin</h3>
+                  <div className="space-y-2">
+                    {adminItems.map((item) => {
+                      const Icon = item.icon;
+                      const active = isActive(item.path);
+                      
+                      return (
+                        <Link key={item.path} href={item.path}>
+                          <motion.div
+                            whileHover={{ scale: 1.02 }}
+                            whileTap={{ scale: 0.98 }}
+                            className={`flex items-center gap-3 p-3 rounded-lg transition-all cursor-pointer ${
+                              active 
+                                ? 'bg-gradient-to-r from-violet-500 to-purple-500 text-white shadow-lg' 
+                                : 'hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-200'
+                            }`}
+                            onClick={handleLinkClick}
+                          >
+                            <Icon className={`h-5 w-5 ${active ? 'text-white' : 'text-gray-500 dark:text-gray-400'}`} />
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2">
+                                <span className="font-medium">{item.label}</span>
+                                {item.badge && (
+                                  <Badge 
+                                    variant={active ? "secondary" : "outline"}
+                                    className={`text-xs ${
+                                      active ? 'bg-white/20 text-white' : 'bg-violet-100 dark:bg-violet-900 text-violet-800 dark:text-violet-200'
+                                    }`}
+                                  >
+                                    {item.badge}
+                                  </Badge>
+                                )}
+                              </div>
+                              <p className={`text-xs ${active ? 'text-white/80' : 'text-gray-500 dark:text-gray-400'}`}>
+                                {item.description}
+                              </p>
+                            </div>
+                          </motion.div>
+                        </Link>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+
+              <div className="p-4 border-t border-gray-200 dark:border-gray-700">
+                <div className="space-y-2">
+                  <Link href="/user-profile">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="w-full justify-start gap-3 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100"
+                      onClick={handleLinkClick}
+                    >
+                      <User className="h-4 w-4" />
+                      Profil Użytkownika
+                    </Button>
+                  </Link>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="w-full justify-start gap-3 text-gray-600 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400"
+                    onClick={() => window.location.href = '/api/logout'}
+                  >
+                    <LogOut className="h-4 w-4" />
+                    Wyloguj się
+                  </Button>
+                </div>
+              </div>
+            </motion.nav>
+          </div>
+        )}
+      </AnimatePresence>
     </>
   );
 }

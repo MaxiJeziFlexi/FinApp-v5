@@ -1,6 +1,8 @@
 import { 
   users, 
   userProfiles,
+  onboardingProgress,
+  agentContext,
   advisors,
   advisorSessions,
   chatMessages,
@@ -1172,6 +1174,32 @@ export class DatabaseStorage implements IStorage {
         updatedAt: new Date()
       })
       .where(eq(usageCounters.userId, userId));
+  }
+
+  // Agent context methods
+  async createAgentContext(data: any): Promise<void> {
+    try {
+      await this.db.insert(agentContext).values(data);
+    } catch (error) {
+      console.error('Error creating agent context:', error);
+      throw error;
+    }
+  }
+
+  async getAgentContext(userId: string): Promise<any> {
+    try {
+      const context = await this.db
+        .select()
+        .from(agentContext)
+        .where(eq(agentContext.userId, userId))
+        .orderBy(desc(agentContext.createdAt))
+        .limit(1);
+      
+      return context[0] || null;
+    } catch (error) {
+      console.error('Error getting agent context:', error);
+      return null;
+    }
   }
 
   // Reset user usage counters (for testing)

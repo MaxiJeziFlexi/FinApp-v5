@@ -521,12 +521,21 @@ Format: Strukturalny raport PDF-ready`;
   app.get('/api/onboarding/progress/:userId', async (req, res) => {
     try {
       const { userId } = req.params;
-      const user = await storage.getUser(userId);
-      const profile = await storage.getUserProfile(userId);
       
+      // Create user if missing
+      let user = await storage.getUser(userId);
       if (!user) {
-        return res.status(404).json({ message: 'User not found' });
+        user = await storage.createUser({
+          id: userId,
+          name: `User ${userId}`,
+          role: 'FREE',
+          subscriptionTier: 'FREE',
+          accountStatus: 'active',
+          onboardingCompleted: false
+        });
       }
+      
+      const profile = await storage.getUserProfile(userId);
       
       // Return saved onboarding progress
       const progress = {
@@ -565,6 +574,19 @@ Format: Strukturalny raport PDF-ready`;
   app.post('/api/onboarding/save-progress', async (req, res) => {
     try {
       const { userId, currentStep, step1, step2, step3 } = req.body;
+      
+      // Create user if missing
+      let user = await storage.getUser(userId);
+      if (!user) {
+        user = await storage.createUser({
+          id: userId,
+          name: `User ${userId}`,
+          role: 'FREE',
+          subscriptionTier: 'FREE',
+          accountStatus: 'active',
+          onboardingCompleted: false
+        });
+      }
       
       // Update user basic info if step1 is provided
       if (step1) {
@@ -613,7 +635,7 @@ Format: Strukturalny raport PDF-ready`;
     try {
       const { userId, step1, step2, step3 } = req.body;
       
-      // Update user with final data
+      // Update user with final data - don't include systemRole to avoid column error
       await storage.updateUser(userId, {
         firstName: step1.firstName,
         lastName: step1.lastName,
@@ -642,10 +664,35 @@ Format: Strukturalny raport PDF-ready`;
         }
       });
       
+      // Generate agent context record with flattened preferences for AI
+      const agentContextData = {
+        id: `agent-${userId}-${Date.now()}`,
+        userId: userId,
+        preferences: {
+          communicationStyle: step2.communicationStyle,
+          learningPreference: step2.learningPreference,
+          dataSettings: {
+            dataCollection: step3.dataCollection,
+            analytics: step3.analytics,
+            personalization: step3.personalization,
+            marketing: step3.marketing,
+            thirdParty: step3.thirdParty
+          }
+        },
+        financialGoals: step2.primaryGoals,
+        riskTolerance: step2.riskTolerance,
+        communicationStyle: step2.communicationStyle,
+        experienceLevel: step1.experience
+      };
+      
+      // Save agent context to database
+      await storage.createAgentContext(agentContextData);
+      
       res.json({ 
         success: true, 
         message: 'Onboarding completed successfully',
-        redirectUrl: '/chat'
+        redirectUrl: '/chat',
+        agentContext: agentContextData
       });
     } catch (error) {
       console.error('Error completing onboarding:', error);

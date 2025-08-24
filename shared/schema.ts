@@ -113,6 +113,30 @@ export const sessions = pgTable(
   (table) => [index("IDX_session_expire").on(table.expire)],
 );
 
+// Onboarding progress table
+export const onboardingProgress = pgTable("onboarding_progress", {
+  id: varchar("id", { length: 255 }).primaryKey(),
+  userId: varchar("user_id", { length: 255 }).references(() => users.id).notNull(),
+  currentStep: integer("current_step").default(1),
+  stepData: jsonb("step_data").default('{}'),
+  completedAt: timestamp("completed_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Agent context table for AI personalization
+export const agentContext = pgTable("agent_context", {
+  id: varchar("id", { length: 255 }).primaryKey(),
+  userId: varchar("user_id", { length: 255 }).references(() => users.id).notNull(),
+  preferences: jsonb("preferences").default('{}'),
+  financialGoals: text("financial_goals").array(),
+  riskTolerance: varchar("risk_tolerance", { length: 50 }),
+  communicationStyle: varchar("communication_style", { length: 50 }),
+  experienceLevel: varchar("experience_level", { length: 50 }),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // User profiles table for financial information
 export const userProfiles = pgTable("user_profiles", {
   id: varchar("id", { length: 255 }).primaryKey(),

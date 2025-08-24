@@ -83,10 +83,11 @@ function Router() {
       if (location === '/onboarding') {
         return '/chat';
       }
-      // Redirect legacy dashboard routes to chat
-      if (location === '/' || location === '/finapp-home' || location.startsWith('/dashboard')) {
+      // Redirect legacy dashboard routes to chat  
+      if (location === '/finapp-home' || location.startsWith('/dashboard')) {
         return '/chat';
       }
+      // Allow landing page access for all users
     }
     
     return null;

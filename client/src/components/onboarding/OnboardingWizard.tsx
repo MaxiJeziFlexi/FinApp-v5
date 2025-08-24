@@ -168,23 +168,34 @@ export default function OnboardingWizard({ userId, onComplete }: OnboardingWizar
   // Complete onboarding mutation
   const completeOnboardingMutation = useMutation({
     mutationFn: async (data: OnboardingData) => {
-      return await apiRequest('POST', '/api/onboarding/complete', {
+      const response = await apiRequest('POST', '/api/onboarding/complete', {
         userId,
         ...data
       });
+      return response;
     },
-    onSuccess: () => {
+    onSuccess: (response) => {
       toast({
         title: "Onboarding Complete! 🎉",
-        description: "Welcome to FinApp! Let's start your financial journey.",
+        description: "Welcome to FinApp! Redirecting you to chat...",
       });
-      onComplete();
+      
+      // Add a slight delay to show the success message, then redirect
+      setTimeout(() => {
+        try {
+          onComplete();
+        } catch (error) {
+          console.error('Error in onComplete callback:', error);
+          // Fallback redirect if callback fails
+          window.location.href = '/chat';
+        }
+      }, 1500);
     },
     onError: (error) => {
       console.error('Failed to complete onboarding:', error);
       toast({
         title: "Completion Failed",
-        description: "Please try again or contact support.",
+        description: error?.message || "Please try again or contact support.",
         variant: "destructive",
       });
     }

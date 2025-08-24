@@ -55,11 +55,25 @@ export default function OnboardingPage() {
   }
 
   const handleOnboardingComplete = () => {
+    // Update user auth to mark onboarding as completed
+    const currentAuth = localStorage.getItem('finapp_user_auth');
+    if (currentAuth) {
+      try {
+        const authData = JSON.parse(currentAuth);
+        localStorage.setItem('finapp_user_auth', JSON.stringify({
+          ...authData,
+          onboardingCompleted: true
+        }));
+      } catch (e) {
+        console.error('Failed to update auth data:', e);
+      }
+    }
+    
     // Redirect based on user's system role
     if (user.systemRole === 'ADMIN') {
-      navigate('/admin');
+      setLocation('/admin');
     } else {
-      navigate('/chat');
+      setLocation('/chat');
     }
   };
 

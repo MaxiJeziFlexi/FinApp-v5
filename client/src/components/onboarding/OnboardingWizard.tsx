@@ -126,7 +126,13 @@ export default function OnboardingWizard({ userId, onComplete }: OnboardingWizar
   // Form hook must be at the top level (not inside conditional render functions)
   const step1Form = useForm<z.infer<typeof step1Schema>>({
     resolver: zodResolver(step1Schema),
-    defaultValues: onboardingData.step1
+    defaultValues: {
+      firstName: onboardingData.step1.firstName,
+      lastName: onboardingData.step1.lastName,
+      dateOfBirth: onboardingData.step1.dateOfBirth,
+      occupation: onboardingData.step1.occupation,
+      experience: onboardingData.step1.experience as "beginner" | "intermediate" | "advanced" | "expert"
+    }
   });
 
   // Load saved progress
@@ -186,24 +192,24 @@ export default function OnboardingWizard({ userId, onComplete }: OnboardingWizar
 
   // Load saved progress on mount
   useEffect(() => {
-    if (savedProgress && !savedProgress.completed) {
+    if (savedProgress && typeof savedProgress === 'object' && !savedProgress.completed) {
       // Safely merge saved progress with default structure
       const updatedData = {
         ...onboardingData,
         step1: {
           ...onboardingData.step1,
-          ...savedProgress.step1
+          ...(savedProgress.step1 || {})
         },
         step2: {
           ...onboardingData.step2,
-          ...savedProgress.step2,
+          ...(savedProgress.step2 || {}),
           // Ensure arrays are properly initialized
           primaryGoals: savedProgress.step2?.primaryGoals || onboardingData.step2.primaryGoals,
           preferredAdvisors: savedProgress.step2?.preferredAdvisors || onboardingData.step2.preferredAdvisors
         },
         step3: {
           ...onboardingData.step3,
-          ...savedProgress.step3
+          ...(savedProgress.step3 || {})
         },
         currentStep: savedProgress.currentStep || 1,
         completed: savedProgress.completed || false
@@ -214,14 +220,26 @@ export default function OnboardingWizard({ userId, onComplete }: OnboardingWizar
 
       // Update form with loaded step1 data
       if (savedProgress.step1) {
-        step1Form.reset(updatedData.step1);
+        step1Form.reset({
+          firstName: updatedData.step1.firstName,
+          lastName: updatedData.step1.lastName,
+          dateOfBirth: updatedData.step1.dateOfBirth,
+          occupation: updatedData.step1.occupation,
+          experience: updatedData.step1.experience as "beginner" | "intermediate" | "advanced" | "expert"
+        });
       }
     }
   }, [savedProgress, step1Form]);
 
   // Sync form with onboarding data changes
   useEffect(() => {
-    step1Form.reset(onboardingData.step1);
+    step1Form.reset({
+      firstName: onboardingData.step1.firstName,
+      lastName: onboardingData.step1.lastName,
+      dateOfBirth: onboardingData.step1.dateOfBirth,
+      occupation: onboardingData.step1.occupation,
+      experience: onboardingData.step1.experience as "beginner" | "intermediate" | "advanced" | "expert"
+    });
   }, [onboardingData.step1, step1Form]);
 
   // Auto-save on data changes
@@ -241,7 +259,7 @@ export default function OnboardingWizard({ userId, onComplete }: OnboardingWizar
   const updateStepData = (step: keyof OnboardingData, data: any) => {
     setOnboardingData(prev => ({
       ...prev,
-      [step]: { ...prev[step], ...data }
+      [step]: { ...(prev[step] as any), ...data }
     }));
   };
 

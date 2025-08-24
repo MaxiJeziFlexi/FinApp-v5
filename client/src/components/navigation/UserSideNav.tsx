@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation } from 'wouter';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -40,8 +40,7 @@ export default function UserSideNav({
   onCollapsedChange 
 }: UserSideNavProps) {
   const { user, logout } = useAuth();
-  const location = useLocation();
-  const navigate = useNavigate();
+  const [location, setLocation] = useLocation();
   const [isMobileOpen, setIsMobileOpen] = useState(false);
 
   const navItems: NavItem[] = [
@@ -69,14 +68,14 @@ export default function UserSideNav({
   ];
 
   const handleNavigation = (href: string) => {
-    navigate(href);
+    setLocation(href);
     setIsMobileOpen(false);
   };
 
   const handleLogout = async () => {
     try {
       await logout();
-      navigate('/signin');
+      setLocation('/signin');
     } catch (error) {
       console.error('Logout failed:', error);
     }

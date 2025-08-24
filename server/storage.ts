@@ -20,6 +20,7 @@ import {
   aiInsights,
   decisionTreeSessions,
   userInteractionEvents,
+  userSessions,
   featureFlags,
   usageCounters,
   type User, 

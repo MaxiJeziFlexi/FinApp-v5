@@ -47,6 +47,7 @@ export function useAuth() {
   const { data: user, isLoading: queryLoading } = useQuery({
     queryKey: ["/api/auth/user"],
     retry: false,
+    enabled: false, // Disable this query to prevent 401 loops for demo
   });
 
   // Return the appropriate user based on authentication state
@@ -93,11 +94,11 @@ export function useAuth() {
     };
   }
 
-  // Fall back to server authentication (Replit OAuth)
+  // Fall back to server authentication (Replit OAuth) - disabled for demo
   return {
-    user,
-    isLoading: queryLoading,
-    isAuthenticated: !!user,
+    user: null,
+    isLoading: false, // Don't show loading for unauthenticated users
+    isAuthenticated: false,
     isAdmin: false
   };
 }

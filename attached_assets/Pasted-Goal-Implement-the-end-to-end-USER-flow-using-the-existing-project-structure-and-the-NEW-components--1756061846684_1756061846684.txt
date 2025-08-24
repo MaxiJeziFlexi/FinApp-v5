@@ -1,0 +1,61 @@
+Goal
+Implement the end-to-end USER flow using the existing project structure and the NEW components you provided:
+- Onboarding: OnboardingWizard (the component you shared)
+- Chat: ImprovedChatInterface (the component you shared)
+
+Scope
+- USER role only (ignore admin).
+- Keep styling, theming, and routing conventions as-is.
+- Remove/disable any legacy “user dashboard” and redirect it to /chat.
+
+Flow Requirements
+
+1) Landing ("/")
+- Always show a visible “Sign in / Log in” CTA.
+- If the user is authenticated:
+  - If onboardingCompleted === false → redirect to /onboarding.
+  - If onboardingCompleted === true → redirect to /chat.
+- If unauthenticated: clicking the CTA starts the existing sign-in flow.
+
+2) Sign-in
+- After successful sign-in:
+  - If onboardingCompleted === false → go to /onboarding.
+  - If onboardingCompleted === true → go to /chat.
+- Never re-run onboarding once the flag is true.
+
+3) Onboarding ("/onboarding") — use the provided OnboardingWizard component
+- Mount the exact component you shared (no content changes, only wiring).
+- Persist progress and final completion via your existing API:
+  - Save progress while navigating steps.
+  - On completion, set onboardingCompleted = true (persist in profile) and redirect to /chat.
+- Access control:
+  - If onboardingCompleted === false → page is accessible.
+  - If onboardingCompleted === true → redirect to /chat (guard against re-entry).
+
+4) Chat ("/chat") — use the provided ImprovedChatInterface component
+- Mount the exact component you shared (no content changes, only wiring).
+- Left side: conversation history (scrollable) with an “Add New Chat” button.
+- Main area: active conversation, markdown rendering, model selector, modes (chat/report/search), optional voice toggle.
+- Create a new conversation when “Add New Chat” is clicked; make it active and persist.
+- Restore chat history (per user) on load; maintain a stable session_id (e.g., one per browser session).
+- If user is unauthenticated → redirect to landing or sign-in.
+- If onboardingCompleted === false → redirect to /onboarding.
+
+5) Routing & Redirects
+- "/" (Landing) → redirect per auth + onboarding flag as above.
+- "/onboarding" → accessible only when onboardingCompleted === false; otherwise redirect /chat.
+- "/chat" → accessible only when authenticated and onboardingCompleted === true.
+- Any legacy user dashboard route → redirect to /chat.
+
+6) Persistence & Analytics
+- Profile flag: onboardingCompleted (boolean).
+- Chat history: associate conversations with the authenticated user; persist message content, timestamps, and lightweight metadata (model, responseTime).
+- Use a stable session_id for analytics/events to avoid FK errors server-side.
+
+Acceptance Criteria
+- New user: Landing → Sign-in → /onboarding → Complete → auto-redirect to /chat.
+- Returning user: Landing → Sign-in → auto-redirect to /chat (no onboarding).
+- /onboarding cannot be accessed once completed (redirects to /chat).
+- /chat shows the new side nav with history and a working “Add New Chat” button.
+- All legacy user dashboard routes redirect to /chat.
+- No visual regressions: components use existing styles and theme.

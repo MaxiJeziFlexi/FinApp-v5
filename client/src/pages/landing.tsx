@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/hooks/useAuth";
 import {
   Card,
   CardContent,
@@ -332,6 +333,28 @@ export default function Landing() {
   const [activeFeature, setActiveFeature] = useState(0);
   const [showSignUpModal, setShowSignUpModal] = useState(false);
 
+  const { isAuthenticated, user } = useAuth();
+
+  // Handle authenticated user redirects
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      const onboardingCompleted = (user as any)?.onboardingCompleted || false;
+      const systemRole = (user as any)?.systemRole || 'USER';
+      
+      // Redirect based on onboarding status for USER role
+      if (systemRole === 'USER') {
+        if (!onboardingCompleted) {
+          window.location.href = '/onboarding';
+        } else {
+          window.location.href = '/chat';
+        }
+      } else if (systemRole === 'ADMIN') {
+        // ADMIN users go to their dashboard
+        window.location.href = '/finapp-home';
+      }
+    }
+  }, [isAuthenticated, user]);
+
   useEffect(() => {
     const interval = setInterval(() => {
       setActiveFeature((prev) => (prev + 1) % features.length);
@@ -340,7 +363,8 @@ export default function Landing() {
   }, []);
 
   const handleSignUpSuccess = () => {
-    window.location.href = "/finapp-home";
+    // After sign-up/sign-in, let the useEffect handle the redirect based on onboarding status
+    window.location.reload();
   };
 
   return (

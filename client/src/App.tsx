@@ -37,13 +37,15 @@ import CommunityDiscussions from "@/pages/community-discussions";
 import UserProfile from "@/pages/user-profile";
 import AdminJarvis from "@/pages/AdminJarvis";
 import UpgradePage from "@/pages/upgrade";
+import Onboarding from "@/pages/onboarding";
+import Chat from "@/pages/chat";
 
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { useHeatMapTracking } from "@/hooks/useHeatMapTracking";
 
 
 function Router() {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isLoading, user } = useAuth();
   const [location] = useLocation();
   
   // Enable heat map tracking
@@ -57,6 +59,38 @@ function Router() {
       </div>
     );
   }
+  
+  // Helper function to handle authenticated user redirects
+  const getAuthenticatedRedirect = () => {
+    const onboardingCompleted = (user as any)?.onboardingCompleted || false;
+    const systemRole = (user as any)?.systemRole || 'USER';
+    
+    // For ADMIN users, allow access to admin routes
+    if (systemRole === 'ADMIN') {
+      return null; // No redirect needed, allow normal routing
+    }
+    
+    // For USER role - check onboarding status
+    if (!onboardingCompleted) {
+      // Allow access to onboarding, signin, and landing
+      if (location === '/onboarding' || location === '/signin' || location === '/') {
+        return null;
+      }
+      // Redirect to onboarding for any other route
+      return '/onboarding';
+    } else {
+      // Onboarding completed - redirect away from onboarding
+      if (location === '/onboarding') {
+        return '/chat';
+      }
+      // Redirect legacy dashboard routes to chat
+      if (location === '/' || location === '/finapp-home' || location.startsWith('/dashboard')) {
+        return '/chat';
+      }
+    }
+    
+    return null;
+  };
 
   // Show landing page for unauthenticated users
   if (!isAuthenticated) {
@@ -80,10 +114,52 @@ function Router() {
     );
   }
 
+  // Check for redirects for authenticated users
+  const redirectTo = getAuthenticatedRedirect();
+  if (redirectTo) {
+    // Use location.href for immediate redirect
+    window.location.href = redirectTo;
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" />
+      </div>
+    );
+  }
+  
   // Show authenticated routes with navigation
-  const noNavigationPages = ['/signin'];
+  const systemRole = (user as any)?.systemRole || 'USER';
+  const onboardingCompleted = (user as any)?.onboardingCompleted || false;
+  
+  // Pages that don't need navigation
+  const noNavigationPages = ['/signin', '/onboarding'];
   const showNavigation = !noNavigationPages.includes(location);
+  
+  // For USER role with incomplete onboarding, only show onboarding
+  if (systemRole === 'USER' && !onboardingCompleted) {
+    return (
+      <div className="min-h-screen">
+        <Switch>
+          <Route path="/onboarding" component={Onboarding} />
+          <Route component={() => { window.location.href = '/onboarding'; return null; }} />
+        </Switch>
+      </div>
+    );
+  }
+  
+  // For USER role with completed onboarding
+  if (systemRole === 'USER' && onboardingCompleted) {
+    return (
+      <div className="min-h-screen">
+        <Switch>
+          <Route path="/chat" component={Chat} />
+          <Route path="/signin" component={SignIn} />
+          <Route component={() => { window.location.href = '/chat'; return null; }} />
+        </Switch>
+      </div>
+    );
+  }
 
+  // For ADMIN role - show full navigation and all routes
   return (
     <div className="flex min-h-screen">
       {showNavigation && <MainNavigation />}
@@ -92,6 +168,8 @@ function Router() {
         <Switch>
           <Route path="/" component={FinAppHome} />
           <Route path="/finapp-home" component={FinAppHome} />
+          <Route path="/onboarding" component={Onboarding} />
+          <Route path="/chat" component={Chat} />
           <Route path="/crypto-marketplace" component={CryptoMarketplace} />
           <Route path="/upgrade" component={UpgradePage} />
           <Route path="/pricing" component={UpgradePage} />
@@ -105,7 +183,6 @@ function Router() {
           <Route path="/admin-jarvis" component={AdminJarvis} />
           <Route path="/admin-ai-control" component={AdvancedAIControlCenter} />
 
-
           <Route path="/gaming" component={GamingHub} />
           <Route path="/enhanced-crypto" component={EnhancedCryptoMarketplace} />
           <Route path="/developer-diagnostics" component={DeveloperDiagnostics} />
@@ -117,7 +194,6 @@ function Router() {
           <Route path="/community-discussions" component={CommunityDiscussions} />
           <Route path="/profile" component={UserProfile} />
           <Route path="/user-profile" component={UserProfile} />
-          <Route path="/admin-jarvis" component={AdminJarvis} />
 
           <Route component={NotFound} />
         </Switch>

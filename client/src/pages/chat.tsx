@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation } from 'wouter';
 import { useAuth } from '@/hooks/useAuth';
 import UserSideNav from '@/components/navigation/UserSideNav';
 import ImprovedChatInterface from '@/components/chat/ImprovedChatInterface';
@@ -10,28 +10,28 @@ import { AlertCircle, Loader2 } from 'lucide-react';
 
 export default function ChatPage() {
   const { user, isLoading, isAuthenticated } = useAuth();
-  const navigate = useNavigate();
+  const [location, setLocation] = useLocation();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   // Redirect to signin if not authenticated
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
-      navigate('/signin');
+      setLocation('/signin');
       return;
     }
 
     // Redirect to onboarding if not completed
     if (user && !user.onboardingCompleted) {
-      navigate('/onboarding');
+      setLocation('/onboarding');
       return;
     }
 
     // Ensure USER role has access to chat
     if (user && user.systemRole !== 'USER' && user.systemRole !== 'ADMIN') {
-      navigate('/');
+      setLocation('/');
       return;
     }
-  }, [user, isLoading, isAuthenticated, navigate]);
+  }, [user, isLoading, isAuthenticated, setLocation]);
 
   // Show loading state
   if (isLoading || !user) {

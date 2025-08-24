@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation } from 'wouter';
 import { useAuth } from '@/hooks/useAuth';
 import OnboardingWizard from '@/components/onboarding/OnboardingWizard';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -8,25 +8,25 @@ import { AlertCircle, Loader2 } from 'lucide-react';
 
 export default function OnboardingPage() {
   const { user, isLoading, isAuthenticated } = useAuth();
-  const navigate = useNavigate();
+  const [location, setLocation] = useLocation();
 
   // Redirect logic
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
-      navigate('/signin');
+      setLocation('/signin');
       return;
     }
 
     // If onboarding is already completed, redirect based on role
     if (user && user.onboardingCompleted) {
       if (user.systemRole === 'ADMIN') {
-        navigate('/admin');
+        setLocation('/finapp-home');
       } else {
-        navigate('/chat');
+        setLocation('/chat');
       }
       return;
     }
-  }, [user, isLoading, isAuthenticated, navigate]);
+  }, [user, isLoading, isAuthenticated, setLocation]);
 
   // Show loading state
   if (isLoading || !user) {

@@ -192,34 +192,34 @@ export default function OnboardingWizard({ userId, onComplete }: OnboardingWizar
 
   // Load saved progress on mount
   useEffect(() => {
-    if (savedProgress && typeof savedProgress === 'object' && !savedProgress.completed) {
+    if (savedProgress && typeof savedProgress === 'object' && !(savedProgress as any).completed) {
       // Safely merge saved progress with default structure
       const updatedData = {
         ...onboardingData,
         step1: {
           ...onboardingData.step1,
-          ...(savedProgress.step1 || {})
+          ...((savedProgress as any).step1 || {})
         },
         step2: {
           ...onboardingData.step2,
-          ...(savedProgress.step2 || {}),
+          ...((savedProgress as any).step2 || {}),
           // Ensure arrays are properly initialized
-          primaryGoals: savedProgress.step2?.primaryGoals || onboardingData.step2.primaryGoals,
-          preferredAdvisors: savedProgress.step2?.preferredAdvisors || onboardingData.step2.preferredAdvisors
+          primaryGoals: (savedProgress as any).step2?.primaryGoals || onboardingData.step2.primaryGoals,
+          preferredAdvisors: (savedProgress as any).step2?.preferredAdvisors || onboardingData.step2.preferredAdvisors
         },
         step3: {
           ...onboardingData.step3,
-          ...(savedProgress.step3 || {})
+          ...((savedProgress as any).step3 || {})
         },
-        currentStep: savedProgress.currentStep || 1,
-        completed: savedProgress.completed || false
+        currentStep: (savedProgress as any).currentStep || 1,
+        completed: (savedProgress as any).completed || false
       };
 
       setOnboardingData(updatedData);
-      setCurrentStep(savedProgress.currentStep || 1);
+      setCurrentStep((savedProgress as any).currentStep || 1);
 
       // Update form with loaded step1 data
-      if (savedProgress.step1) {
+      if ((savedProgress as any).step1) {
         step1Form.reset({
           firstName: updatedData.step1.firstName,
           lastName: updatedData.step1.lastName,
@@ -265,12 +265,44 @@ export default function OnboardingWizard({ userId, onComplete }: OnboardingWizar
 
   const nextStep = () => {
     if (currentStep < 4) {
+      // Validate current step before proceeding
+      if (currentStep === 2) {
+        if (onboardingData.step2.primaryGoals.length === 0) {
+          toast({
+            title: "Selection Required",
+            description: "Please select at least one primary goal to continue.",
+            variant: "destructive"
+          });
+          return;
+        }
+        if (onboardingData.step2.preferredAdvisors.length === 0) {
+          toast({
+            title: "Selection Required", 
+            description: "Please select at least one preferred advisor to continue.",
+            variant: "destructive"
+          });
+          return;
+        }
+      }
+
       const newStep = currentStep + 1;
       setCurrentStep(newStep);
-      saveProgressMutation.mutate({
-        ...onboardingData,
-        currentStep: newStep
-      });
+      
+      try {
+        saveProgressMutation.mutate({
+          ...onboardingData,
+          currentStep: newStep
+        });
+      } catch (error) {
+        console.error('Error saving progress:', error);
+        toast({
+          title: "Save Error",
+          description: "Failed to save progress. Please try again.",
+          variant: "destructive"
+        });
+        // Revert step change on error
+        setCurrentStep(currentStep);
+      }
     }
   };
 
@@ -281,12 +313,53 @@ export default function OnboardingWizard({ userId, onComplete }: OnboardingWizar
   };
 
   const handleComplete = () => {
+    // Validate required data before completion
+    if (!onboardingData.step1.firstName || !onboardingData.step1.lastName) {
+      toast({
+        title: "Missing Information",
+        description: "Please fill in all required personal information.",
+        variant: "destructive"
+      });
+      setCurrentStep(1);
+      return;
+    }
+
+    if (onboardingData.step2.primaryGoals.length === 0) {
+      toast({
+        title: "Missing Goals",
+        description: "Please select at least one primary goal.",
+        variant: "destructive"
+      });
+      setCurrentStep(2);
+      return;
+    }
+
+    if (onboardingData.step2.preferredAdvisors.length === 0) {
+      toast({
+        title: "Missing Advisors",
+        description: "Please select at least one advisor type.",
+        variant: "destructive"
+      });
+      setCurrentStep(2);
+      return;
+    }
+
     const finalData = {
       ...onboardingData,
       completed: true,
       currentStep: 4
     };
-    completeOnboardingMutation.mutate(finalData);
+    
+    try {
+      completeOnboardingMutation.mutate(finalData);
+    } catch (error) {
+      console.error('Error completing onboarding:', error);
+      toast({
+        title: "Completion Error",
+        description: "Failed to complete onboarding. Please try again.",
+        variant: "destructive"
+      });
+    }
   };
 
   const stepTitles = [

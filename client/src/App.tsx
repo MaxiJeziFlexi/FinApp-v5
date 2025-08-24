@@ -65,9 +65,10 @@ function Router() {
     const onboardingCompleted = (user as any)?.onboardingCompleted || false;
     const systemRole = (user as any)?.systemRole || 'USER';
     
-    // For ADMIN users, redirect to admin dashboard from landing
+    // For ADMIN users, allow viewing landing page but redirect from other pages
     if (systemRole === 'ADMIN') {
-      if (location === '/') {
+      // Allow admin to view landing page, but redirect from finapp-home to admin
+      if (location === '/finapp-home') {
         return '/admin';
       }
       return null; // No redirect needed for other admin routes

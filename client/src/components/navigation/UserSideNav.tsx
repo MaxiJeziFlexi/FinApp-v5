@@ -166,7 +166,7 @@ export default function UserSideNav({
           <Button
             variant="ghost"
             className="w-full justify-start h-10 text-slate-300 hover:text-white hover:bg-slate-800"
-            onClick={() => setLocation('/profile')}
+            onClick={() => setLocation('/user-profile')}
           >
             <User className="h-4 w-4 mr-3" />
             {!collapsed && "Profil"}

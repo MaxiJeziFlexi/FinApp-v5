@@ -85,6 +85,11 @@ export default function ImprovedChatInterface({
   // Fetch chat history
   const { data: chatHistory } = useQuery({
     queryKey: ['/api/chat/history', advisorId, userId],
+    queryFn: async () => {
+      const response = await fetch(`/api/chat/history/${advisorId}?user_id=${userId}`);
+      if (!response.ok) throw new Error('Failed to fetch chat history');
+      return response.json();
+    },
     enabled: !!advisorId && !!userId,
   });
 
@@ -173,11 +178,16 @@ export default function ImprovedChatInterface({
         requestBody = {
           reportType: 'ai_generated',
           prompt: input,
-          includeAnalysis: true
+          includeAnalysis: true,
+          userId: userId
         };
       } else if (messageMode === 'search') {
         endpoint = '/api/chat/web-search';
-        requestBody.enableWebSearch = true;
+        requestBody = {
+          ...requestBody,
+          enableWebSearch: true,
+          searchQuery: input
+        };
       }
 
       const response = await fetch(endpoint, {

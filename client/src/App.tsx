@@ -151,16 +151,29 @@ function Router() {
     );
   }
   
-  // For USER role with completed onboarding - show user navigation
+  // For USER role with completed onboarding - show same navigation as admin
   if (systemRole === 'USER' && onboardingCompleted) {
     return (
-      <div className="min-h-screen">
-        <Switch>
-          <Route path="/chat" component={Chat} />
-          <Route path="/user-profile" component={UserProfile} />
-          <Route path="/signin" component={SignIn} />
-          <Route component={() => { window.location.href = '/chat'; return null; }} />
-        </Switch>
+      <div className="flex min-h-screen">
+        {showNavigation && <MainNavigation />}
+        
+        <main className={`flex-1 ${showNavigation ? 'md:ml-72' : ''}`}>
+          <Switch>
+            <Route path="/chat" component={Chat} />
+            <Route path="/user-profile" component={UserProfile} />
+            <Route path="/ai-report-generator" component={AIReportGenerator} />
+            <Route path="/investment-consultation" component={InvestmentConsultation} />
+            <Route path="/tax-optimization" component={TaxOptimization} />
+            <Route path="/retirement-planning" component={RetirementPlanning} />
+            <Route path="/learning-hub" component={LearningHub} />
+            <Route path="/community-discussions" component={CommunityDiscussions} />
+            <Route path="/gaming" component={GamingHub} />
+            <Route path="/enhanced-crypto" component={EnhancedCryptoMarketplace} />
+            <Route path="/crypto-marketplace" component={CryptoMarketplace} />
+            <Route path="/signin" component={SignIn} />
+            <Route component={() => { window.location.href = '/chat'; return null; }} />
+          </Switch>
+        </main>
       </div>
     );
   }

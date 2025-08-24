@@ -73,31 +73,20 @@ export default function ChatPage() {
   }
 
   return (
-    <div className="h-screen flex overflow-hidden bg-background">
-      {/* Sidebar */}
-      <div className={`${sidebarCollapsed ? 'w-16' : 'w-72'} transition-all duration-300 relative`}>
-        <UserSideNav 
-          collapsed={sidebarCollapsed}
-          onCollapsedChange={setSidebarCollapsed}
-          className="h-full"
-        />
-      </div>
-
+    <div className="h-screen flex flex-col overflow-hidden bg-background">
       {/* Main Content */}
-      <div className="flex-1 flex flex-col overflow-hidden">
-        <div className="flex-1 p-4">
-          <Card className="h-full p-6">
-            <ImprovedChatInterface
-              userId={user.id}
-              advisorId="financial-advisor"
-              sessionId={`session_${user.id}_chat`}
-              onDataCollected={(data) => {
-                // Handle data collection for analytics
-                console.log('Chat data collected:', data);
-              }}
-            />
-          </Card>
-        </div>
+      <div className="flex-1 p-4">
+        <Card className="h-full p-6">
+          <ImprovedChatInterface
+            userId={user.id}
+            advisorId="financial-advisor"
+            sessionId={`session_${user.id}_chat`}
+            onDataCollected={(data) => {
+              // Handle data collection for analytics
+              console.log('Chat data collected:', data);
+            }}
+          />
+        </Card>
       </div>
     </div>
   );

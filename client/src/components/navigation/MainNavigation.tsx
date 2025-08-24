@@ -126,7 +126,7 @@ export default function MainNavigation() {
   const [location] = useLocation();
   const [isProfileExpanded, setIsProfileExpanded] = useState(false);
   const { theme, setTheme } = useTheme();
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   
   // Check if user is on FREE plan
   const isFreeUser = !user || (user as any)?.subscriptionTier === 'FREE';
@@ -604,7 +604,7 @@ export default function MainNavigation() {
 
               <div className="p-4 border-t border-gray-200 dark:border-gray-700">
                 <div className="space-y-2">
-                  <Link href="/profile">
+                  <Link href="/user-profile">
                     <Button
                       variant="ghost"
                       size="sm"

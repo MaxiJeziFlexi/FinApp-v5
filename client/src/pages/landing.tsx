@@ -349,8 +349,8 @@ export default function Landing() {
           window.location.href = '/chat';
         }
       } else if (systemRole === 'ADMIN') {
-        // ADMIN users go to their dashboard
-        window.location.href = '/finapp-home';
+        // ADMIN users go directly to admin dashboard (bypass onboarding)
+        window.location.href = '/admin';
       }
     }
   }, [isAuthenticated, user]);

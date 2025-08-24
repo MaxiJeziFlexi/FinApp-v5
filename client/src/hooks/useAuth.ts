@@ -68,8 +68,10 @@ export function useAuth() {
         email: localAuth.adminAuth.email,
         name: localAuth.adminAuth.name,
         role: 'ADMIN',
+        systemRole: 'ADMIN',
         subscriptionTier: 'MAX_PRO',
-        accountStatus: 'active'
+        accountStatus: 'active',
+        onboardingCompleted: true
       },
       isLoading: false,
       isAuthenticated: true,

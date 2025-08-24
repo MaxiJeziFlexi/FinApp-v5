@@ -65,9 +65,12 @@ function Router() {
     const onboardingCompleted = (user as any)?.onboardingCompleted || false;
     const systemRole = (user as any)?.systemRole || 'USER';
     
-    // For ADMIN users, allow access to admin routes
+    // For ADMIN users, redirect to admin dashboard from landing
     if (systemRole === 'ADMIN') {
-      return null; // No redirect needed, allow normal routing
+      if (location === '/') {
+        return '/admin';
+      }
+      return null; // No redirect needed for other admin routes
     }
     
     // For USER role - check onboarding status

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useLocation } from 'wouter';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -7,6 +7,7 @@ import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
+import { useQuery } from '@tanstack/react-query';
 import { 
   MessageSquare, 
   User, 
@@ -19,9 +20,13 @@ import {
   Home,
   Plus,
   Search,
-  ChevronLeft
+  ChevronLeft,
+  Palette,
+  Moon,
+  Sun
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
+import { useTheme } from '@/contexts/ThemeContext';
 import { cn } from '@/lib/utils';
 
 interface UserSideNavProps {
@@ -47,16 +52,53 @@ export default function UserSideNav({
   const [location, setLocation] = useLocation();
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const { theme, setTheme } = useTheme();
 
-  // Mock chat history for demo
-  const chatHistory = [
-    {
-      id: '1',
-      title: 'Niestety, nie mam dostępu do aktualny',
-      preview: 'Niestety, nie mam dostępu do aktualnych dar',
-      timestamp: '1d ago'
-    }
-  ];
+  // Load real chat history
+  const { data: chatHistoryData } = useQuery({
+    queryKey: ['/api/chat/history', 'financial-advisor', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return [];
+      const response = await fetch(`/api/chat/history/financial-advisor?user_id=${user.id}`);
+      if (!response.ok) return [];
+      return response.json();
+    },
+    enabled: !!user?.id,
+  });
+
+  // Format chat history for sidebar display
+  const chatHistory = React.useMemo(() => {
+    if (!chatHistoryData || !Array.isArray(chatHistoryData)) return [];
+    
+    // Group messages by session/date and create summaries
+    const sessionsMap = new Map();
+    chatHistoryData.forEach((msg: any) => {
+      const sessionKey = msg.sessionId || 'default';
+      if (!sessionsMap.has(sessionKey)) {
+        sessionsMap.set(sessionKey, {
+          id: sessionKey,
+          title: msg.message.slice(0, 40) + (msg.message.length > 40 ? '...' : ''),
+          preview: msg.message.slice(0, 60) + (msg.message.length > 60 ? '...' : ''),
+          timestamp: new Date(msg.createdAt).toLocaleDateString('pl-PL', {
+            day: 'numeric',
+            month: 'short'
+          }),
+          lastMessage: new Date(msg.createdAt)
+        });
+      } else {
+        const session = sessionsMap.get(sessionKey);
+        if (new Date(msg.createdAt) > session.lastMessage) {
+          session.title = msg.message.slice(0, 40) + (msg.message.length > 40 ? '...' : '');
+          session.preview = msg.message.slice(0, 60) + (msg.message.length > 60 ? '...' : '');
+          session.lastMessage = new Date(msg.createdAt);
+        }
+      }
+    });
+    
+    return Array.from(sessionsMap.values()).sort((a, b) => 
+      b.lastMessage.getTime() - a.lastMessage.getTime()
+    );
+  }, [chatHistoryData]);
 
   const handleNewChat = () => {
     setLocation('/chat');
@@ -169,15 +211,36 @@ export default function UserSideNav({
             onClick={() => setLocation('/user-profile')}
           >
             <User className="h-4 w-4 mr-3" />
-            {!collapsed && "Profil"}
+            {!collapsed && "Profil Użytkownika"}
           </Button>
+          <Button
+            variant="ghost"
+            className="w-full justify-start h-10 text-slate-300 hover:text-white hover:bg-slate-800"
+            onClick={() => setLocation('/user-profile')}
+          >
+            <Settings className="h-4 w-4 mr-3" />
+            {!collapsed && "Ustawienia Profilu"}
+          </Button>
+          <Button
+            variant="ghost"
+            className="w-full justify-start h-10 text-slate-300 hover:text-white hover:bg-slate-800"
+            onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+          >
+            {theme === 'dark' ? (
+              <Sun className="h-4 w-4 mr-3" />
+            ) : (
+              <Moon className="h-4 w-4 mr-3" />
+            )}
+            {!collapsed && "Motyw"}
+          </Button>
+          <Separator className="bg-slate-600" />
           <Button
             variant="ghost"
             className="w-full justify-start h-10 text-slate-300 hover:text-white hover:bg-slate-800"
             onClick={handleLogout}
           >
             <LogOut className="h-4 w-4 mr-3" />
-            {!collapsed && "Wyloguj"}
+            {!collapsed && "Wyloguj się"}
           </Button>
         </div>
       </div>

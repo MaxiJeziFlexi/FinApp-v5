@@ -151,12 +151,13 @@ function Router() {
     );
   }
   
-  // For USER role with completed onboarding
+  // For USER role with completed onboarding - show user navigation
   if (systemRole === 'USER' && onboardingCompleted) {
     return (
       <div className="min-h-screen">
         <Switch>
           <Route path="/chat" component={Chat} />
+          <Route path="/user-profile" component={UserProfile} />
           <Route path="/signin" component={SignIn} />
           <Route component={() => { window.location.href = '/chat'; return null; }} />
         </Switch>

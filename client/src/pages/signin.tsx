@@ -21,6 +21,10 @@ export default function SignIn() {
   });
   const { toast } = useToast();
 
+  // Check if this is admin mode
+  const urlParams = new URLSearchParams(window.location.search);
+  const isAdminMode = urlParams.get('admin') === 'true';
+
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({
       ...prev,
@@ -31,12 +35,27 @@ export default function SignIn() {
   const handleSignIn = async () => {
     setIsLoading(true);
     try {
-      // For demo purposes, store user authentication
-      localStorage.setItem('finapp_user_auth', JSON.stringify({
-        email: formData.email || 'demo@example.com',
-        name: formData.name || formData.email?.split('@')[0] || 'Demo User',
-        loginTime: new Date().toISOString()
-      }));
+      // Check if this is admin login (from query params or admin flag)
+      const urlParams = new URLSearchParams(window.location.search);
+      const isAdmin = urlParams.get('admin') === 'true';
+      
+      if (isAdmin) {
+        // Admin authentication
+        localStorage.setItem('finapp_admin_auth', JSON.stringify({
+          email: formData.email || 'admin@finapp.com',
+          name: 'Admin User',
+          loginTime: new Date().toISOString(),
+          systemRole: 'ADMIN'
+        }));
+      } else {
+        // User authentication  
+        localStorage.setItem('finapp_user_auth', JSON.stringify({
+          email: formData.email || 'demo@example.com',
+          name: formData.name || formData.email?.split('@')[0] || 'Demo User',
+          loginTime: new Date().toISOString(),
+          systemRole: 'USER'
+        }));
+      }
 
       toast({
         title: "Welcome to FinApp!",
@@ -69,12 +88,27 @@ export default function SignIn() {
         return;
       }
 
-      // Store user authentication
-      localStorage.setItem('finapp_user_auth', JSON.stringify({
-        email: formData.email,
-        name: formData.name,
-        loginTime: new Date().toISOString()
-      }));
+      // Check if this is admin signup
+      const urlParams = new URLSearchParams(window.location.search);
+      const isAdmin = urlParams.get('admin') === 'true';
+      
+      if (isAdmin) {
+        // Admin authentication
+        localStorage.setItem('finapp_admin_auth', JSON.stringify({
+          email: formData.email,
+          name: formData.name,
+          loginTime: new Date().toISOString(),
+          systemRole: 'ADMIN'
+        }));
+      } else {
+        // User authentication
+        localStorage.setItem('finapp_user_auth', JSON.stringify({
+          email: formData.email,
+          name: formData.name,
+          loginTime: new Date().toISOString(),
+          systemRole: 'USER'
+        }));
+      }
 
       toast({
         title: "Account Created!",

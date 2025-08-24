@@ -69,12 +69,10 @@ export default function OnboardingPage() {
       }
     }
     
-    // Redirect based on user's system role
-    if (user.systemRole === 'ADMIN') {
-      setLocation('/admin');
-    } else {
-      setLocation('/chat');
-    }
+    // Force page reload to refresh authentication state and trigger proper routing
+    setTimeout(() => {
+      window.location.href = '/chat';
+    }, 100);
   };
 
   return (

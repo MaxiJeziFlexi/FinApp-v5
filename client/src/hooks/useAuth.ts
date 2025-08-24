@@ -88,7 +88,7 @@ export function useAuth() {
         subscriptionTier: 'FREE',
         accountStatus: 'active',
         systemRole: 'USER',
-        onboardingCompleted: false
+        onboardingCompleted: localAuth.userAuth.onboardingCompleted || false
       },
       isLoading: false,
       isAuthenticated: true,

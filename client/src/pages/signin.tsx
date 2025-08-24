@@ -33,8 +33,8 @@ export default function SignIn() {
     try {
       // For demo purposes, store user authentication
       localStorage.setItem('finapp_user_auth', JSON.stringify({
-        email: formData.email,
-        name: formData.email.split('@')[0],
+        email: formData.email || 'demo@example.com',
+        name: formData.name || formData.email?.split('@')[0] || 'Demo User',
         loginTime: new Date().toISOString()
       }));
 
@@ -68,6 +68,13 @@ export default function SignIn() {
         });
         return;
       }
+
+      // Store user authentication
+      localStorage.setItem('finapp_user_auth', JSON.stringify({
+        email: formData.email,
+        name: formData.name,
+        loginTime: new Date().toISOString()
+      }));
 
       toast({
         title: "Account Created!",

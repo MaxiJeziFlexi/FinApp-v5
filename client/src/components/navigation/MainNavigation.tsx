@@ -346,7 +346,7 @@ export default function MainNavigation() {
           <Button
             variant="ghost"
             className="w-full justify-start h-10 text-slate-300 hover:text-white hover:bg-slate-800"
-            onClick={() => window.location.href = '/api/logout'}
+            onClick={logout}
           >
             <LogOut className="h-4 w-4 mr-3" />
             {!collapsed && "Wyloguj się"}
@@ -592,7 +592,7 @@ export default function MainNavigation() {
               variant="ghost"
               size="sm"
               className="w-full justify-start gap-3 text-gray-600 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400"
-              onClick={() => window.location.href = '/api/logout'}
+              onClick={logout}
             >
               <LogOut className="h-4 w-4" />
               Wyloguj się
@@ -794,7 +794,7 @@ export default function MainNavigation() {
                     variant="ghost"
                     size="sm"
                     className="w-full justify-start gap-3 text-gray-600 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400"
-                    onClick={() => window.location.href = '/api/logout'}
+                    onClick={logout}
                   >
                     <LogOut className="h-4 w-4" />
                     Wyloguj się

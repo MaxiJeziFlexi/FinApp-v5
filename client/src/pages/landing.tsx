@@ -473,9 +473,16 @@ export default function Landing() {
                   </Button>
                 </Link>
                 <Link href="/admin-login">
-                  <Button variant="outline" size="sm">
-                    <Shield className="mr-2 h-4 w-4" />
-                    Admin
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => {
+                      console.log('🔗 Admin login button clicked, navigating to /admin-login');
+                      window.location.href = '/admin-login';
+                    }}
+                  >
+                    <Crown className="mr-2 h-4 w-4" />
+                    Admin Login
                   </Button>
                 </Link>
                 <Link href="/signin">

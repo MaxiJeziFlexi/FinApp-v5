@@ -47,10 +47,10 @@ import { useHeatMapTracking } from "@/hooks/useHeatMapTracking";
 function Router() {
   const { isAuthenticated, isLoading, user } = useAuth();
   const [location] = useLocation();
-  
+
   // Enable heat map tracking
   useHeatMapTracking();
-  
+
   // Show loading state while checking authentication
   if (isLoading) {
     return (
@@ -59,26 +59,26 @@ function Router() {
       </div>
     );
   }
-  
+
   // Helper function to handle authenticated user redirects
   const getAuthenticatedRedirect = () => {
     const onboardingCompleted = (user as any)?.onboardingCompleted || false;
     const systemRole = (user as any)?.systemRole || 'USER';
     const isAdmin = systemRole === 'ADMIN';
-    
+
     console.log('🧭 Routing check:', {
       location,
       systemRole,
       onboardingCompleted,
       isAdmin
     });
-    
+
     // Allow landing page for everyone - no redirects from landing page
     if (location === '/') {
       console.log('📍 On landing page - no redirect needed');
       return null;
     }
-    
+
     // For ADMIN users - redirect to finapp-home if they're on signin/onboarding
     if (isAdmin) {
       console.log('👑 Admin user detected');
@@ -89,7 +89,7 @@ function Router() {
       console.log('✅ Admin - allowing access to:', location);
       return null;
     }
-    
+
     // For USER role - check onboarding status
     if (systemRole === 'USER') {
       if (!onboardingCompleted) {
@@ -116,7 +116,7 @@ function Router() {
         }
       }
     }
-    
+
     console.log('✅ No redirect needed');
     return null;
   };
@@ -155,16 +155,16 @@ function Router() {
       </div>
     );
   }
-  
+
   // Show authenticated routes with navigation
   const systemRole = (user as any)?.systemRole || 'USER';
   const onboardingCompleted = (user as any)?.onboardingCompleted || false;
   const isAdmin = systemRole === 'ADMIN';
-  
+
   // Pages that don't need navigation
   const noNavigationPages = ['/signin', '/onboarding', '/', '/chat'];
   const showNavigation = !noNavigationPages.includes(location);
-  
+
   // For USER role with incomplete onboarding
   if (systemRole === 'USER' && !onboardingCompleted) {
     return (
@@ -178,13 +178,13 @@ function Router() {
       </div>
     );
   }
-  
+
   // For USER role with completed onboarding - show limited navigation (chat only)
   if (systemRole === 'USER' && onboardingCompleted) {
     return (
       <div className="flex min-h-screen">
         {showNavigation && <MainNavigation />}
-        
+
         <main className={`flex-1 ${showNavigation ? 'md:ml-80' : ''}`}>
           <Switch>
             <Route path="/" component={Landing} />
@@ -203,27 +203,27 @@ function Router() {
   return (
     <div className="flex min-h-screen">
       {showNavigation && <MainNavigation />}
-      
+
       <main className={`flex-1 ${showNavigation ? 'md:ml-72' : ''}`}>
         <Switch>
           {/* Landing page accessible by admin */}
           <Route path="/" component={Landing} />
-          
+
           {/* Admin shell - main admin home */}
           <Route path="/finapp-home" component={FinAppHome} />
-          
+
           {/* Admin routes */}
           <Route path="/admin" component={AdminDashboard} />
           <Route path="/admin-jarvis" component={AdminJarvis} />
           <Route path="/admin-ai-control" component={AdvancedAIControlCenter} />
           <Route path="/developer-diagnostics" component={DeveloperDiagnostics} />
-          
+
           {/* Shared routes accessible by admin */}
           <Route path="/chat" component={Chat} />
           <Route path="/onboarding" component={Onboarding} />
           <Route path="/user-profile" component={UserProfile} />
           <Route path="/profile" component={UserProfile} />
-          
+
           {/* FinApp feature routes */}
           <Route path="/ai-report-generator" component={AIReportGenerator} />
           <Route path="/investment-consultation" component={InvestmentConsultation} />
@@ -234,7 +234,7 @@ function Router() {
           <Route path="/gaming" component={GamingHub} />
           <Route path="/enhanced-crypto" component={EnhancedCryptoMarketplace} />
           <Route path="/crypto-marketplace" component={CryptoMarketplace} />
-          
+
           {/* Other admin accessible routes */}
           <Route path="/learning-progress" component={LearningProgress} />
           <Route path="/test" component={ComprehensiveTest} />
@@ -243,7 +243,7 @@ function Router() {
           <Route path="/privacy" component={Privacy} />
           <Route path="/security" component={Security} />
           <Route path="/analytics" component={AnalyticsDashboard} />
-          
+
           {/* Default redirect for admin */}
           <Route component={() => { window.location.href = '/finapp-home'; return null; }} />
         </Switch>

@@ -67,7 +67,14 @@ function Router() {
     
     // Allow landing page for everyone - no redirects from landing page
     if (location === '/') {
-      return null;
+      // But redirect authenticated users away from landing to their proper home
+      if (systemRole === 'ADMIN') {
+        return '/finapp-home';
+      } else if (!onboardingCompleted) {
+        return '/onboarding';
+      } else {
+        return '/chat';
+      }
     }
     
     // For ADMIN users

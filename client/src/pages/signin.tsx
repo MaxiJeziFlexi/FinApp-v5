@@ -53,7 +53,8 @@ export default function SignIn() {
           email: formData.email || 'demo@example.com',
           name: formData.name || formData.email?.split('@')[0] || 'Demo User',
           loginTime: new Date().toISOString(),
-          systemRole: 'USER'
+          systemRole: 'USER',
+          onboardingCompleted: false
         }));
       }
 
@@ -63,7 +64,11 @@ export default function SignIn() {
       });
       
       setTimeout(() => {
-        window.location.href = '/';
+        if (isAdmin) {
+          window.location.href = '/finapp-home';
+        } else {
+          window.location.href = '/onboarding';
+        }
       }, 1500);
     } catch (error) {
       toast({
@@ -106,7 +111,8 @@ export default function SignIn() {
           email: formData.email,
           name: formData.name,
           loginTime: new Date().toISOString(),
-          systemRole: 'USER'
+          systemRole: 'USER',
+          onboardingCompleted: false
         }));
       }
 
@@ -116,7 +122,11 @@ export default function SignIn() {
       });
       
       setTimeout(() => {
-        window.location.href = '/';
+        if (isAdmin) {
+          window.location.href = '/finapp-home';
+        } else {
+          window.location.href = '/onboarding';
+        }
       }, 1500);
     } catch (error) {
       toast({

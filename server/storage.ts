@@ -1383,16 +1383,21 @@ export class DatabaseStorage implements IStorage {
       }
 
       const conversationIds = userConversations.map(conv => conv.id);
-      console.log(`Found ${conversationIds.length} conversations to clear:`, conversationIds);
+      console.log(`Found ${conversationIds.length} conversations to clear`);
 
-      // Delete all chat messages for these conversations
-      await db
-        .delete(chatMessages)
-        .where(sql`${chatMessages.sessionId} IN (${conversationIds.map(id => `'${id}'`).join(', ')})`);
+      // Delete all chat messages for these conversations one by one to avoid SQL issues
+      let deletedMessagesCount = 0;
+      for (const conversationId of conversationIds) {
+        const result = await db
+          .delete(chatMessages)
+          .where(eq(chatMessages.sessionId, conversationId));
+        console.log(`Deleted messages for conversation ${conversationId}`);
+        deletedMessagesCount++;
+      }
       
-      console.log('Deleted chat messages for conversations');
+      console.log(`Deleted chat messages for ${deletedMessagesCount} conversations`);
 
-      // Delete all conversations for this user
+      // Now delete all conversations for this user
       await db
         .delete(advisorSessions)
         .where(eq(advisorSessions.userId, userId));

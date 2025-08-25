@@ -18,24 +18,24 @@ export function useAuth() {
       let adminAuth = null;
       let userAuth = null;
 
-      // Check for admin auth first
-      const adminData = localStorage.getItem('finapp_admin_auth');
-      if (adminData) {
-        try {
+      try {
+        // Check for admin auth first
+        const adminData = localStorage.getItem('finapp_admin_auth');
+        if (adminData) {
           adminAuth = JSON.parse(adminData);
-        } catch (e) {
-          localStorage.removeItem('finapp_admin_auth');
+          console.log('🔑 Admin auth found:', adminAuth);
         }
-      }
 
-      // Check for regular user auth
-      const userData = localStorage.getItem('finapp_user_auth');
-      if (userData) {
-        try {
+        // Check for regular user auth
+        const userData = localStorage.getItem('finapp_user_auth');
+        if (userData) {
           userAuth = JSON.parse(userData);
-        } catch (e) {
-          localStorage.removeItem('finapp_user_auth');
+          console.log('👤 User auth found:', userAuth);
         }
+      } catch (e) {
+        console.error('❌ Auth parsing error:', e);
+        localStorage.removeItem('finapp_admin_auth');
+        localStorage.removeItem('finapp_user_auth');
       }
 
       setLocalAuth({
@@ -51,6 +51,7 @@ export function useAuth() {
     // Listen for storage changes (including logout from other tabs)
     const handleStorageChange = (e: StorageEvent) => {
       if (e.key === 'finapp_admin_auth' || e.key === 'finapp_user_auth' || e.key === null) {
+        console.log('🔄 Storage changed, rechecking auth...');
         checkAuth();
       }
     };
@@ -71,6 +72,7 @@ export function useAuth() {
 
   // Return the appropriate user based on authentication state
   if (!localAuth.isLoaded) {
+    console.log('⏳ Auth still loading...');
     return {
       user: null,
       isLoading: true,
@@ -81,17 +83,20 @@ export function useAuth() {
 
   // If admin is authenticated, return admin user
   if (localAuth.adminAuth) {
+    console.log('✅ Admin authenticated:', localAuth.adminAuth.systemRole);
+    const adminUser = {
+      id: 'admin-user',
+      email: localAuth.adminAuth.email,
+      name: localAuth.adminAuth.name,
+      role: 'ADMIN',
+      systemRole: 'ADMIN',
+      subscriptionTier: 'MAX_PRO',
+      accountStatus: 'active',
+      onboardingCompleted: true
+    };
+    
     return {
-      user: {
-        id: 'admin-user',
-        email: localAuth.adminAuth.email,
-        name: localAuth.adminAuth.name,
-        role: 'ADMIN',
-        systemRole: 'ADMIN',
-        subscriptionTier: 'MAX_PRO',
-        accountStatus: 'active',
-        onboardingCompleted: true
-      },
+      user: adminUser,
       isLoading: false,
       isAuthenticated: true,
       isAdmin: true
@@ -100,27 +105,36 @@ export function useAuth() {
 
   // If demo user is authenticated, return demo user
   if (localAuth.userAuth) {
+    const onboardingCompleted = localAuth.userAuth.onboardingCompleted || false;
+    console.log('✅ User authenticated:', {
+      systemRole: localAuth.userAuth.systemRole,
+      onboardingCompleted
+    });
+    
+    const regularUser = {
+      id: 'demo-user',
+      email: localAuth.userAuth.email,
+      name: localAuth.userAuth.name,
+      role: 'FREE',
+      subscriptionTier: 'FREE',
+      accountStatus: 'active',
+      systemRole: 'USER',
+      onboardingCompleted
+    };
+    
     return {
-      user: {
-        id: 'demo-user',
-        email: localAuth.userAuth.email,
-        name: localAuth.userAuth.name,
-        role: 'FREE',
-        subscriptionTier: 'FREE',
-        accountStatus: 'active',
-        systemRole: 'USER',
-        onboardingCompleted: localAuth.userAuth.onboardingCompleted || false
-      },
+      user: regularUser,
       isLoading: false,
       isAuthenticated: true,
       isAdmin: false
     };
   }
 
-  // Fall back to server authentication (Replit OAuth) - disabled for demo
+  // No authentication found
+  console.log('❌ No authentication found');
   return {
     user: null,
-    isLoading: false, // Don't show loading for unauthenticated users
+    isLoading: false,
     isAuthenticated: false,
     isAdmin: false
   };

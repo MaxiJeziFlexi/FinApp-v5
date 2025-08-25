@@ -55,22 +55,30 @@ export default function OnboardingPage() {
   }
 
   const handleOnboardingComplete = () => {
+    console.log('🎉 Onboarding completion triggered');
+    
     // Update user auth to mark onboarding as completed
     const currentAuth = localStorage.getItem('finapp_user_auth');
     if (currentAuth) {
       try {
         const authData = JSON.parse(currentAuth);
-        localStorage.setItem('finapp_user_auth', JSON.stringify({
+        const updatedAuth = {
           ...authData,
           onboardingCompleted: true
-        }));
+        };
+        
+        localStorage.setItem('finapp_user_auth', JSON.stringify(updatedAuth));
+        console.log('✅ Updated user auth with onboarding completed:', updatedAuth);
       } catch (e) {
-        console.error('Failed to update auth data:', e);
+        console.error('❌ Failed to update auth data:', e);
       }
+    } else {
+      console.error('❌ No user auth found in localStorage');
     }
     
     // Force page reload to refresh authentication state and trigger proper routing
     setTimeout(() => {
+      console.log('➡️ Redirecting to chat after onboarding completion');
       window.location.href = '/chat';
     }, 100);
   };

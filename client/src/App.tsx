@@ -65,40 +65,56 @@ function Router() {
     const onboardingCompleted = (user as any)?.onboardingCompleted || false;
     const systemRole = (user as any)?.systemRole || 'USER';
     
+    console.log('🧭 Routing check:', {
+      location,
+      systemRole,
+      onboardingCompleted,
+      isAdmin
+    });
+    
     // Allow landing page for everyone - no redirects from landing page
     if (location === '/') {
+      console.log('📍 On landing page - no redirect needed');
       return null;
     }
     
     // For ADMIN users
     if (systemRole === 'ADMIN') {
-      // Allow admin to access any route they try to visit
+      console.log('👑 Admin user - allowing access to:', location);
       return null;
     }
     
     // For USER role - check onboarding status
     if (!onboardingCompleted) {
+      console.log('🚀 User needs onboarding - current location:', location);
       // Allow access to onboarding, signin, and landing only
       if (location === '/onboarding' || location === '/signin') {
+        console.log('✅ Allowing access to onboarding flow');
         return null;
       }
       // Redirect to onboarding for any other route (except landing)
+      console.log('➡️ Redirecting to onboarding');
       return '/onboarding';
     } else {
+      console.log('✅ User onboarding completed - checking route access');
       // Onboarding completed - redirect away from onboarding
       if (location === '/onboarding') {
+        console.log('➡️ Redirecting away from onboarding to chat');
         return '/chat';
       }
       // Block access to admin routes for regular users
       if (location.startsWith('/admin') || location.startsWith('/finapp-home')) {
+        console.log('🚫 Blocking admin route access - redirecting to chat');
         return '/chat';
       }
       // Redirect legacy dashboard routes to chat  
       if (location.startsWith('/dashboard')) {
+        console.log('➡️ Redirecting legacy dashboard to chat');
         return '/chat';
       }
     }
     
+    console.log('✅ No redirect needed');
     return null;
   };
 

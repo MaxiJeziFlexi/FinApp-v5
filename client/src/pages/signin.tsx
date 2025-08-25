@@ -39,23 +39,32 @@ export default function SignIn() {
       const urlParams = new URLSearchParams(window.location.search);
       const isAdmin = urlParams.get('admin') === 'true';
       
+      console.log('🔐 Sign in attempt:', { isAdmin, email: formData.email });
+      
       if (isAdmin) {
         // Admin authentication
-        localStorage.setItem('finapp_admin_auth', JSON.stringify({
+        const adminAuth = {
           email: formData.email || 'admin@finapp.com',
           name: 'Admin User',
           loginTime: new Date().toISOString(),
-          systemRole: 'ADMIN'
-        }));
+          systemRole: 'ADMIN',
+          isAdmin: true
+        };
+        
+        localStorage.setItem('finapp_admin_auth', JSON.stringify(adminAuth));
+        console.log('👑 Admin auth set:', adminAuth);
       } else {
         // User authentication  
-        localStorage.setItem('finapp_user_auth', JSON.stringify({
+        const userAuth = {
           email: formData.email || 'demo@example.com',
           name: formData.name || formData.email?.split('@')[0] || 'Demo User',
           loginTime: new Date().toISOString(),
           systemRole: 'USER',
           onboardingCompleted: false
-        }));
+        };
+        
+        localStorage.setItem('finapp_user_auth', JSON.stringify(userAuth));
+        console.log('👤 User auth set:', userAuth);
       }
 
       toast({
@@ -65,12 +74,15 @@ export default function SignIn() {
       
       setTimeout(() => {
         if (isAdmin) {
+          console.log('➡️ Redirecting admin to finapp-home');
           window.location.href = '/finapp-home';
         } else {
+          console.log('➡️ Redirecting user to onboarding');
           window.location.href = '/onboarding';
         }
       }, 500);
     } catch (error) {
+      console.error('❌ Sign in error:', error);
       toast({
         title: "Sign In Failed",
         description: "Please check your credentials and try again.",

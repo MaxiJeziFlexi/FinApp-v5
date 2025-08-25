@@ -136,13 +136,10 @@ export default function MainNavigation() {
   const [collapsed, setCollapsed] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const { theme, setTheme } = useTheme();
-  const { user } = useAuth();
+  const { user, isAdmin } = useAuth();
 
   // Check if user is on FREE plan
   const isFreeUser = !user || (user as any)?.subscriptionTier === 'FREE';
-  
-  // Check if user is admin (has admin role or is logged in as admin)
-  const isAdmin = (user as any)?.role === 'admin' || (user as any)?.role === 'ADMIN' || (user as any)?.subscriptionTier === 'ADMIN';
 
   const isActive = (path: string) => {
     return location === path || (path !== '/' && location.startsWith(path));
@@ -361,6 +358,8 @@ export default function MainNavigation() {
     setIsOpen(false);
   };
 
+  console.log('MainNavigation - isAdmin:', isAdmin, 'user role:', (user as any)?.role);
+  
   // For regular users - show chat interface
   if (!isAdmin) {
     return (

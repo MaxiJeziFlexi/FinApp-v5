@@ -384,7 +384,7 @@ export default function ThreePanelChatInterface({ userId, advisorId }: ThreePane
           </div>
           <ScrollArea className="h-full px-2">
             <div className="space-y-1 pb-4">
-              {filteredConversations.map((conversation) => (
+              {filteredConversations.map((conversation: Conversation) => (
                 <button
                   key={conversation.id}
                   onClick={() => selectConversation(conversation.id)}

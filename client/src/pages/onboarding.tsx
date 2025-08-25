@@ -69,18 +69,24 @@ export default function OnboardingPage() {
         
         localStorage.setItem('finapp_user_auth', JSON.stringify(updatedAuth));
         console.log('✅ Updated user auth with onboarding completed:', updatedAuth);
+        
+        // Trigger storage event for other tabs/components to update
+        window.dispatchEvent(new StorageEvent('storage', {
+          key: 'finapp_user_auth',
+          newValue: JSON.stringify(updatedAuth)
+        }));
+        
+        // Force page reload to refresh authentication state and trigger proper routing
+        setTimeout(() => {
+          console.log('➡️ Redirecting to chat after onboarding completion');
+          window.location.href = '/chat';
+        }, 500);
       } catch (e) {
         console.error('❌ Failed to update auth data:', e);
       }
     } else {
       console.error('❌ No user auth found in localStorage');
     }
-    
-    // Force page reload to refresh authentication state and trigger proper routing
-    setTimeout(() => {
-      console.log('➡️ Redirecting to chat after onboarding completion');
-      window.location.href = '/chat';
-    }, 100);
   };
 
   return (

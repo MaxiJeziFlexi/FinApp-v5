@@ -108,7 +108,8 @@ export function useAuth() {
     const onboardingCompleted = localAuth.userAuth.onboardingCompleted || false;
     console.log('✅ User authenticated:', {
       systemRole: localAuth.userAuth.systemRole,
-      onboardingCompleted
+      onboardingCompleted,
+      email: localAuth.userAuth.email
     });
     
     const regularUser = {

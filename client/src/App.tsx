@@ -64,6 +64,7 @@ function Router() {
   const getAuthenticatedRedirect = () => {
     const onboardingCompleted = (user as any)?.onboardingCompleted || false;
     const systemRole = (user as any)?.systemRole || 'USER';
+    const isAdmin = systemRole === 'ADMIN';
     
     console.log('🧭 Routing check:', {
       location,
@@ -78,39 +79,41 @@ function Router() {
       return null;
     }
     
-    // For ADMIN users
-    if (systemRole === 'ADMIN') {
-      console.log('👑 Admin user - allowing access to:', location);
+    // For ADMIN users - redirect to finapp-home if they're on signin/onboarding
+    if (isAdmin) {
+      console.log('👑 Admin user detected');
+      if (location === '/signin' || location === '/onboarding') {
+        console.log('➡️ Redirecting admin to finapp-home');
+        return '/finapp-home';
+      }
+      console.log('✅ Admin - allowing access to:', location);
       return null;
     }
     
     // For USER role - check onboarding status
-    if (!onboardingCompleted) {
-      console.log('🚀 User needs onboarding - current location:', location);
-      // Allow access to onboarding, signin, and landing only
-      if (location === '/onboarding' || location === '/signin') {
-        console.log('✅ Allowing access to onboarding flow');
-        return null;
-      }
-      // Redirect to onboarding for any other route (except landing)
-      console.log('➡️ Redirecting to onboarding');
-      return '/onboarding';
-    } else {
-      console.log('✅ User onboarding completed - checking route access');
-      // Onboarding completed - redirect away from onboarding
-      if (location === '/onboarding') {
-        console.log('➡️ Redirecting away from onboarding to chat');
-        return '/chat';
-      }
-      // Block access to admin routes for regular users
-      if (location.startsWith('/admin') || location.startsWith('/finapp-home')) {
-        console.log('🚫 Blocking admin route access - redirecting to chat');
-        return '/chat';
-      }
-      // Redirect legacy dashboard routes to chat  
-      if (location.startsWith('/dashboard')) {
-        console.log('➡️ Redirecting legacy dashboard to chat');
-        return '/chat';
+    if (systemRole === 'USER') {
+      if (!onboardingCompleted) {
+        console.log('🚀 User needs onboarding - current location:', location);
+        // Allow access to onboarding and signin only
+        if (location === '/onboarding' || location === '/signin') {
+          console.log('✅ Allowing access to onboarding flow');
+          return null;
+        }
+        // Redirect to onboarding for any other route
+        console.log('➡️ Redirecting to onboarding');
+        return '/onboarding';
+      } else {
+        console.log('✅ User onboarding completed - checking route access');
+        // Onboarding completed - redirect away from onboarding/signin
+        if (location === '/onboarding' || location === '/signin') {
+          console.log('➡️ Redirecting completed user to chat');
+          return '/chat';
+        }
+        // Block access to admin routes for regular users
+        if (location.startsWith('/admin') || location.startsWith('/finapp-home')) {
+          console.log('🚫 Blocking admin route access - redirecting to chat');
+          return '/chat';
+        }
       }
     }
     
@@ -156,6 +159,7 @@ function Router() {
   // Show authenticated routes with navigation
   const systemRole = (user as any)?.systemRole || 'USER';
   const onboardingCompleted = (user as any)?.onboardingCompleted || false;
+  const isAdmin = systemRole === 'ADMIN';
   
   // Pages that don't need navigation
   const noNavigationPages = ['/signin', '/onboarding', '/', '/chat'];

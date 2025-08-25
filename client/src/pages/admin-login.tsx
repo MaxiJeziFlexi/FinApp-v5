@@ -56,7 +56,7 @@ export default function AdminLogin() {
       setTimeout(() => {
         // Force a page refresh to update authentication state
         window.location.href = '/finapp-home';
-      }, 1500);
+      }, 500);
     } catch (error) {
       toast({
         title: "Admin Login Failed",

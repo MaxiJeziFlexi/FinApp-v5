@@ -69,7 +69,7 @@ export default function SignIn() {
         } else {
           window.location.href = '/onboarding';
         }
-      }, 1500);
+      }, 500);
     } catch (error) {
       toast({
         title: "Sign In Failed",
@@ -127,7 +127,7 @@ export default function SignIn() {
         } else {
           window.location.href = '/onboarding';
         }
-      }, 1500);
+      }, 500);
     } catch (error) {
       toast({
         title: "Registration Failed",

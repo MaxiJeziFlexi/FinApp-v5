@@ -23,9 +23,7 @@ export function useAuth() {
       if (adminData) {
         try {
           adminAuth = JSON.parse(adminData);
-          console.log('Admin auth found:', adminAuth);
         } catch (e) {
-          console.error('Error parsing admin auth:', e);
           localStorage.removeItem('finapp_admin_auth');
         }
       }
@@ -83,7 +81,6 @@ export function useAuth() {
 
   // If admin is authenticated, return admin user
   if (localAuth.adminAuth) {
-    console.log('Returning admin user, isAdmin: true');
     return {
       user: {
         id: 'admin-user',

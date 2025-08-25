@@ -358,8 +358,6 @@ export default function MainNavigation() {
     setIsOpen(false);
   };
 
-  console.log('MainNavigation - isAdmin:', isAdmin, 'user role:', (user as any)?.role);
-  
   // For regular users - show chat interface
   if (!isAdmin) {
     return (

@@ -14,34 +14,53 @@ export function useAuth() {
   
   // Check for authentication in localStorage
   useEffect(() => {
-    let adminAuth = null;
-    let userAuth = null;
+    const checkAuth = () => {
+      let adminAuth = null;
+      let userAuth = null;
 
-    // Check for admin auth first
-    const adminData = localStorage.getItem('finapp_admin_auth');
-    if (adminData) {
-      try {
-        adminAuth = JSON.parse(adminData);
-      } catch (e) {
-        localStorage.removeItem('finapp_admin_auth');
+      // Check for admin auth first
+      const adminData = localStorage.getItem('finapp_admin_auth');
+      if (adminData) {
+        try {
+          adminAuth = JSON.parse(adminData);
+        } catch (e) {
+          localStorage.removeItem('finapp_admin_auth');
+        }
       }
-    }
 
-    // Check for regular user auth
-    const userData = localStorage.getItem('finapp_user_auth');
-    if (userData) {
-      try {
-        userAuth = JSON.parse(userData);
-      } catch (e) {
-        localStorage.removeItem('finapp_user_auth');
+      // Check for regular user auth
+      const userData = localStorage.getItem('finapp_user_auth');
+      if (userData) {
+        try {
+          userAuth = JSON.parse(userData);
+        } catch (e) {
+          localStorage.removeItem('finapp_user_auth');
+        }
       }
-    }
 
-    setLocalAuth({
-      adminAuth,
-      userAuth,
-      isLoaded: true
-    });
+      setLocalAuth({
+        adminAuth,
+        userAuth,
+        isLoaded: true
+      });
+    };
+
+    // Initial check
+    checkAuth();
+
+    // Listen for storage changes (including logout from other tabs)
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'finapp_admin_auth' || e.key === 'finapp_user_auth' || e.key === null) {
+        checkAuth();
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    
+    // Cleanup listener
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+    };
   }, []);
 
   const { data: user, isLoading: queryLoading } = useQuery({
@@ -108,10 +127,13 @@ export function useAuth() {
 }
 
 export function logout() {
-  // Clear all authentication data
+  // Clear all authentication data first
   localStorage.removeItem('finapp_admin_auth');
   localStorage.removeItem('finapp_user_auth');
   
-  // Redirect to server logout endpoint which handles proper session termination
-  window.location.href = '/api/logout';
+  // Clear any other session data
+  localStorage.clear();
+  
+  // Force page reload to clear React state and redirect to landing
+  window.location.href = '/';
 }

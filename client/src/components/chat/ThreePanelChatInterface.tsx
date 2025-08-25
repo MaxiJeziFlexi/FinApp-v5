@@ -9,7 +9,8 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth, logout } from '@/hooks/useAuth';
+import { useTheme } from '@/contexts/ThemeContext';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import {
@@ -31,7 +32,10 @@ import {
   Clock,
   Brain,
   Moon,
-  Sun
+  Sun,
+  ChevronLeft,
+  ChevronRight,
+  X
 } from 'lucide-react';
 
 interface Message {
@@ -65,7 +69,8 @@ export default function ThreePanelChatInterface({ userId, advisorId }: ThreePane
   const [searchQuery, setSearchQuery] = useState('');
   const [isListening, setIsListening] = useState(false);
   const [isCreatingConversation, setIsCreatingConversation] = useState(false);
-  const [isDarkMode, setIsDarkMode] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
   
   // Refs
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -75,6 +80,7 @@ export default function ThreePanelChatInterface({ userId, advisorId }: ThreePane
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { user } = useAuth();
+  const { theme, toggleTheme } = useTheme();
 
   // Initialize speech recognition
   useEffect(() => {
@@ -271,15 +277,17 @@ export default function ThreePanelChatInterface({ userId, advisorId }: ThreePane
     }
   };
 
-  // Toggle theme
-  const toggleTheme = () => {
-    setIsDarkMode(!isDarkMode);
-    document.documentElement.classList.toggle('dark');
+  // Toggle sidebar collapse
+  const toggleSidebar = () => {
+    setSidebarCollapsed(!sidebarCollapsed);
   };
 
   // Handle logout
   const handleLogout = () => {
-    window.location.href = '/api/logout';
+    const confirmed = window.confirm('Are you sure you want to logout?');
+    if (confirmed) {
+      logout();
+    }
   };
 
   // Clear chat history
@@ -288,7 +296,22 @@ export default function ThreePanelChatInterface({ userId, advisorId }: ThreePane
       const confirmed = window.confirm('Are you sure you want to clear all chat history? This action cannot be undone.');
       if (!confirmed) return;
 
-      // Clear the current conversation
+      // Call backend to clear conversations
+      try {
+        const response = await fetch('/api/chat/conversations/clear', {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userId })
+        });
+        
+        if (!response.ok) {
+          throw new Error('Failed to clear conversations from server');
+        }
+      } catch (serverError) {
+        console.warn('Server clear failed, clearing locally:', serverError);
+      }
+
+      // Clear local state
       setMessages([]);
       setCurrentConversationId(null);
       
@@ -326,62 +349,81 @@ export default function ThreePanelChatInterface({ userId, advisorId }: ThreePane
   return (
     <div className="h-screen flex bg-background">
       {/* Left Sidebar - App Branding, Navigation, User Profile */}
-      <div className="w-80 bg-muted/30 border-r border-border flex flex-col">
+      <div className={`${sidebarCollapsed ? 'w-16' : 'w-80'} bg-muted/30 border-r border-border flex flex-col transition-all duration-300`}>
         {/* Header with Branding */}
         <div className="p-4 border-b border-border">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="p-2 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg text-white">
-              <Brain className="h-6 w-6" />
-            </div>
-            <div>
-              <h1 className="text-lg font-bold">FinApp Chat</h1>
-              <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                Online • Secure
+          {/* Collapse Toggle Button */}
+          <div className="flex items-center justify-between mb-4">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={toggleSidebar}
+              className="h-8 w-8 p-0 ml-auto"
+              data-testid="button-toggle-sidebar"
+            >
+              {sidebarCollapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
+            </Button>
+          </div>
+          {!sidebarCollapsed && (
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-2 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg text-white">
+                <Brain className="h-6 w-6" />
+              </div>
+              <div>
+                <h1 className="text-lg font-bold">FinApp Chat</h1>
+                <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                  <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                  Online • Secure
+                </div>
               </div>
             </div>
-          </div>
+          )}
           
           <Button
             onClick={startNewConversation}
             disabled={isCreatingConversation}
-            className="w-full justify-start gap-2 h-12 bg-primary hover:bg-primary/90"
+            className={`w-full justify-start gap-2 h-12 bg-primary hover:bg-primary/90 ${sidebarCollapsed ? 'px-0' : ''}`}
             data-testid="button-new-chat"
+            title={sidebarCollapsed ? 'New Chat' : ''}
           >
             <Plus className="w-4 h-4" />
-            New Chat
+            {!sidebarCollapsed && 'New Chat'}
           </Button>
         </div>
 
         {/* Search */}
-        <div className="p-4 border-b border-border">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
-            <Input
-              placeholder="Search conversations..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10"
-              data-testid="input-search"
-            />
+        {!sidebarCollapsed && (
+          <div className="p-4 border-b border-border">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+              <Input
+                placeholder="Search conversations..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10"
+                data-testid="input-search"
+              />
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Chat History */}
         <div className="flex-1 overflow-hidden">
-          <div className="px-4 py-2 flex justify-between items-center">
-            <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
-              Chat History
-            </h3>
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              onClick={clearChatHistory}
-              className="h-6 px-2 text-xs text-muted-foreground hover:text-destructive"
-            >
-              Clear
-            </Button>
-          </div>
+          {!sidebarCollapsed && (
+            <div className="px-4 py-2 flex justify-between items-center">
+              <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
+                Chat History
+              </h3>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={clearChatHistory}
+                className="h-6 px-2 text-xs text-muted-foreground hover:text-destructive"
+              >
+                Clear
+              </Button>
+            </div>
+          )}
           <ScrollArea className="h-full px-2">
             <div className="space-y-1 pb-4">
               {filteredConversations.map((conversation: Conversation) => (
@@ -392,18 +434,23 @@ export default function ThreePanelChatInterface({ userId, advisorId }: ThreePane
                     currentConversationId === conversation.id
                       ? 'bg-accent border-primary'
                       : 'border-transparent'
-                  }`}
+                  } ${sidebarCollapsed ? 'px-2' : ''}`}
                   data-testid={`conversation-${conversation.id}`}
+                  title={sidebarCollapsed ? conversation.title : ''}
                 >
                   <div className="flex items-center gap-2 mb-1">
-                    <MessageSquare className="w-4 h-4 text-muted-foreground" />
-                    <span className="font-medium text-sm truncate">
-                      {conversation.title}
-                    </span>
+                    <MessageSquare className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                    {!sidebarCollapsed && (
+                      <span className="font-medium text-sm truncate">
+                        {conversation.title}
+                      </span>
+                    )}
                   </div>
-                  <div className="text-xs text-muted-foreground">
-                    {conversation.messageCount} messages • {conversation.updatedAt.toLocaleDateString()}
-                  </div>
+                  {!sidebarCollapsed && (
+                    <div className="text-xs text-muted-foreground">
+                      {conversation.messageCount} messages • {conversation.updatedAt.toLocaleDateString()}
+                    </div>
+                  )}
                 </button>
               ))}
             </div>
@@ -419,36 +466,46 @@ export default function ThreePanelChatInterface({ userId, advisorId }: ThreePane
                 {(user as any)?.firstName?.[0] || 'U'}{(user as any)?.lastName?.[0] || ''}
               </AvatarFallback>
             </Avatar>
-            <div className="flex-1">
-              <p className="text-sm font-medium">
-                {(user as any)?.firstName || 'User'} {(user as any)?.lastName || ''}
-              </p>
-              <p className="text-xs text-muted-foreground">{user?.email}</p>
-            </div>
+            {!sidebarCollapsed && (
+              <div className="flex-1">
+                <p className="text-sm font-medium">
+                  {(user as any)?.firstName || 'User'} {(user as any)?.lastName || ''}
+                </p>
+                <p className="text-xs text-muted-foreground">{user?.email}</p>
+              </div>
+            )}
           </div>
           
-          <div className="grid grid-cols-3 gap-2">
-            <Button variant="ghost" size="sm" className="h-8 text-xs">
-              <Settings className="w-3 h-3 mr-1" />
-              Settings
-            </Button>
+          <div className={`grid ${sidebarCollapsed ? 'grid-cols-1' : 'grid-cols-3'} gap-2`}>
             <Button 
               variant="ghost" 
               size="sm" 
-              className="h-8 text-xs"
-              onClick={toggleTheme}
+              className={`h-8 text-xs ${sidebarCollapsed ? 'w-full justify-center' : ''}`}
+              onClick={() => setShowSettings(true)}
+              title={sidebarCollapsed ? 'Settings' : ''}
             >
-              {isDarkMode ? <Sun className="w-3 h-3 mr-1" /> : <Moon className="w-3 h-3 mr-1" />}
-              Theme
+              <Settings className="w-3 h-3 mr-1" />
+              {!sidebarCollapsed && 'Settings'}
             </Button>
             <Button 
               variant="ghost" 
               size="sm" 
-              className="h-8 text-xs"
+              className={`h-8 text-xs ${sidebarCollapsed ? 'w-full justify-center' : ''}`}
+              onClick={toggleTheme}
+              title={sidebarCollapsed ? 'Toggle Theme' : ''}
+            >
+              {theme === 'dark' ? <Sun className="w-3 h-3 mr-1" /> : <Moon className="w-3 h-3 mr-1" />}
+              {!sidebarCollapsed && 'Theme'}
+            </Button>
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className={`h-8 text-xs ${sidebarCollapsed ? 'w-full justify-center' : ''}`}
               onClick={handleLogout}
+              title={sidebarCollapsed ? 'Logout' : ''}
             >
               <LogOut className="w-3 h-3 mr-1" />
-              Logout
+              {!sidebarCollapsed && 'Logout'}
             </Button>
           </div>
         </div>
@@ -624,6 +681,97 @@ export default function ThreePanelChatInterface({ userId, advisorId }: ThreePane
           </div>
         )}
       </div>
+
+      {/* Settings Modal */}
+      {showSettings && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onClick={() => setShowSettings(false)}>
+          <div className="bg-background rounded-lg border shadow-lg max-w-md w-full mx-4" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between p-4 border-b">
+              <h2 className="text-lg font-semibold">Settings</h2>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowSettings(false)}
+                className="h-6 w-6 p-0"
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+            
+            <div className="p-4 space-y-4">
+              <div>
+                <h3 className="text-sm font-medium mb-2">Appearance</h3>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm">Theme</span>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={toggleTheme}
+                    className="gap-2"
+                  >
+                    {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+                    {theme === 'dark' ? 'Light' : 'Dark'}
+                  </Button>
+                </div>
+              </div>
+              
+              <div>
+                <h3 className="text-sm font-medium mb-2">Chat</h3>
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm">Clear History</span>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        setShowSettings(false);
+                        clearChatHistory();
+                      }}
+                      className="text-destructive hover:text-destructive"
+                    >
+                      Clear All
+                    </Button>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm">Sidebar</span>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={toggleSidebar}
+                      className="gap-2"
+                    >
+                      {sidebarCollapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
+                      {sidebarCollapsed ? 'Expand' : 'Collapse'}
+                    </Button>
+                  </div>
+                </div>
+              </div>
+              
+              <div>
+                <h3 className="text-sm font-medium mb-2">Account</h3>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium">{(user as any)?.firstName || 'User'} {(user as any)?.lastName || ''}</p>
+                    <p className="text-xs text-muted-foreground">{user?.email}</p>
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      setShowSettings(false);
+                      handleLogout();
+                    }}
+                    className="text-destructive hover:text-destructive gap-2"
+                  >
+                    <LogOut className="h-4 w-4" />
+                    Logout
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -35,51 +35,28 @@ export default function SignIn() {
   const handleSignIn = async () => {
     setIsLoading(true);
     try {
-      // Check if this is admin login (from query params or admin flag)
-      const urlParams = new URLSearchParams(window.location.search);
-      const isAdmin = urlParams.get('admin') === 'true';
+      console.log('🔐 User sign in attempt:', { email: formData.email });
       
-      console.log('🔐 Sign in attempt:', { isAdmin, email: formData.email });
+      // User authentication  
+      const userAuth = {
+        email: formData.email || 'demo@example.com',
+        name: formData.name || formData.email?.split('@')[0] || 'Demo User',
+        loginTime: new Date().toISOString(),
+        systemRole: 'USER',
+        onboardingCompleted: false
+      };
       
-      if (isAdmin) {
-        // Admin authentication
-        const adminAuth = {
-          email: formData.email || 'admin@finapp.com',
-          name: 'Admin User',
-          loginTime: new Date().toISOString(),
-          systemRole: 'ADMIN',
-          isAdmin: true
-        };
-        
-        localStorage.setItem('finapp_admin_auth', JSON.stringify(adminAuth));
-        console.log('👑 Admin auth set:', adminAuth);
-      } else {
-        // User authentication  
-        const userAuth = {
-          email: formData.email || 'demo@example.com',
-          name: formData.name || formData.email?.split('@')[0] || 'Demo User',
-          loginTime: new Date().toISOString(),
-          systemRole: 'USER',
-          onboardingCompleted: false
-        };
-        
-        localStorage.setItem('finapp_user_auth', JSON.stringify(userAuth));
-        console.log('👤 User auth set:', userAuth);
-      }
+      localStorage.setItem('finapp_user_auth', JSON.stringify(userAuth));
+      console.log('👤 User auth set:', userAuth);
 
       toast({
         title: "Welcome to FinApp!",
-        description: "Sign in successful. Redirecting...",
+        description: "Sign in successful. Redirecting to onboarding...",
       });
       
       setTimeout(() => {
-        if (isAdmin) {
-          console.log('➡️ Redirecting admin to finapp-home');
-          window.location.href = '/finapp-home';
-        } else {
-          console.log('➡️ Redirecting user to onboarding');
-          window.location.href = '/onboarding';
-        }
+        console.log('➡️ Redirecting user to onboarding');
+        window.location.href = '/onboarding';
       }, 500);
     } catch (error) {
       console.error('❌ Sign in error:', error);
@@ -105,28 +82,16 @@ export default function SignIn() {
         return;
       }
 
-      // Check if this is admin signup
-      const urlParams = new URLSearchParams(window.location.search);
-      const isAdmin = urlParams.get('admin') === 'true';
+      console.log('🔐 User sign up attempt:', { email: formData.email, name: formData.name });
       
-      if (isAdmin) {
-        // Admin authentication
-        localStorage.setItem('finapp_admin_auth', JSON.stringify({
-          email: formData.email,
-          name: formData.name,
-          loginTime: new Date().toISOString(),
-          systemRole: 'ADMIN'
-        }));
-      } else {
-        // User authentication
-        localStorage.setItem('finapp_user_auth', JSON.stringify({
-          email: formData.email,
-          name: formData.name,
-          loginTime: new Date().toISOString(),
-          systemRole: 'USER',
-          onboardingCompleted: false
-        }));
-      }
+      // User authentication
+      localStorage.setItem('finapp_user_auth', JSON.stringify({
+        email: formData.email,
+        name: formData.name,
+        loginTime: new Date().toISOString(),
+        systemRole: 'USER',
+        onboardingCompleted: false
+      }));
 
       toast({
         title: "Account Created!",
@@ -134,11 +99,8 @@ export default function SignIn() {
       });
       
       setTimeout(() => {
-        if (isAdmin) {
-          window.location.href = '/finapp-home';
-        } else {
-          window.location.href = '/onboarding';
-        }
+        console.log('➡️ Redirecting new user to onboarding');
+        window.location.href = '/onboarding';
       }, 500);
     } catch (error) {
       toast({

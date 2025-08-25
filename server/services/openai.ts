@@ -261,6 +261,62 @@ Format the response as a detailed financial plan with sections for:
       return 'Unable to generate report at this time.';
     }
   }
+  // Enhanced Chat System Methods
+  async generateAdvancedResponse(
+    message: string,
+    systemPrompt: string,
+    model: string = 'gpt-4o'
+  ): Promise<string> {
+    try {
+      const messages: OpenAI.Chat.Completions.ChatCompletionMessageParam[] = [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: message }
+      ];
+
+      const completion = await this.openai.chat.completions.create({
+        model,
+        messages,
+        temperature: 0.7,
+        max_tokens: 2000,
+        top_p: 1,
+        frequency_penalty: 0,
+        presence_penalty: 0
+      });
+
+      return completion.choices[0]?.message?.content || 'I apologize, but I was unable to generate a response. Could you please try rephrasing your question?';
+    } catch (error) {
+      console.error('Error in generateAdvancedResponse:', error);
+      throw new Error('Failed to generate AI response');
+    }
+  }
+
+  async generateConversationTitle(message: string): Promise<string> {
+    try {
+      const titlePrompt = `Based on this user message, generate a short, descriptive title (max 6 words) for the conversation. 
+      The title should capture the main topic or question. Respond only with the title, no quotes or extra text.
+      
+      User message: "${message}"`;
+
+      const completion = await this.openai.chat.completions.create({
+        model: 'gpt-3.5-turbo',
+        messages: [{ role: 'user', content: titlePrompt }],
+        temperature: 0.3,
+        max_tokens: 20
+      });
+
+      const title = completion.choices[0]?.message?.content?.trim() || 'New Chat';
+      
+      // Ensure title is not too long
+      if (title.length > 50) {
+        return title.substring(0, 47) + '...';
+      }
+      
+      return title;
+    } catch (error) {
+      console.error('Error generating conversation title:', error);
+      return 'New Chat';
+    }
+  }
 }
 
 export const openAIService = new OpenAIService();

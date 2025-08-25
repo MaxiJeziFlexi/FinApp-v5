@@ -182,6 +182,7 @@ export const advisorSessions = pgTable("advisor_sessions", {
   userId: varchar("user_id", { length: 255 }).references(() => users.id).notNull(),
   advisorId: varchar("advisor_id", { length: 50 }).references(() => advisors.id).notNull(),
   sessionId: varchar("session_id", { length: 255 }).notNull(),
+  title: varchar("title", { length: 500 }).default("New Chat"),
   isActive: boolean("is_active").default(true),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),

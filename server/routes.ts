@@ -1554,6 +1554,149 @@ Use this information to provide highly personalized advice based on their assess
     }
   });
 
+  // Enhanced Chat System Endpoints
+  // Get user's conversations list
+  app.get('/api/chat/conversations', async (req, res) => {
+    try {
+      const { userId, advisorId } = req.query;
+      
+      if (!userId || !advisorId) {
+        return res.status(400).json({ message: 'userId and advisorId are required' });
+      }
+      
+      const conversations = await storage.getUserConversations(userId as string, advisorId as string);
+      res.json(conversations);
+    } catch (error) {
+      console.error('Error fetching conversations:', error);
+      res.status(500).json({ message: 'Failed to fetch conversations' });
+    }
+  });
+
+  // Create new conversation
+  app.post('/api/chat/conversations/new', async (req, res) => {
+    try {
+      const { userId, advisorId, title } = req.body;
+      
+      if (!userId || !advisorId) {
+        return res.status(400).json({ message: 'userId and advisorId are required' });
+      }
+      
+      const conversation = await storage.createNewConversation(userId, advisorId, title || 'New Chat');
+      res.json(conversation);
+    } catch (error) {
+      console.error('Error creating conversation:', error);
+      res.status(500).json({ message: 'Failed to create conversation' });
+    }
+  });
+
+  // Get messages for a specific conversation
+  app.get('/api/chat/messages/:conversationId', async (req, res) => {
+    try {
+      const { conversationId } = req.params;
+      
+      const messages = await storage.getConversationMessages(conversationId);
+      res.json(messages);
+    } catch (error) {
+      console.error('Error fetching conversation messages:', error);
+      res.status(500).json({ message: 'Failed to fetch messages' });
+    }
+  });
+
+  // Send message in enhanced chat system
+  app.post('/api/chat/send-enhanced', async (req, res) => {
+    const startTime = Date.now();
+    
+    try {
+      const { conversationId, message, userId, advisorId } = req.body;
+      
+      if (!conversationId || !message || !userId || !advisorId) {
+        return res.status(400).json({ message: 'Missing required fields' });
+      }
+
+      // Save user message
+      const userMessage = await storage.saveConversationMessage({
+        conversationId,
+        userId,
+        advisorId,
+        sender: 'user',
+        message,
+        metadata: { timestamp: new Date().toISOString() }
+      });
+
+      // Get conversation context
+      const conversationMessages = await storage.getConversationMessages(conversationId);
+      const recentMessages = conversationMessages.slice(-6); // Last 6 messages for context
+
+      // Get advisor details
+      const advisor = await storage.getAdvisor(advisorId);
+      
+      // Build enhanced AI prompt
+      const systemPrompt = `You are ${advisor?.name || 'a professional financial advisor'}, an expert AI financial advisor specializing in ${advisor?.specialty || 'comprehensive financial planning'}.
+
+Your role: ${advisor?.description || 'Provide personalized financial guidance and advice'}
+
+Context: You are having a conversation with a user about their financial needs. Be helpful, accurate, and personalized.
+
+Guidelines:
+- Provide detailed, actionable financial advice
+- Ask clarifying questions when needed
+- Consider the user's individual situation
+- Explain complex concepts in simple terms
+- Be supportive and encouraging
+- Include specific recommendations and next steps
+- Reference previous conversation context when relevant
+
+Previous conversation context:
+${recentMessages.map(msg => `${msg.sender}: ${msg.message}`).join('\n')}
+
+Respond professionally and helpfully to the user's message.`;
+
+      // Generate AI response
+      const aiResponse = await openAIService.generateAdvancedResponse(
+        message,
+        systemPrompt,
+        'gpt-4o'
+      );
+
+      // Save AI response
+      const responseTime = Date.now() - startTime;
+      const aiMessage = await storage.saveConversationMessage({
+        conversationId,
+        userId,
+        advisorId,
+        sender: 'advisor',
+        message: aiResponse,
+        metadata: { 
+          modelUsed: 'gpt-4o',
+          responseTimeMs: responseTime,
+          timestamp: new Date().toISOString()
+        }
+      });
+
+      // Update conversation title if it's the first message
+      if (conversationMessages.length <= 1) {
+        const conversationTitle = await openAIService.generateConversationTitle(message);
+        await storage.updateConversationTitle(conversationId, conversationTitle);
+      }
+
+      res.json({
+        success: true,
+        response: aiResponse,
+        model: 'gpt-4o',
+        responseTime,
+        messageId: aiMessage.id
+      });
+
+    } catch (error) {
+      const responseTime = Date.now() - startTime;
+      console.error('Error in enhanced chat send:', error);
+      res.status(500).json({ 
+        message: 'Failed to process message',
+        responseTime
+      });
+    }
+  });
+
   app.post('/api/chat/enhanced-response', async (req, res) => {
     try {
       const { message, advisor_id, user_id, use_chatgpt, model } = req.body;

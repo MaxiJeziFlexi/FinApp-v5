@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useLocation } from 'wouter';
 import { useAuth } from '@/hooks/useAuth';
 import UserSideNav from '@/components/navigation/UserSideNav';
-import ImprovedChatInterface from '@/components/chat/ImprovedChatInterface';
+import EnhancedChatInterface from '@/components/chat/EnhancedChatInterface';
 import { Card } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -73,21 +73,9 @@ export default function ChatPage() {
   }
 
   return (
-    <div className="h-screen flex flex-col overflow-hidden bg-background">
-      {/* Main Content */}
-      <div className="flex-1 p-4">
-        <Card className="h-full p-6">
-          <ImprovedChatInterface
-            userId={user.id}
-            advisorId="financial-advisor"
-            sessionId={`session_${user.id}_chat`}
-            onDataCollected={(data) => {
-              // Handle data collection for analytics
-              console.log('Chat data collected:', data);
-            }}
-          />
-        </Card>
-      </div>
-    </div>
+    <EnhancedChatInterface
+      userId={user.id}
+      advisorId="financial-advisor"
+    />
   );
 }

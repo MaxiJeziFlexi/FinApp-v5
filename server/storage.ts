@@ -64,7 +64,7 @@ import {
   type UserRole
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, desc, asc } from "drizzle-orm";
+import { eq, and, desc, asc, sql } from "drizzle-orm";
 
 // Utility function to generate unique IDs
 function generateId(prefix: string = ''): string {
@@ -186,6 +186,13 @@ export interface IStorage {
   getUserUsageCounter(userId: string, counterType: string): Promise<UsageCounter | undefined>;
   incrementUsageCounter(userId: string, counterType: string): Promise<UsageCounter>;
   resetUsageCounters(userId: string): Promise<void>;
+
+  // Enhanced Chat System
+  getUserConversations(userId: string, advisorId: string): Promise<any[]>;
+  createNewConversation(userId: string, advisorId: string, title: string): Promise<any>;
+  getConversationMessages(conversationId: string): Promise<any[]>;
+  saveConversationMessage(message: any): Promise<any>;
+  updateConversationTitle(conversationId: string, title: string): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1207,6 +1214,142 @@ export class DatabaseStorage implements IStorage {
     await db
       .delete(usageCounters)
       .where(eq(usageCounters.userId, userId));
+  }
+
+  // Enhanced Chat System Implementation
+  async getUserConversations(userId: string, advisorId: string): Promise<any[]> {
+    try {
+      const conversations = await db
+        .select({
+          id: advisorSessions.id,
+          title: advisorSessions.title,
+          updatedAt: advisorSessions.updatedAt,
+          createdAt: advisorSessions.createdAt
+        })
+        .from(advisorSessions)
+        .where(
+          and(
+            eq(advisorSessions.userId, userId),
+            eq(advisorSessions.advisorId, advisorId),
+            eq(advisorSessions.isActive, true)
+          )
+        )
+        .orderBy(desc(advisorSessions.updatedAt));
+
+      // Get message count and last message for each conversation
+      const conversationsWithDetails = await Promise.all(
+        conversations.map(async (conv) => {
+          const messages = await db
+            .select({
+              message: chatMessages.message,
+              createdAt: chatMessages.createdAt
+            })
+            .from(chatMessages)
+            .where(eq(chatMessages.sessionId, conv.id))
+            .orderBy(desc(chatMessages.createdAt))
+            .limit(1);
+
+          const messageCount = await db
+            .select({ count: sql`count(*)`.as('count') })
+            .from(chatMessages)
+            .where(eq(chatMessages.sessionId, conv.id));
+
+          return {
+            ...conv,
+            lastMessage: messages[0]?.message?.substring(0, 100),
+            messageCount: Number(messageCount[0]?.count) || 0
+          };
+        })
+      );
+
+      return conversationsWithDetails;
+    } catch (error) {
+      console.error('Error getting user conversations:', error);
+      return [];
+    }
+  }
+
+  async createNewConversation(userId: string, advisorId: string, title: string): Promise<any> {
+    try {
+      const sessionId = generateId('session');
+      const [conversation] = await db
+        .insert(advisorSessions)
+        .values({
+          id: generateId('conv'),
+          userId,
+          advisorId,
+          sessionId,
+          title,
+          isActive: true,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        })
+        .returning();
+
+      return conversation;
+    } catch (error) {
+      console.error('Error creating new conversation:', error);
+      throw error;
+    }
+  }
+
+  async getConversationMessages(conversationId: string): Promise<any[]> {
+    try {
+      const messages = await db
+        .select()
+        .from(chatMessages)
+        .where(eq(chatMessages.sessionId, conversationId))
+        .orderBy(asc(chatMessages.createdAt));
+
+      return messages;
+    } catch (error) {
+      console.error('Error getting conversation messages:', error);
+      return [];
+    }
+  }
+
+  async saveConversationMessage(message: any): Promise<any> {
+    try {
+      const [savedMessage] = await db
+        .insert(chatMessages)
+        .values({
+          id: generateId('msg'),
+          sessionId: message.conversationId,
+          userId: message.userId,
+          advisorId: message.advisorId,
+          sender: message.sender,
+          message: message.message,
+          messageType: 'text',
+          metadata: message.metadata || {},
+          sentimentScore: '0',
+          importance: 'medium',
+          createdAt: new Date()
+        })
+        .returning();
+
+      // Update conversation timestamp
+      await db
+        .update(advisorSessions)
+        .set({ updatedAt: new Date() })
+        .where(eq(advisorSessions.id, message.conversationId));
+
+      return savedMessage;
+    } catch (error) {
+      console.error('Error saving conversation message:', error);
+      throw error;
+    }
+  }
+
+  async updateConversationTitle(conversationId: string, title: string): Promise<void> {
+    try {
+      await db
+        .update(advisorSessions)
+        .set({ title, updatedAt: new Date() })
+        .where(eq(advisorSessions.id, conversationId));
+    } catch (error) {
+      console.error('Error updating conversation title:', error);
+      throw error;
+    }
   }
 }
 

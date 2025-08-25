@@ -142,7 +142,7 @@ function Router() {
   const onboardingCompleted = (user as any)?.onboardingCompleted || false;
   
   // Pages that don't need navigation
-  const noNavigationPages = ['/signin', '/onboarding', '/'];
+  const noNavigationPages = ['/signin', '/onboarding', '/', '/chat'];
   const showNavigation = !noNavigationPages.includes(location);
   
   // For USER role with incomplete onboarding

@@ -1697,6 +1697,29 @@ Respond professionally and helpfully to the user's message.`;
     }
   });
 
+  // Clear all conversations for a user
+  app.delete('/api/chat/conversations/clear', async (req, res) => {
+    try {
+      const { userId } = req.body;
+      
+      if (!userId) {
+        return res.status(400).json({ message: 'userId is required' });
+      }
+      
+      await storage.clearUserConversations(userId);
+      res.json({ 
+        success: true, 
+        message: 'All conversations cleared successfully' 
+      });
+    } catch (error) {
+      console.error('Error clearing conversations:', error);
+      res.status(500).json({ 
+        message: 'Failed to clear conversations',
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+
   app.post('/api/chat/enhanced-response', async (req, res) => {
     try {
       const { message, advisor_id, user_id, use_chatgpt, model } = req.body;

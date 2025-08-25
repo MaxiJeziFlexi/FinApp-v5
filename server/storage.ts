@@ -193,6 +193,7 @@ export interface IStorage {
   getConversationMessages(conversationId: string): Promise<any[]>;
   saveConversationMessage(message: any): Promise<any>;
   updateConversationTitle(conversationId: string, title: string): Promise<void>;
+  clearUserConversations(userId: string): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1362,6 +1363,44 @@ export class DatabaseStorage implements IStorage {
         .where(eq(advisorSessions.id, conversationId));
     } catch (error) {
       console.error('Error updating conversation title:', error);
+      throw error;
+    }
+  }
+
+  async clearUserConversations(userId: string): Promise<void> {
+    try {
+      console.log(`Clearing all conversations for user: ${userId}`);
+      
+      // First, get all conversation IDs for this user
+      const userConversations = await db
+        .select({ id: advisorSessions.id })
+        .from(advisorSessions)
+        .where(eq(advisorSessions.userId, userId));
+
+      if (userConversations.length === 0) {
+        console.log('No conversations found to clear');
+        return;
+      }
+
+      const conversationIds = userConversations.map(conv => conv.id);
+      console.log(`Found ${conversationIds.length} conversations to clear:`, conversationIds);
+
+      // Delete all chat messages for these conversations
+      await db
+        .delete(chatMessages)
+        .where(sql`${chatMessages.sessionId} IN (${conversationIds.map(id => `'${id}'`).join(', ')})`);
+      
+      console.log('Deleted chat messages for conversations');
+
+      // Delete all conversations for this user
+      await db
+        .delete(advisorSessions)
+        .where(eq(advisorSessions.userId, userId));
+
+      console.log('Deleted all conversations for user');
+      console.log(`Successfully cleared ${conversationIds.length} conversations and their messages`);
+    } catch (error) {
+      console.error('Error clearing user conversations:', error);
       throw error;
     }
   }

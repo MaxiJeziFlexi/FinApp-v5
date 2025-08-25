@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation } from 'wouter';
 import { useAuth } from '@/hooks/useAuth';
-import EnhancedChatInterface from '@/components/chat/EnhancedChatInterface';
+import ThreePanelChatInterface from '@/components/chat/ThreePanelChatInterface';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertCircle, Loader2 } from 'lucide-react';
@@ -71,7 +71,7 @@ export default function ChatPage() {
   }
 
   return (
-    <EnhancedChatInterface
+    <ThreePanelChatInterface
       userId={user.id}
       advisorId="financial-advisor"
     />

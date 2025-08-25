@@ -420,47 +420,6 @@ export default function ThreePanelChatInterface({ userId, advisorId }: ThreePane
         </div>
       </div>
 
-      {/* Center Panel - Conversation List */}
-      <div className="w-96 bg-background border-r border-border flex flex-col">
-        <div className="p-4 border-b border-border">
-          <h2 className="text-lg font-semibold">Conversations</h2>
-          <p className="text-sm text-muted-foreground">
-            {conversations.length} conversation{conversations.length !== 1 ? 's' : ''}
-          </p>
-        </div>
-        
-        <ScrollArea className="flex-1">
-          <div className="p-4 space-y-3">
-            {filteredConversations.map((conversation) => (
-              <Card
-                key={conversation.id}
-                className={`cursor-pointer transition-all hover:shadow-md ${
-                  currentConversationId === conversation.id ? 'ring-2 ring-primary' : ''
-                }`}
-                onClick={() => selectConversation(conversation.id)}
-              >
-                <CardContent className="p-4">
-                  <div className="flex items-start justify-between mb-2">
-                    <h3 className="font-medium text-sm truncate flex-1">
-                      {conversation.title}
-                    </h3>
-                    <Badge variant="secondary" className="text-xs ml-2">
-                      {conversation.messageCount}
-                    </Badge>
-                  </div>
-                  <p className="text-xs text-muted-foreground mb-2 line-clamp-2">
-                    {conversation.lastMessage || 'No messages yet'}
-                  </p>
-                  <div className="flex items-center justify-between text-xs text-muted-foreground">
-                    <span>{conversation.updatedAt.toLocaleDateString()}</span>
-                    <Clock className="w-3 h-3" />
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </ScrollArea>
-      </div>
 
       {/* Right Panel - Active Chat */}
       <div className="flex-1 flex flex-col">

@@ -65,32 +65,24 @@ function Router() {
     const onboardingCompleted = (user as any)?.onboardingCompleted || false;
     const systemRole = (user as any)?.systemRole || 'USER';
     
-    // Landing page redirects for authenticated users
+    // Allow landing page for everyone - no redirects from landing page
     if (location === '/') {
-      if (systemRole === 'ADMIN') {
-        return '/finapp-home';
-      } else if (systemRole === 'USER') {
-        if (!onboardingCompleted) {
-          return '/onboarding';
-        } else {
-          return '/chat';
-        }
-      }
+      return null;
     }
     
     // For ADMIN users
     if (systemRole === 'ADMIN') {
-      // No additional redirects needed for admin - they can access everything
+      // Allow admin to access any route they try to visit
       return null;
     }
     
     // For USER role - check onboarding status
     if (!onboardingCompleted) {
-      // Allow access to onboarding and signin only
+      // Allow access to onboarding, signin, and landing only
       if (location === '/onboarding' || location === '/signin') {
         return null;
       }
-      // Redirect to onboarding for any other route
+      // Redirect to onboarding for any other route (except landing)
       return '/onboarding';
     } else {
       // Onboarding completed - redirect away from onboarding
@@ -110,7 +102,7 @@ function Router() {
     return null;
   };
 
-  // Show landing page for unauthenticated users
+  // Show public pages for unauthenticated users, always redirect to landing
   if (!isAuthenticated) {
     return (
       <div className="min-h-screen">
@@ -126,7 +118,8 @@ function Router() {
           <Route path="/features" component={Features} />
           <Route path="/security" component={Security} />
           <Route path="/mandatory-signin" component={MandatorySignIn} />
-          <Route component={Landing} />
+          {/* All other routes redirect to landing page for unauthenticated users */}
+          <Route component={() => { window.location.href = '/'; return null; }} />
         </Switch>
       </div>
     );
@@ -149,14 +142,16 @@ function Router() {
   const onboardingCompleted = (user as any)?.onboardingCompleted || false;
   
   // Pages that don't need navigation
-  const noNavigationPages = ['/signin', '/onboarding'];
+  const noNavigationPages = ['/signin', '/onboarding', '/'];
   const showNavigation = !noNavigationPages.includes(location);
   
-  // For USER role with incomplete onboarding, only show onboarding
+  // For USER role with incomplete onboarding
   if (systemRole === 'USER' && !onboardingCompleted) {
     return (
       <div className="min-h-screen">
         <Switch>
+          <Route path="/" component={Landing} />
+          <Route path="/signin" component={SignIn} />
           <Route path="/onboarding" component={Onboarding} />
           <Route component={() => { window.location.href = '/onboarding'; return null; }} />
         </Switch>
@@ -172,6 +167,7 @@ function Router() {
         
         <main className={`flex-1 ${showNavigation ? 'md:ml-80' : ''}`}>
           <Switch>
+            <Route path="/" component={Landing} />
             <Route path="/chat" component={Chat} />
             <Route path="/user-profile" component={UserProfile} />
             <Route path="/signin" component={SignIn} />
@@ -190,6 +186,9 @@ function Router() {
       
       <main className={`flex-1 ${showNavigation ? 'md:ml-72' : ''}`}>
         <Switch>
+          {/* Landing page accessible by admin */}
+          <Route path="/" component={Landing} />
+          
           {/* Admin shell - main admin home */}
           <Route path="/finapp-home" component={FinAppHome} />
           

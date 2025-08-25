@@ -4802,6 +4802,21 @@ What would you like me to help you with?`,
     }
   });
 
+  // Logout endpoint for local authentication
+  app.get('/api/logout', (req, res) => {
+    // Clear session if it exists
+    if (req.session) {
+      req.session.destroy((err) => {
+        if (err) {
+          console.error('Error destroying session:', err);
+        }
+      });
+    }
+    
+    // Always redirect to landing page after logout
+    res.redirect('/');
+  });
+
   // Register RBAC test routes (development only)
   registerTestRoutes(app);
 

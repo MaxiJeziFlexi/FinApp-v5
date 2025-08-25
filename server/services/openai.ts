@@ -23,6 +23,12 @@ export interface AdvisorContext {
 }
 
 export class OpenAIService {
+  private openai: OpenAI;
+
+  constructor() {
+    this.openai = openai;
+  }
+
   private getSystemPrompt(context: AdvisorContext): string {
     const basePrompt = `You are ${context.advisorName}, a professional financial advisor specializing in ${context.specialty}.
 

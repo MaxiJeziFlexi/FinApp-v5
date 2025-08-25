@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -61,6 +61,7 @@ export default function EnhancedChatInterface({ userId, advisorId }: EnhancedCha
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [isListening, setIsListening] = useState(false);
+  const [isCreatingConversation, setIsCreatingConversation] = useState(false);
   
   // Refs
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -144,8 +145,11 @@ export default function EnhancedChatInterface({ userId, advisorId }: EnhancedCha
   }, [messages]);
 
   // Start new conversation
-  const startNewConversation = async () => {
+  const startNewConversation = useCallback(async () => {
+    if (isCreatingConversation) return; // Prevent multiple simultaneous creations
+    
     try {
+      setIsCreatingConversation(true);
       const response = await fetch('/api/chat/conversations/new', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -175,8 +179,10 @@ export default function EnhancedChatInterface({ userId, advisorId }: EnhancedCha
         description: "Failed to start new conversation.",
         variant: "destructive",
       });
+    } finally {
+      setIsCreatingConversation(false);
     }
-  };
+  }, [userId, advisorId, isCreatingConversation, queryClient, toast]);
 
   // Select conversation
   const selectConversation = (conversationId: string) => {
@@ -268,15 +274,15 @@ export default function EnhancedChatInterface({ userId, advisorId }: EnhancedCha
     conv.lastMessage?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  // Auto-start first conversation or create new one
+  // Auto-start first conversation or create new one (only once)
   useEffect(() => {
-    if (conversations.length > 0 && !currentConversationId) {
+    if (conversations.length > 0 && !currentConversationId && !isCreatingConversation) {
       setCurrentConversationId(conversations[0].id);
-    } else if (conversations.length === 0 && !currentConversationId) {
-      // Auto-create first conversation
+    } else if (conversations.length === 0 && !currentConversationId && !isCreatingConversation) {
+      // Auto-create first conversation only once
       startNewConversation();
     }
-  }, [conversations, currentConversationId]);
+  }, [conversations, currentConversationId, isCreatingConversation, startNewConversation]);
 
   return (
     <div className="h-screen flex bg-background">

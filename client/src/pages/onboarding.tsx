@@ -58,7 +58,7 @@ export default function OnboardingPage() {
     console.log('🎉 Onboarding completion triggered');
     
     // Update user auth to mark onboarding as completed
-    const currentAuth = localStorage.getItem('finapp_user_auth');
+    const currentAuth = sessionStorage.getItem('finapp_user_auth');
     if (currentAuth) {
       try {
         const authData = JSON.parse(currentAuth);
@@ -67,7 +67,7 @@ export default function OnboardingPage() {
           onboardingCompleted: true
         };
         
-        localStorage.setItem('finapp_user_auth', JSON.stringify(updatedAuth));
+        sessionStorage.setItem('finapp_user_auth', JSON.stringify(updatedAuth));
         console.log('✅ Updated user auth with onboarding completed:', updatedAuth);
         
         // Trigger storage event for other tabs/components to update
@@ -85,7 +85,7 @@ export default function OnboardingPage() {
         console.error('❌ Failed to update auth data:', e);
       }
     } else {
-      console.error('❌ No user auth found in localStorage');
+      console.error('❌ No user auth found in sessionStorage');
     }
   };
 

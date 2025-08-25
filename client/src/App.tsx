@@ -65,19 +65,29 @@ function Router() {
     const onboardingCompleted = (user as any)?.onboardingCompleted || false;
     const systemRole = (user as any)?.systemRole || 'USER';
     
-    // For ADMIN users, allow viewing landing page but redirect from other pages
-    if (systemRole === 'ADMIN') {
-      // Allow admin to view landing page, but redirect from finapp-home to admin
-      if (location === '/finapp-home') {
-        return '/admin';
+    // Landing page redirects for authenticated users
+    if (location === '/') {
+      if (systemRole === 'ADMIN') {
+        return '/finapp-home';
+      } else if (systemRole === 'USER') {
+        if (!onboardingCompleted) {
+          return '/onboarding';
+        } else {
+          return '/chat';
+        }
       }
-      return null; // No redirect needed for other admin routes
+    }
+    
+    // For ADMIN users
+    if (systemRole === 'ADMIN') {
+      // No additional redirects needed for admin - they can access everything
+      return null;
     }
     
     // For USER role - check onboarding status
     if (!onboardingCompleted) {
-      // Allow access to onboarding, signin, and landing
-      if (location === '/onboarding' || location === '/signin' || location === '/') {
+      // Allow access to onboarding and signin only
+      if (location === '/onboarding' || location === '/signin') {
         return null;
       }
       // Redirect to onboarding for any other route
@@ -87,11 +97,14 @@ function Router() {
       if (location === '/onboarding') {
         return '/chat';
       }
-      // Redirect legacy dashboard routes to chat  
-      if (location === '/finapp-home' || location.startsWith('/dashboard')) {
+      // Block access to admin routes for regular users
+      if (location.startsWith('/admin') || location.startsWith('/finapp-home')) {
         return '/chat';
       }
-      // Allow landing page access for all users
+      // Redirect legacy dashboard routes to chat  
+      if (location.startsWith('/dashboard')) {
+        return '/chat';
+      }
     }
     
     return null;
@@ -151,26 +164,18 @@ function Router() {
     );
   }
   
-  // For USER role with completed onboarding - show same navigation as admin
+  // For USER role with completed onboarding - show limited navigation (chat only)
   if (systemRole === 'USER' && onboardingCompleted) {
     return (
       <div className="flex min-h-screen">
         {showNavigation && <MainNavigation />}
         
-        <main className={`flex-1 ${showNavigation ? 'md:ml-72' : ''}`}>
+        <main className={`flex-1 ${showNavigation ? 'md:ml-80' : ''}`}>
           <Switch>
             <Route path="/chat" component={Chat} />
             <Route path="/user-profile" component={UserProfile} />
-            <Route path="/ai-report-generator" component={AIReportGenerator} />
-            <Route path="/investment-consultation" component={InvestmentConsultation} />
-            <Route path="/tax-optimization" component={TaxOptimization} />
-            <Route path="/retirement-planning" component={RetirementPlanning} />
-            <Route path="/learning-hub" component={LearningHub} />
-            <Route path="/community-discussions" component={CommunityDiscussions} />
-            <Route path="/gaming" component={GamingHub} />
-            <Route path="/enhanced-crypto" component={EnhancedCryptoMarketplace} />
-            <Route path="/crypto-marketplace" component={CryptoMarketplace} />
             <Route path="/signin" component={SignIn} />
+            {/* Redirect all other routes to chat for regular users */}
             <Route component={() => { window.location.href = '/chat'; return null; }} />
           </Switch>
         </main>
@@ -185,36 +190,43 @@ function Router() {
       
       <main className={`flex-1 ${showNavigation ? 'md:ml-72' : ''}`}>
         <Switch>
-          <Route path="/" component={FinAppHome} />
+          {/* Admin shell - main admin home */}
           <Route path="/finapp-home" component={FinAppHome} />
-          <Route path="/onboarding" component={Onboarding} />
-          <Route path="/chat" component={Chat} />
-          <Route path="/crypto-marketplace" component={CryptoMarketplace} />
-          <Route path="/upgrade" component={UpgradePage} />
-          <Route path="/pricing" component={UpgradePage} />
-          <Route path="/privacy" component={Privacy} />
-          <Route path="/security" component={Security} />
-          <Route path="/analytics" component={AnalyticsDashboard} />
-
-          <Route path="/learning-progress" component={LearningProgress} />
-          <Route path="/test" component={ComprehensiveTest} />
+          
+          {/* Admin routes */}
           <Route path="/admin" component={AdminDashboard} />
           <Route path="/admin-jarvis" component={AdminJarvis} />
           <Route path="/admin-ai-control" component={AdvancedAIControlCenter} />
-
-          <Route path="/gaming" component={GamingHub} />
-          <Route path="/enhanced-crypto" component={EnhancedCryptoMarketplace} />
           <Route path="/developer-diagnostics" component={DeveloperDiagnostics} />
+          
+          {/* Shared routes accessible by admin */}
+          <Route path="/chat" component={Chat} />
+          <Route path="/onboarding" component={Onboarding} />
+          <Route path="/user-profile" component={UserProfile} />
+          <Route path="/profile" component={UserProfile} />
+          
+          {/* FinApp feature routes */}
           <Route path="/ai-report-generator" component={AIReportGenerator} />
           <Route path="/investment-consultation" component={InvestmentConsultation} />
           <Route path="/tax-optimization" component={TaxOptimization} />
           <Route path="/retirement-planning" component={RetirementPlanning} />
           <Route path="/learning-hub" component={LearningHub} />
           <Route path="/community-discussions" component={CommunityDiscussions} />
-          <Route path="/profile" component={UserProfile} />
-          <Route path="/user-profile" component={UserProfile} />
-
-          <Route component={NotFound} />
+          <Route path="/gaming" component={GamingHub} />
+          <Route path="/enhanced-crypto" component={EnhancedCryptoMarketplace} />
+          <Route path="/crypto-marketplace" component={CryptoMarketplace} />
+          
+          {/* Other admin accessible routes */}
+          <Route path="/learning-progress" component={LearningProgress} />
+          <Route path="/test" component={ComprehensiveTest} />
+          <Route path="/upgrade" component={UpgradePage} />
+          <Route path="/pricing" component={UpgradePage} />
+          <Route path="/privacy" component={Privacy} />
+          <Route path="/security" component={Security} />
+          <Route path="/analytics" component={AnalyticsDashboard} />
+          
+          {/* Default redirect for admin */}
+          <Route component={() => { window.location.href = '/finapp-home'; return null; }} />
         </Switch>
       </main>
     </div>

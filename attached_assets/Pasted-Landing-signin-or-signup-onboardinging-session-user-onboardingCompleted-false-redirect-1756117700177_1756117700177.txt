@@ -1,0 +1,153 @@
+Landing-->signin or signup--->onboardinging session = user && onboardingCompleted = false → redirect → /onboarding.If session = user && onboardingCompleted = true → redirect → /chat.Router Flow (Front-end + Back-end)
+1) Front-end Routes (App Router)
+
+/ (Landing)
+
+If session = none → show page with Sign in button.
+
+If session = user && onboardingCompleted = false → redirect → /onboarding.
+
+If session = user && onboardingCompleted = true → redirect → /chat.
+
+If session = admin → redirect → /finapp-home (admin home).
+
+/signin
+
+On success:
+
+role=USER && onboardingCompleted=false → /onboarding
+
+role=USER && onboardingCompleted=true → /chat
+
+role=ADMIN → /finapp-home
+
+/onboarding
+
+Guard: allow only if logged in AND onboardingCompleted=false.
+
+On finish: set onboardingCompleted=true → redirect → /chat.
+
+If user tries to enter with onboardingCompleted=true → redirect → /chat.
+
+/chat
+
+Guard: allow if logged in (USER or ADMIN).
+
+Always shows the new chat UI with side nav (history + “Add New Chat”).
+
+If not logged in → redirect → /signin.
+
+/(legacy user dashboard routes)
+
+Redirect permanently to /chat.
+
+/finapp-home (admin shell)
+
+Guard: allow only if role=ADMIN. Otherwise redirect → /chat.
+
+Contains links to the existing admin sections below.
+
+Admin child routes (preserve old UI):
+
+/admin/panel
+
+/admin/diagnostics
+
+/admin/gaming
+
+/admin/community
+
+(…any other legacy admin paths)
+
+All guarded by role=ADMIN, otherwise redirect → /chat.
+
+/logout
+
+Clear session, redirect → /.
+
+2) Router Guards (Front-end logic order)
+
+Auth check (read session).
+
+Role check (USER vs ADMIN).
+
+Onboarding flag (onboardingCompleted).
+
+Decision:
+
+Not logged in → stay on public routes only.
+
+Logged in USER:
+
+onboardingCompleted=false → force /onboarding until finished.
+
+onboardingCompleted=true → allow /chat, deny /admin/*.
+
+Logged in ADMIN:
+
+Allow /chat and all /admin/*.
+
+Landing and /signin should fast-redirect to /finapp-home.
+
+3) Back-end API Routes (with RBAC)
+
+GET /api/onboarding/progress/:userId
+
+Auth required; user can only read own progress; admin can read any.
+
+POST /api/onboarding/save-progress
+
+Auth required; creates user/profile rows if missing; saves partial steps.
+
+POST /api/onboarding/complete
+
+Auth required; sets onboardingCompleted=true; writes a flattened
+agent_context record for the AI (preferences, goals, risk, style).
+
+GET /api/chat/history?userId=me
+
+Auth required; returns user-scoped conversations.
+
+POST /api/chat/new
+
+Auth required; creates conversation; returns new id.
+
+All /api/admin/*
+
+Admin-only; return 403 if role ≠ ADMIN.
+
+4) Error & Redirect Rules (must-haves)
+
+401 (no session) on protected API → front-end sends user to /signin.
+
+403 (wrong role) on admin API → front-end redirect → /chat.
+
+If any onboarding API fails → show toast and keep user on /onboarding (no silent redirect).
+
+5) Navigation Visibility
+
+When USER is logged in:
+
+Show: Chat.
+
+Hide: all Admin menu items.
+
+When ADMIN is logged in:
+
+Show: Admin nav (legacy UI) + Chat.
+
+Landing nav always shows Sign in (if no session).
+
+6) Test Scenarios (must pass)
+
+New USER: / → Sign in → /onboarding (all steps) → /chat → logout → login → /chat.
+
+Existing USER: / → Sign in → /chat directly.
+
+USER tries /admin/* → redirect → /chat.
+
+ADMIN: / or /signin → /finapp-home; can open /admin/* and /chat.
+
+Old user dashboard URLs → redirect to /chat.
+
+That’s the whole routing plan—implement guards, redirects, and RBAC exactly in this order.

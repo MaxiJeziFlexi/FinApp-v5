@@ -306,11 +306,19 @@ export default function SignIn() {
                   </Link>
                 </div>
                 <div className="mt-2">
-                  <Link href="/admin-login">
-                    <Button variant="outline" size="sm">
-                      Admin Access
-                    </Button>
-                  </Link>
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => {
+                      console.log('🔗 Admin access button clicked, clearing auth and navigating to /admin-login');
+                      // Clear any existing user authentication before admin login
+                      localStorage.removeItem('finapp_user_auth');
+                      localStorage.removeItem('finapp_admin_auth');
+                      window.location.href = '/admin-login';
+                    }}
+                  >
+                    Admin Access
+                  </Button>
                 </div>
               </div>
             </CardContent>

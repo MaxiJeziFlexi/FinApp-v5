@@ -121,7 +121,7 @@ function Router() {
     return null;
   };
 
-  // Show public pages for unauthenticated users, always redirect to landing
+  // Show public pages for unauthenticated users
   if (!isAuthenticated) {
     return (
       <div className="min-h-screen">

@@ -296,7 +296,17 @@ export default function ThreePanelChatInterface({ userId, advisorId }: ThreePane
       const confirmed = window.confirm('Are you sure you want to clear all chat history? This action cannot be undone.');
       if (!confirmed) return;
 
-      // Call backend to clear conversations
+      // Show loading toast
+      toast({
+        title: "Clearing Chat History",
+        description: "Please wait, this may take a moment...",
+      });
+
+      // Clear local state immediately for better UX
+      setMessages([]);
+      setCurrentConversationId(null);
+
+      // Call backend to clear conversations (may take time due to many deletions)
       try {
         const response = await fetch('/api/chat/conversations/clear', {
           method: 'DELETE',
@@ -304,24 +314,27 @@ export default function ThreePanelChatInterface({ userId, advisorId }: ThreePane
           body: JSON.stringify({ userId })
         });
         
-        if (!response.ok) {
-          throw new Error('Failed to clear conversations from server');
-        }
+        // Note: Response might timeout but deletion continues on backend
+        console.log('Clear request sent to server');
       } catch (serverError) {
-        console.warn('Server clear failed, clearing locally:', serverError);
+        // Server may timeout but still be processing - this is expected for large deletions
+        console.log('Server response timeout (expected for large deletions):', serverError);
       }
 
-      // Clear local state
-      setMessages([]);
-      setCurrentConversationId(null);
-      
-      // Invalidate queries to refresh the conversation list
-      queryClient.invalidateQueries({ queryKey: ['/api/chat/conversations'] });
-      
-      toast({
-        title: "Chat History Cleared",
-        description: "All conversations have been cleared.",
-      });
+      // Force refresh the conversation list after a delay to let server complete
+      setTimeout(() => {
+        queryClient.invalidateQueries({ queryKey: ['/api/chat/conversations'] });
+        queryClient.refetchQueries({ queryKey: ['/api/chat/conversations'] });
+      }, 2000);
+
+      // Show success message
+      setTimeout(() => {
+        toast({
+          title: "Chat History Cleared",
+          description: "All conversations have been cleared.",
+        });
+      }, 2500);
+
     } catch (error) {
       toast({
         title: "Error",

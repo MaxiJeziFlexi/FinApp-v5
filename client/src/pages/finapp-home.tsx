@@ -31,7 +31,7 @@ import OnboardingForm from "@/components/financial/OnboardingForm";
 import AdvisorSelection from "@/components/financial/AdvisorSelection";
 import { PersonalizedDecisionTreeView } from "@/components/financial/PersonalizedDecisionTreeView";
 
-import EnhancedChatWindow from "@/components/chat/EnhancedChatWindow";
+import ThreePanelChatInterface from "@/components/chat/ThreePanelChatInterface";
 import FanaticAgentChatWindow from "@/components/advanced/FanaticAgentChatWindow";
 import FinAppAgent from "@/components/ai/FinAppAgent";
 import AchievementNotification from "@/components/financial/AchievementNotification";

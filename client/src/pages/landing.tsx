@@ -472,7 +472,7 @@ export default function Landing() {
                     Sign In
                   </Button>
                 </Link>
-                <Link href="/signin?admin=true">
+                <Link href="/admin-login">
                   <Button variant="outline" size="sm">
                     <Shield className="mr-2 h-4 w-4" />
                     Admin

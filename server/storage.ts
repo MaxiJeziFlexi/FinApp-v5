@@ -1210,11 +1210,6 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Reset user usage counters (for testing)
-  async resetUsageCounters(userId: string): Promise<void> {
-    await db
-      .delete(usageCounters)
-      .where(eq(usageCounters.userId, userId));
-  }
 
   // Enhanced Chat System Implementation
   async getUserConversations(userId: string, advisorId: string): Promise<any[]> {

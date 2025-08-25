@@ -833,7 +833,7 @@ export const transactionCategories = pgTable("transaction_categories", {
   id: varchar("id", { length: 255 }).primaryKey(),
   userId: varchar("user_id", { length: 255 }).references(() => users.id), // null for global categories
   name: varchar("name", { length: 100 }).notNull(),
-  parentId: varchar("parent_id", { length: 255 }).references(() => transactionCategories.id),
+  parentId: varchar("parent_id", { length: 255 }),
   color: varchar("color", { length: 7 }).default('#3B82F6'), // hex color
   icon: varchar("icon", { length: 50 }),
   budgetable: boolean("budgetable").default(true),
@@ -842,6 +842,18 @@ export const transactionCategories = pgTable("transaction_categories", {
   isDefault: boolean("is_default").default(false),
   createdAt: timestamp("created_at").defaultNow(),
 });
+
+export const transactionCategoriesRelations = relations(transactionCategories, ({ one, many }) => ({
+  parent: one(transactionCategories, {
+    fields: [transactionCategories.parentId],
+    references: [transactionCategories.id],
+  }),
+  subcategories: many(transactionCategories),
+  user: one(users, {
+    fields: [transactionCategories.userId],
+    references: [users.id],
+  }),
+}));
 
 // User Budgets
 export const budgets = pgTable("budgets", {

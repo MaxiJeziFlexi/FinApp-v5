@@ -776,4 +776,4 @@ class DecisionTreeService {
   }
 }
 
-module.exports = DecisionTreeService;
+export default DecisionTreeService;

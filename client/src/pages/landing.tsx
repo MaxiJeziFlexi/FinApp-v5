@@ -335,24 +335,10 @@ export default function Landing() {
 
   const { isAuthenticated, user } = useAuth();
 
-  // Handle authenticated user redirects
+  // Handle authenticated user redirects - but allow them to stay on landing if they want
   useEffect(() => {
-    if (isAuthenticated && user) {
-      const onboardingCompleted = (user as any)?.onboardingCompleted || false;
-      const systemRole = (user as any)?.systemRole || 'USER';
-      
-      // Redirect based on onboarding status for USER role
-      if (systemRole === 'USER') {
-        if (!onboardingCompleted) {
-          window.location.href = '/onboarding';
-        } else {
-          window.location.href = '/chat';
-        }
-      } else if (systemRole === 'ADMIN') {
-        // ADMIN users go directly to admin dashboard (bypass onboarding)
-        window.location.href = '/admin';
-      }
-    }
+    // Don't auto-redirect on landing page - let users see the landing page even when logged in
+    // They can manually navigate using the interface if they want
   }, [isAuthenticated, user]);
 
   useEffect(() => {

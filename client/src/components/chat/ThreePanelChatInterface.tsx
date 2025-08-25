@@ -496,12 +496,11 @@ export default function ThreePanelChatInterface({ userId, advisorId }: ThreePane
                             : 'bg-muted'
                         }`}
                       >
-                        <ReactMarkdown
-                          remarkPlugins={[remarkGfm]}
-                          className="prose prose-sm dark:prose-invert max-w-none"
-                        >
-                          {message.content}
-                        </ReactMarkdown>
+                        <div className="prose prose-sm dark:prose-invert max-w-none">
+                          <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                            {message.content}
+                          </ReactMarkdown>
+                        </div>
                         <div className="text-xs opacity-70 mt-2">
                           {message.timestamp.toLocaleTimeString([], { 
                             hour: '2-digit', 

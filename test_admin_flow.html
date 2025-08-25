@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Admin Flow</title>
+</head>
+<body>
+    <h1>Testing Admin Auth Flow</h1>
+    
+    <button onclick="setAdminAuth()">Set Admin Auth</button>
+    <button onclick="checkAuth()">Check Auth</button>
+    <button onclick="clearAuth()">Clear Auth</button>
+    <button onclick="goToFinappHome()">Go to FinApp Home</button>
+    
+    <div id="output"></div>
+    
+    <script>
+        function setAdminAuth() {
+            const adminData = {
+                isAdmin: true,
+                email: 'admin@finapp.demo',
+                name: 'FinApp Administrator',
+                loginTime: new Date().toISOString()
+            };
+            localStorage.setItem('finapp_admin_auth', JSON.stringify(adminData));
+            document.getElementById('output').innerHTML = 'Admin auth set: ' + JSON.stringify(adminData);
+        }
+        
+        function checkAuth() {
+            const adminAuth = localStorage.getItem('finapp_admin_auth');
+            const userAuth = localStorage.getItem('finapp_user_auth');
+            document.getElementById('output').innerHTML = 
+                'Admin auth: ' + adminAuth + '<br>User auth: ' + userAuth;
+        }
+        
+        function clearAuth() {
+            localStorage.removeItem('finapp_admin_auth');
+            localStorage.removeItem('finapp_user_auth');
+            localStorage.clear();
+            document.getElementById('output').innerHTML = 'Auth cleared';
+        }
+        
+        function goToFinappHome() {
+            window.location.href = 'http://localhost:5000/finapp-home';
+        }
+    </script>
+</body>
+</html>

@@ -44,7 +44,8 @@ export default function AdminLogin() {
         isAdmin: true,
         email: formData.email,
         name: formData.name,
-        loginTime: new Date().toISOString()
+        loginTime: new Date().toISOString(),
+        systemRole: 'ADMIN'
       }));
 
       toast({

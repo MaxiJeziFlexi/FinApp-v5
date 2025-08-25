@@ -478,8 +478,8 @@ export default function Landing() {
                   onClick={() => {
                     console.log('🔗 Admin login button clicked, clearing user auth and navigating to /admin-login');
                     // Clear any existing user authentication before admin login
-                    localStorage.removeItem('finapp_user_auth');
-                    localStorage.removeItem('finapp_admin_auth');
+                    sessionStorage.removeItem('finapp_user_auth');
+                    sessionStorage.removeItem('finapp_admin_auth');
                     window.location.href = '/admin-login';
                   }}
                 >

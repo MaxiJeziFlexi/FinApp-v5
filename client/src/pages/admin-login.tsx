@@ -39,8 +39,8 @@ export default function AdminLogin() {
         return;
       }
 
-      // Store admin authentication in localStorage for demo purposes
-      localStorage.setItem('finapp_admin_auth', JSON.stringify({
+      // Store admin authentication in sessionStorage (clears when browser closes)
+      sessionStorage.setItem('finapp_admin_auth', JSON.stringify({
         isAdmin: true,
         email: formData.email,
         name: formData.name,

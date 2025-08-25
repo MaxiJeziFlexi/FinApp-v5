@@ -46,7 +46,7 @@ export default function SignIn() {
         onboardingCompleted: false
       };
       
-      localStorage.setItem('finapp_user_auth', JSON.stringify(userAuth));
+      sessionStorage.setItem('finapp_user_auth', JSON.stringify(userAuth));
       console.log('👤 User auth set:', userAuth);
 
       toast({
@@ -85,7 +85,7 @@ export default function SignIn() {
       console.log('🔐 User sign up attempt:', { email: formData.email, name: formData.name });
       
       // User authentication
-      localStorage.setItem('finapp_user_auth', JSON.stringify({
+      sessionStorage.setItem('finapp_user_auth', JSON.stringify({
         email: formData.email,
         name: formData.name,
         loginTime: new Date().toISOString(),
@@ -312,8 +312,8 @@ export default function SignIn() {
                     onClick={() => {
                       console.log('🔗 Admin access button clicked, clearing auth and navigating to /admin-login');
                       // Clear any existing user authentication before admin login
-                      localStorage.removeItem('finapp_user_auth');
-                      localStorage.removeItem('finapp_admin_auth');
+                      sessionStorage.removeItem('finapp_user_auth');
+                      sessionStorage.removeItem('finapp_admin_auth');
                       window.location.href = '/admin-login';
                     }}
                   >

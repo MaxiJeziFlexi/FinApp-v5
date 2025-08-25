@@ -20,22 +20,22 @@ export function useAuth() {
 
       try {
         // Check for admin auth first
-        const adminData = localStorage.getItem('finapp_admin_auth');
+        const adminData = sessionStorage.getItem('finapp_admin_auth');
         if (adminData) {
           adminAuth = JSON.parse(adminData);
           console.log('🔑 Admin auth found:', adminAuth);
         }
 
         // Check for regular user auth
-        const userData = localStorage.getItem('finapp_user_auth');
+        const userData = sessionStorage.getItem('finapp_user_auth');
         if (userData) {
           userAuth = JSON.parse(userData);
           console.log('👤 User auth found:', userAuth);
         }
       } catch (e) {
         console.error('❌ Auth parsing error:', e);
-        localStorage.removeItem('finapp_admin_auth');
-        localStorage.removeItem('finapp_user_auth');
+        sessionStorage.removeItem('finapp_admin_auth');
+        sessionStorage.removeItem('finapp_user_auth');
       }
 
       setLocalAuth({
@@ -143,11 +143,11 @@ export function useAuth() {
 
 export function logout() {
   // Clear all authentication data first
-  localStorage.removeItem('finapp_admin_auth');
-  localStorage.removeItem('finapp_user_auth');
+  sessionStorage.removeItem('finapp_admin_auth');
+  sessionStorage.removeItem('finapp_user_auth');
   
   // Clear any other session data
-  localStorage.clear();
+  sessionStorage.clear();
   
   // Force page reload to clear React state and redirect to landing
   window.location.href = '/';

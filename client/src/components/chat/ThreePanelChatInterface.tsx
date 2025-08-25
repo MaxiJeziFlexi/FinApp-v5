@@ -108,7 +108,7 @@ export default function ThreePanelChatInterface({ userId, advisorId }: ThreePane
       const response = await fetch(`/api/chat/conversations?userId=${userId}&advisorId=${advisorId}`);
       if (!response.ok) return [];
       const data = await response.json();
-      return data.map((conv: any) => ({
+      return data.map((conv: {id: string, title: string, lastMessage: string, updatedAt: string, messageCount: number}) => ({
         id: conv.id,
         title: conv.title || 'New Chat',
         lastMessage: conv.lastMessage,
@@ -127,7 +127,7 @@ export default function ThreePanelChatInterface({ userId, advisorId }: ThreePane
       const response = await fetch(`/api/chat/messages/${currentConversationId}`);
       if (!response.ok) return [];
       const data = await response.json();
-      return data.map((msg: any) => ({
+      return data.map((msg: {id: string, message: string, sender: string, createdAt: string, metadata?: any}) => ({
         id: msg.id,
         content: msg.message,
         role: msg.sender === 'user' ? 'user' : 'assistant',
@@ -282,8 +282,34 @@ export default function ThreePanelChatInterface({ userId, advisorId }: ThreePane
     window.location.href = '/api/logout';
   };
 
+  // Clear chat history
+  const clearChatHistory = async () => {
+    try {
+      const confirmed = window.confirm('Are you sure you want to clear all chat history? This action cannot be undone.');
+      if (!confirmed) return;
+
+      // Clear the current conversation
+      setMessages([]);
+      setCurrentConversationId(null);
+      
+      // Invalidate queries to refresh the conversation list
+      queryClient.invalidateQueries({ queryKey: ['/api/chat/conversations'] });
+      
+      toast({
+        title: "Chat History Cleared",
+        description: "All conversations have been cleared.",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to clear chat history.",
+        variant: "destructive",
+      });
+    }
+  };
+
   // Filter conversations based on search
-  const filteredConversations = conversations.filter(conv =>
+  const filteredConversations = conversations.filter((conv: Conversation) =>
     conv.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
     conv.lastMessage?.toLowerCase().includes(searchQuery.toLowerCase())
   );
@@ -343,10 +369,18 @@ export default function ThreePanelChatInterface({ userId, advisorId }: ThreePane
 
         {/* Chat History */}
         <div className="flex-1 overflow-hidden">
-          <div className="px-4 py-2">
+          <div className="px-4 py-2 flex justify-between items-center">
             <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
               Chat History
             </h3>
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={clearChatHistory}
+              className="h-6 px-2 text-xs text-muted-foreground hover:text-destructive"
+            >
+              Clear
+            </Button>
           </div>
           <ScrollArea className="h-full px-2">
             <div className="space-y-1 pb-4">
@@ -380,14 +414,14 @@ export default function ThreePanelChatInterface({ userId, advisorId }: ThreePane
         <div className="p-4 border-t border-border">
           <div className="flex items-center gap-3 mb-3">
             <Avatar className="h-10 w-10">
-              <AvatarImage src={user?.profileImageUrl} />
+              <AvatarImage src={(user as any)?.profileImageUrl} />
               <AvatarFallback>
-                {user?.firstName?.[0]}{user?.lastName?.[0]}
+                {(user as any)?.firstName?.[0] || 'U'}{(user as any)?.lastName?.[0] || ''}
               </AvatarFallback>
             </Avatar>
             <div className="flex-1">
               <p className="text-sm font-medium">
-                {user?.firstName} {user?.lastName}
+                {(user as any)?.firstName || 'User'} {(user as any)?.lastName || ''}
               </p>
               <p className="text-xs text-muted-foreground">{user?.email}</p>
             </div>

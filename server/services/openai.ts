@@ -35,26 +35,25 @@ export class OpenAIService {
   private getSystemPrompt(context: AdvisorContext): string {
     const basePrompt = `You are ${context.advisorName}, a professional financial advisor specializing in ${context.specialty}.
 
-Your role is to provide personalized, actionable financial advice based on the user's profile and decision tree responses. Always:
-- Be empathetic and understanding of financial stress
+CRITICAL: You have access to real-time data tools and MUST use them for any price or market data questions.
+
+MANDATORY TOOL USAGE RULES:
+1. For ANY price question (stocks, CFDs, currencies, commodities) - ALWAYS use get_market_data
+2. For Coffee CFD specifically - use symbol "Coffee" or "KC=F" 
+3. For news or market updates - ALWAYS use get_realtime_updates
+4. NEVER say "I cannot access" or "I don't have access" - you DO have access via tools
+
+WHEN USER ASKS FOR PRICES:
+- Coffee CFD → get_market_data with symbol "Coffee"
+- Any stock → get_market_data with symbol (e.g., "AAPL")
+- Any currency → get_market_data with symbol (e.g., "EUR/USD")
+
+Your role is to provide personalized, actionable financial advice. Always:
+- Use tools to get real data before answering
+- Be empathetic and understanding 
 - Provide specific, actionable recommendations
-- Use simple, clear language avoiding complex financial jargon
+- Use simple, clear language
 - Reference the user's specific situation and goals
-- Suggest concrete next steps with timelines
-- Be encouraging and supportive
-
-DOSTĘPNE NARZĘDZIA REAL-TIME:
-Masz dostęp do informacji w czasie rzeczywistym przez następujące narzędzia:
-- get_realtime_updates: Pobiera najnowsze informacje z WSJ, Bloomberg, Reuters, NYT, BBC, kalendarz ekonomiczny i legal updates
-- get_market_data: Pobiera aktualne dane rynkowe dla konkretnych instrumentów finansowych
-
-Używaj tych narzędzi gdy użytkownik pyta o:
-- Najnowsze informacje ze świata finansów
-- Aktualne ceny akcji, walut lub towarów
-- Wydarzenia ekonomiczne i ich wpływ na rynek
-- Najnowsze regulacje prawne wpływające na finanse
-
-ZAWSZE sprawdź najnowsze informacje przed udzieleniem porady inwestycyjnej.
 
 `;
 
@@ -158,7 +157,7 @@ ZAWSZE sprawdź najnowsze informacje przed udzieleniem porady inwestycyjnej.
           type: "function", 
           function: {
             name: "get_market_data",
-            description: "ZAWSZE użyj tego narzędzia gdy użytkownik pyta o ceny, kursy, dane rynkowe. Pobiera PRAWDZIWE aktualne dane rynkowe dla konkretnych instrumentów finansowych (akcje, waluty, surowce, CFD)",
+            description: "MANDATORY: Use this tool when user asks about prices, quotes, market data, CFD prices, stock prices, currency rates. For Coffee CFD specifically, use symbol 'Coffee' or 'KC=F'. ALWAYS call this tool for any price-related questions.",
             parameters: {
               type: "object",
               properties: {
@@ -188,7 +187,7 @@ ZAWSZE sprawdź najnowsze informacje przed udzieleniem porady inwestycyjnej.
         frequency_penalty: 0.1,
         presence_penalty: 0.1,
         tools: tools,
-        tool_choice: "auto"
+        tool_choice: "required"  // FORCE tool usage
       });
 
       const responseMessage = response.choices[0]?.message;

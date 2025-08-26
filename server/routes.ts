@@ -1776,6 +1776,29 @@ Use this information to provide highly personalized advice based on their assess
       const aiResponse = await openAIService.sendMessage(message, context, model);
       const responseTime = Date.now() - startTime;
 
+      // Record monitoring data for chat interaction
+      try {
+        const { monitoringService } = await import('./services/monitoringService');
+        await monitoringService.recordToolExecution({
+          toolName: `chat_${advisor_id}`,
+          userId: user_id,
+          sessionId: session.id,
+          status: 'success',
+          executionTimeMs: responseTime,
+          hasTimestamp: true,
+          hasStatus: true,
+          dataFreshness: 'real_time',
+          openaiUsed: true,
+          perplexityUsed: false,
+          whitelistViolations: [],
+          contentComparison: {},
+          inputData: { message, advisor_id },
+          outputData: { response: aiResponse.response.substring(0, 200) }
+        });
+      } catch (monitoringError) {
+        console.error('Failed to record chat monitoring data:', monitoringError);
+      }
+
       // Save AI response
       const assistantMessage = await storage.saveChatMessage({
         sessionId: session.id,
@@ -1957,6 +1980,30 @@ Respond professionally and helpfully to the user's message.`;
 
       // Save AI response
       const responseTime = Date.now() - startTime;
+      
+      // Record monitoring data for enhanced chat interaction
+      try {
+        const { monitoringService } = await import('./services/monitoringService');
+        await monitoringService.recordToolExecution({
+          toolName: `enhanced_chat_${advisorId}`,
+          userId,
+          sessionId: conversationId,
+          status: 'success',
+          executionTimeMs: responseTime,
+          hasTimestamp: true,
+          hasStatus: true,
+          dataFreshness: 'real_time',
+          openaiUsed: true,
+          perplexityUsed: false,
+          whitelistViolations: [],
+          contentComparison: {},
+          inputData: { message, advisorId, useThinking },
+          outputData: { response: aiResponse.substring(0, 200) }
+        });
+      } catch (monitoringError) {
+        console.error('Failed to record enhanced chat monitoring data:', monitoringError);
+      }
+      
       console.log(`Saving AI response for conversation ${conversationId}`);
       const aiMessage = await storage.saveConversationMessage({
         conversationId,
@@ -1989,6 +2036,31 @@ Respond professionally and helpfully to the user's message.`;
     } catch (error) {
       const responseTime = Date.now() - startTime;
       console.error('Error in enhanced chat send:', error);
+      
+      // Record failed enhanced chat interaction
+      try {
+        const { monitoringService } = await import('./services/monitoringService');
+        await monitoringService.recordToolExecution({
+          toolName: `enhanced_chat_${req.body.advisorId || 'unknown'}`,
+          userId: req.body.userId || 'unknown',
+          sessionId: req.body.conversationId || 'unknown',
+          status: 'failed',
+          executionTimeMs: responseTime,
+          hasTimestamp: true,
+          hasStatus: true,
+          dataFreshness: 'unknown',
+          openaiUsed: true,
+          perplexityUsed: false,
+          whitelistViolations: [],
+          contentComparison: {},
+          inputData: { message: req.body.message, advisorId: req.body.advisorId },
+          outputData: {},
+          errorDetails: error instanceof Error ? error.message : 'Unknown error'
+        });
+      } catch (monitoringError) {
+        console.error('Failed to record failed enhanced chat monitoring data:', monitoringError);
+      }
+      
       res.status(500).json({ 
         message: 'Failed to process message',
         responseTime

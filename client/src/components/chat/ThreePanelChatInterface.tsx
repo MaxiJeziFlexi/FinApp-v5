@@ -371,7 +371,7 @@ export default function ThreePanelChatInterface({ userId, advisorId }: ThreePane
 
     document.addEventListener('keydown', handleKeyboard);
     return () => document.removeEventListener('keydown', handleKeyboard);
-  }, [currentConversationId, messages.length, editingConversationId, startNewConversation, exportConversation, toggleTheme]);
+  }, [currentConversationId, messages.length, editingConversationId]);
 
   // Start new conversation
   const startNewConversation = useCallback(async () => {
@@ -568,7 +568,7 @@ export default function ThreePanelChatInterface({ userId, advisorId }: ThreePane
 
   // Export conversation
   const exportConversation = (format: 'txt' | 'md') => {
-    const conversation = conversations.find(c => c.id === currentConversationId);
+    const conversation = conversations.find((c: Conversation) => c.id === currentConversationId);
     if (!conversation || messages.length === 0) {
       toast({
         title: "Export Failed",

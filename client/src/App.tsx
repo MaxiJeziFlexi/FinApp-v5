@@ -36,6 +36,7 @@ import LearningHub from "@/pages/learning-hub";
 import CommunityDiscussions from "@/pages/community-discussions";
 import UserProfile from "@/pages/user-profile";
 import AdminJarvis from "@/pages/AdminJarvis";
+import AdminMonitoring from "@/pages/admin-monitoring";
 import UpgradePage from "@/pages/upgrade";
 import Onboarding from "@/pages/onboarding";
 import Chat from "@/pages/chat";
@@ -215,6 +216,7 @@ function Router() {
           {/* Admin routes */}
           <Route path="/admin" component={AdminDashboard} />
           <Route path="/admin-jarvis" component={AdminJarvis} />
+          <Route path="/admin-monitoring" component={AdminMonitoring} />
           <Route path="/admin-ai-control" component={AdvancedAIControlCenter} />
           <Route path="/developer-diagnostics" component={DeveloperDiagnostics} />
 

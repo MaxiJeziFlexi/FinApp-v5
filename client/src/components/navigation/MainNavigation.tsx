@@ -121,6 +121,14 @@ const adminItems = [
     restricted: true
   },
   {
+    path: '/admin-monitoring',
+    label: 'Monitoring',
+    icon: Activity,
+    description: 'Tool performance & alerts',
+    badge: 'Live',
+    restricted: true
+  },
+  {
     path: '/developer-diagnostics',
     label: 'Diagnostics',
     icon: BarChart3,

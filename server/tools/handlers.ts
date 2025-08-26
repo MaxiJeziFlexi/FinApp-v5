@@ -7,6 +7,7 @@ import { checkPermission, createAuditEntry, UserRole } from './permissions';
 import { isWhitelistedDomain, enforceWhitelist } from './whitelist';
 import { TRADING_TOOLS, NEWS_TOOLS, LEGAL_TOOLS, HELPER_TOOLS } from './contracts';
 import { storage } from '../storage';
+import { recordToolExecution } from '../services/monitoringService';
 
 interface ToolContext {
   userId: string;
@@ -91,6 +92,24 @@ async function executeToolSafely<T>(
     
     await storage.saveToolExecution(auditEntry);
     
+    // Record execution for monitoring
+    await recordToolExecution({
+      toolName,
+      userId: context.userId,
+      sessionId: context.sessionId,
+      status: 'success',
+      executionTimeMs: Date.now() - startTime,
+      hasTimestamp: !!(result as any)?.timestamp || !!(result as any)?.as_of,
+      hasStatus: !!(result as any)?.status,
+      dataFreshness: (result as any)?.data_freshness || 'unknown',
+      openaiUsed: false, // Would be set by actual implementation
+      perplexityUsed: false, // Would be set by actual implementation
+      whitelistViolations: riskFlags.filter(flag => flag.includes('whitelist')),
+      contentComparison: {},
+      inputData: inputData,
+      outputData: result
+    });
+    
     return {
       success: true,
       data: result,
@@ -113,6 +132,25 @@ async function executeToolSafely<T>(
     );
     
     await storage.saveToolExecution(auditEntry);
+    
+    // Record failed execution for monitoring
+    await recordToolExecution({
+      toolName,
+      userId: context.userId,
+      sessionId: context.sessionId,
+      status: 'failed',
+      executionTimeMs: Date.now() - startTime,
+      hasTimestamp: false,
+      hasStatus: false,
+      dataFreshness: 'unknown',
+      openaiUsed: false,
+      perplexityUsed: false,
+      whitelistViolations: [],
+      contentComparison: {},
+      inputData: inputData,
+      outputData: null,
+      errorDetails: error.message
+    });
     
     return {
       success: false,

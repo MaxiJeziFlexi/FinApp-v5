@@ -4922,6 +4922,113 @@ What would you like me to help you with?`,
   });
 
   // ==========================================
+  // MONITORING SYSTEM ROUTES
+  // ==========================================
+  
+  // Get monitoring dashboard data
+  app.get('/api/admin/monitoring/dashboard', requireAdmin, async (req, res) => {
+    try {
+      const { monitoringService } = await import('./services/monitoringService');
+      const timeRange = parseInt(req.query.timeRange as string) || 60;
+      const dashboardData = await monitoringService.getDashboardData(timeRange);
+      res.json(dashboardData);
+    } catch (error: any) {
+      console.error('Monitoring dashboard error:', error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Get current metrics
+  app.get('/api/admin/monitoring/metrics', requireAdmin, async (req, res) => {
+    try {
+      const { monitoringService } = await import('./services/monitoringService');
+      const timeRange = parseInt(req.query.timeRange as string) || 60;
+      const metrics = await monitoringService.calculateMetrics(timeRange);
+      res.json(metrics);
+    } catch (error: any) {
+      console.error('Monitoring metrics error:', error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Acknowledge alert
+  app.post('/api/admin/monitoring/alerts/:alertId/acknowledge', requireAdmin, async (req, res) => {
+    try {
+      const { monitoringService } = await import('./services/monitoringService');
+      const alertId = req.params.alertId;
+      const userId = req.user?.id || 'unknown';
+      await monitoringService.acknowledgeAlert(alertId, userId);
+      res.json({ success: true, message: 'Alert acknowledged' });
+    } catch (error: any) {
+      console.error('Alert acknowledge error:', error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Resolve alert
+  app.post('/api/admin/monitoring/alerts/:alertId/resolve', requireAdmin, async (req, res) => {
+    try {
+      const { monitoringService } = await import('./services/monitoringService');
+      const alertId = req.params.alertId;
+      const userId = req.user?.id || 'unknown';
+      await monitoringService.resolveAlert(alertId, userId);
+      res.json({ success: true, message: 'Alert resolved' });
+    } catch (error: any) {
+      console.error('Alert resolve error:', error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Get tool performance breakdown
+  app.get('/api/admin/monitoring/tool-performance', requireAdmin, async (req, res) => {
+    try {
+      const { monitoringService } = await import('./services/monitoringService');
+      const performance = await monitoringService.getToolPerformance();
+      res.json(performance);
+    } catch (error: any) {
+      console.error('Tool performance error:', error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Create custom alert rule
+  app.post('/api/admin/monitoring/alert-rules', requireAdmin, async (req, res) => {
+    try {
+      const { monitoringService } = await import('./services/monitoringService');
+      const ruleConfig = req.body;
+      const ruleId = await monitoringService.createAlertRule(ruleConfig);
+      res.json({ success: true, ruleId, message: 'Alert rule created' });
+    } catch (error: any) {
+      console.error('Create alert rule error:', error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Get alert rules
+  app.get('/api/admin/monitoring/alert-rules', requireAdmin, async (req, res) => {
+    try {
+      const { monitoringService } = await import('./services/monitoringService');
+      const rules = await monitoringService.getAlertRules();
+      res.json(rules);
+    } catch (error: any) {
+      console.error('Get alert rules error:', error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Record tool execution (internal API for monitoring)
+  app.post('/api/internal/monitoring/record-execution', async (req, res) => {
+    try {
+      const { recordToolExecution } = await import('./services/monitoringService');
+      await recordToolExecution(req.body);
+      res.json({ success: true });
+    } catch (error: any) {
+      console.error('Record execution error:', error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // ==========================================
   // REAL DATA GATHERING ROUTES
   // ==========================================
   

@@ -1405,6 +1405,130 @@ export type InsertFeatureFlag = z.infer<typeof insertFeatureFlagSchema>;
 export type UsageCounter = typeof usageCounters.$inferSelect;
 export type InsertUsageCounter = z.infer<typeof insertUsageCounterSchema>;
 
+// =========================================
+// MONITORING SYSTEM TABLES
+// =========================================
+
+// Tool execution monitoring
+export const toolExecutionMetrics = pgTable("tool_execution_metrics", {
+  id: varchar("id", { length: 255 }).primaryKey(),
+  toolName: varchar("tool_name", { length: 100 }).notNull(),
+  userId: varchar("user_id", { length: 255 }).references(() => users.id),
+  sessionId: varchar("session_id", { length: 255 }),
+  
+  // Execution details
+  status: varchar("status", { enum: ['success', 'failed', 'timeout', 'fallback'] }).notNull(),
+  executionTimeMs: integer("execution_time_ms").notNull(),
+  
+  // Data quality
+  hasTimestamp: boolean("has_timestamp").default(false),
+  hasStatus: boolean("has_status").default(false),
+  dataFreshness: varchar("data_freshness", { enum: ['real_time', 'fresh', 'stale', 'unknown'] }).default('unknown'),
+  
+  // AI Usage tracking
+  openaiUsed: boolean("openai_used").default(false),
+  perplexityUsed: boolean("perplexity_used").default(false),
+  
+  // Whitelist compliance
+  whitelistViolations: jsonb("whitelist_violations").default([]),
+  contentComparison: jsonb("content_comparison").default({}),
+  
+  // Input/Output
+  inputData: jsonb("input_data").default({}),
+  outputData: jsonb("output_data").default({}),
+  errorDetails: text("error_details"),
+  
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Alert configuration and history
+export const alertRules = pgTable("alert_rules", {
+  id: varchar("id", { length: 255 }).primaryKey(),
+  name: varchar("name", { length: 255 }).notNull(),
+  type: varchar("type", { enum: ['fallback_rate', 'missing_metadata', 'whitelist_violation', 'latency', 'error_rate'] }).notNull(),
+  
+  // Rule parameters
+  threshold: decimal("threshold", { precision: 5, scale: 2 }).notNull(),
+  timeWindowMinutes: integer("time_window_minutes").default(5),
+  
+  // Configuration
+  isActive: boolean("is_active").default(true),
+  severity: varchar("severity", { enum: ['low', 'medium', 'high', 'critical'] }).default('medium'),
+  
+  // Notification settings
+  notificationChannels: jsonb("notification_channels").default(['email']),
+  cooldownMinutes: integer("cooldown_minutes").default(30),
+  
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Alert instances
+export const alertInstances = pgTable("alert_instances", {
+  id: varchar("id", { length: 255 }).primaryKey(),
+  ruleId: varchar("rule_id", { length: 255 }).references(() => alertRules.id).notNull(),
+  
+  // Alert details
+  title: varchar("title", { length: 255 }).notNull(),
+  message: text("message").notNull(),
+  severity: varchar("severity", { enum: ['low', 'medium', 'high', 'critical'] }).notNull(),
+  
+  // Status
+  status: varchar("status", { enum: ['active', 'acknowledged', 'resolved'] }).default('active'),
+  
+  // Metrics at alert time
+  triggerValue: decimal("trigger_value", { precision: 10, scale: 4 }),
+  threshold: decimal("threshold", { precision: 10, scale: 4 }),
+  affectedMetrics: jsonb("affected_metrics").default({}),
+  
+  // Timestamps
+  triggeredAt: timestamp("triggered_at").defaultNow(),
+  acknowledgedAt: timestamp("acknowledged_at"),
+  resolvedAt: timestamp("resolved_at"),
+  
+  // User actions
+  acknowledgedBy: varchar("acknowledged_by", { length: 255 }),
+  resolvedBy: varchar("resolved_by", { length: 255 }),
+  
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Monitoring dashboard snapshots
+export const monitoringSnapshots = pgTable("monitoring_snapshots", {
+  id: varchar("id", { length: 255 }).primaryKey(),
+  
+  // Top 5 metrics
+  successRate: decimal("success_rate", { precision: 5, scale: 2 }).notNull(),
+  medianLatencyMs: integer("median_latency_ms").notNull(),
+  fallbackRate: decimal("fallback_rate", { precision: 5, scale: 2 }).notNull(),
+  staleDataPercentage: decimal("stale_data_percentage", { precision: 5, scale: 2 }).notNull(),
+  whitelistViolations: integer("whitelist_violations").notNull(),
+  
+  // Time range for metrics
+  timeRangeMinutes: integer("time_range_minutes").default(60),
+  
+  // Detailed metrics
+  totalExecutions: integer("total_executions").notNull(),
+  successfulExecutions: integer("successful_executions").notNull(),
+  failedExecutions: integer("failed_executions").notNull(),
+  timeoutExecutions: integer("timeout_executions").notNull(),
+  fallbackExecutions: integer("fallback_executions").notNull(),
+  
+  // AI usage stats
+  openaiUsageCount: integer("openai_usage_count").default(0),
+  perplexityUsageCount: integer("perplexity_usage_count").default(0),
+  aiContentMatches: integer("ai_content_matches").default(0),
+  aiContentMismatches: integer("ai_content_mismatches").default(0),
+  
+  // Data freshness
+  realTimeDataCount: integer("real_time_data_count").default(0),
+  freshDataCount: integer("fresh_data_count").default(0),
+  staleDataCount: integer("stale_data_count").default(0),
+  unknownDataCount: integer("unknown_data_count").default(0),
+  
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 // RBAC Role definitions
 export type UserRole = 'FREE' | 'PRO' | 'MAX_PRO' | 'ADMIN';
 export type SystemRole = 'USER' | 'ADMIN';

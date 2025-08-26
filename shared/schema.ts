@@ -176,6 +176,58 @@ export const advisors = pgTable("advisors", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// Personalized AI Agents - each user can have their own customizable AI agent
+export const personalizedAgents = pgTable("personalized_agents", {
+  id: varchar("id", { length: 255 }).primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id", { length: 255 }).references(() => users.id).notNull(),
+  name: varchar("name", { length: 255 }).notNull().default('My AI Agent'),
+  personality: varchar("personality", { length: 100 }).notNull().default('helpful'),
+  expertise: varchar("expertise", { length: 255 }).default('general'),
+  responseStyle: varchar("response_style", { length: 100 }).default('balanced'),
+  creativity: decimal("creativity", { precision: 3, scale: 2 }).default('0.7'), // 0.0 to 1.0
+  analyticalDepth: decimal("analytical_depth", { precision: 3, scale: 2 }).default('0.8'),
+  friendliness: decimal("friendliness", { precision: 3, scale: 2 }).default('0.7'),
+  accuracy: decimal("accuracy", { precision: 3, scale: 2 }).default('0.9'),
+  learningRate: decimal("learning_rate", { precision: 3, scale: 2 }).default('0.1'),
+  customInstructions: text("custom_instructions").default(''),
+  trainingData: jsonb("training_data").default('[]'),
+  performanceMetrics: jsonb("performance_metrics").default('{}'),
+  preferences: jsonb("preferences").default('{}'),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// AI Agent Training Sessions - stores user feedback and training examples
+export const agentTrainingSessions = pgTable("agent_training_sessions", {
+  id: varchar("id", { length: 255 }).primaryKey().default(sql`gen_random_uuid()`),
+  agentId: varchar("agent_id", { length: 255 }).references(() => personalizedAgents.id).notNull(),
+  userId: varchar("user_id", { length: 255 }).references(() => users.id).notNull(),
+  sessionType: varchar("session_type", { length: 100 }).notNull(), // 'feedback', 'example', 'correction'
+  userInput: text("user_input").notNull(),
+  agentResponse: text("agent_response"),
+  userFeedback: text("user_feedback"),
+  rating: integer("rating"), // 1-5 star rating
+  improvement: text("improvement"), // what user wants improved
+  status: varchar("status", { length: 50 }).default('active'),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// AI Agent Performance Analytics
+export const agentPerformanceMetrics = pgTable("agent_performance_metrics", {
+  id: varchar("id", { length: 255 }).primaryKey().default(sql`gen_random_uuid()`),
+  agentId: varchar("agent_id", { length: 255 }).references(() => personalizedAgents.id).notNull(),
+  userId: varchar("user_id", { length: 255 }).references(() => users.id).notNull(),
+  metricDate: date("metric_date").notNull(),
+  totalInteractions: integer("total_interactions").default(0),
+  averageRating: decimal("average_rating", { precision: 3, scale: 2 }),
+  responseAccuracy: decimal("response_accuracy", { precision: 3, scale: 2 }),
+  userSatisfaction: decimal("user_satisfaction", { precision: 3, scale: 2 }),
+  improvementAreas: jsonb("improvement_areas").default('[]'),
+  strengths: jsonb("strengths").default('[]'),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 // Chat sessions
 export const advisorSessions = pgTable("advisor_sessions", {
   id: varchar("id", { length: 255 }).primaryKey(),
@@ -1618,6 +1670,29 @@ export const insertToolExecutionSchema = createInsertSchema(toolExecutions).omit
 export const insertTradingAccountSchema = createInsertSchema(tradingAccounts).omit({
   createdAt: true,
   updatedAt: true,
+});
+
+// Personalized AI Agent types and schemas
+export type PersonalizedAgent = typeof personalizedAgents.$inferSelect;
+export type InsertPersonalizedAgent = typeof personalizedAgents.$inferInsert;
+export const insertPersonalizedAgentSchema = createInsertSchema(personalizedAgents).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type AgentTrainingSession = typeof agentTrainingSessions.$inferSelect;
+export type InsertAgentTrainingSession = typeof agentTrainingSessions.$inferInsert;
+export const insertAgentTrainingSessionSchema = createInsertSchema(agentTrainingSessions).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type AgentPerformanceMetric = typeof agentPerformanceMetrics.$inferSelect;
+export type InsertAgentPerformanceMetric = typeof agentPerformanceMetrics.$inferInsert;
+export const insertAgentPerformanceMetricSchema = createInsertSchema(agentPerformanceMetrics).omit({
+  id: true,
+  createdAt: true,
 });
 
 export const insertAgentConfigSchema = createInsertSchema(agentConfigs).omit({

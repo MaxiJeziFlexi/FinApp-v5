@@ -18,6 +18,7 @@ import FloatingParticles from './FloatingParticles';
 import AITypingIndicator from './AITypingIndicator';
 import FileAnalysisUploader from './FileAnalysisUploader';
 import VisualDataGenerator from './VisualDataGenerator';
+import AIAgentSettings from './AIAgentSettings';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import {
@@ -53,7 +54,7 @@ import {
   Pin,
   Share2,
   ThumbsUp,
-  ThumbsDown
+  ThumbsDown,
 } from 'lucide-react';
 
 interface Message {
@@ -249,6 +250,7 @@ export default function ThreePanelChatInterface({ userId, advisorId }: ThreePane
   const [customTheme, setCustomTheme] = useState('default');
   const [showKeyboardShortcuts, setShowKeyboardShortcuts] = useState(false);
   const [showFileUploader, setShowFileUploader] = useState(false);
+  const [showAIAgentSettings, setShowAIAgentSettings] = useState(false);
   const [fileAnalysisData, setFileAnalysisData] = useState<any[]>([]);
   
   // Refs
@@ -1626,6 +1628,22 @@ export default function ThreePanelChatInterface({ userId, advisorId }: ThreePane
                       {sidebarCollapsed ? 'Expand' : 'Collapse'}
                     </Button>
                   </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm">AI Agent Settings</span>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        setShowSettings(false);
+                        setShowAIAgentSettings(true);
+                      }}
+                      className="gap-2"
+                      data-testid="button-open-ai-agent-settings"
+                    >
+                      <Bot className="h-4 w-4" />
+                      Customize
+                    </Button>
+                  </div>
                 </div>
               </div>
               
@@ -1653,6 +1671,14 @@ export default function ThreePanelChatInterface({ userId, advisorId }: ThreePane
             </div>
           </div>
         </div>
+      )}
+
+      {/* AI Agent Settings Modal */}
+      {showAIAgentSettings && user?.id && (
+        <AIAgentSettings
+          userId={user.id}
+          onClose={() => setShowAIAgentSettings(false)}
+        />
       )}
     </div>
   );

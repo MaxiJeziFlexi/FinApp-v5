@@ -28,6 +28,9 @@ import {
   toolExecutions,
   agentConfigs,
   tradingAccounts,
+  personalizedAgents,
+  agentTrainingSessions,
+  agentPerformanceMetrics,
   type User, 
   type InsertUser,
   type UpsertUser,
@@ -64,6 +67,12 @@ import {
   type InsertFeatureFlag,
   type UsageCounter,
   type InsertUsageCounter,
+  type PersonalizedAgent,
+  type InsertPersonalizedAgent,
+  type AgentTrainingSession,
+  type InsertAgentTrainingSession,
+  type AgentPerformanceMetric,
+  type InsertAgentPerformanceMetric,
   type UserRole
 } from "@shared/schema";
 import { db } from "./db";
@@ -197,6 +206,22 @@ export interface IStorage {
   saveConversationMessage(message: any): Promise<any>;
   updateConversationTitle(conversationId: string, title: string): Promise<void>;
   clearUserConversations(userId: string): Promise<void>;
+
+  // Personalized AI Agent operations
+  getPersonalizedAgent(userId: string): Promise<PersonalizedAgent | undefined>;
+  createPersonalizedAgent(agent: InsertPersonalizedAgent): Promise<PersonalizedAgent>;
+  updatePersonalizedAgent(agentId: string, updates: Partial<InsertPersonalizedAgent>): Promise<PersonalizedAgent>;
+  deletePersonalizedAgent(agentId: string): Promise<void>;
+  
+  // Agent Training operations
+  createAgentTrainingSession(session: InsertAgentTrainingSession): Promise<AgentTrainingSession>;
+  getAgentTrainingSessions(agentId: string): Promise<AgentTrainingSession[]>;
+  updateAgentTrainingSession(sessionId: string, updates: Partial<InsertAgentTrainingSession>): Promise<AgentTrainingSession>;
+  
+  // Agent Performance Metrics operations
+  createAgentPerformanceMetric(metric: InsertAgentPerformanceMetric): Promise<AgentPerformanceMetric>;
+  getAgentPerformanceMetrics(agentId: string): Promise<AgentPerformanceMetric[]>;
+  updateAgentPerformanceMetric(metricId: string, updates: Partial<InsertAgentPerformanceMetric>): Promise<AgentPerformanceMetric>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1598,6 +1623,109 @@ export class DatabaseStorage implements IStorage {
       console.error('Error saving real-time update:', error);
       throw error;
     }
+  }
+
+  // ===========================
+  // PERSONALIZED AI AGENT OPERATIONS
+  // ===========================
+  
+  async getPersonalizedAgent(userId: string): Promise<PersonalizedAgent | undefined> {
+    const [agent] = await db
+      .select()
+      .from(personalizedAgents)
+      .where(eq(personalizedAgents.userId, userId));
+    return agent;
+  }
+
+  async createPersonalizedAgent(agent: InsertPersonalizedAgent & { id?: string }): Promise<PersonalizedAgent> {
+    const agentWithId = {
+      ...agent,
+      id: agent.id || generateId('agent')
+    };
+    const [newAgent] = await db
+      .insert(personalizedAgents)
+      .values(agentWithId)
+      .returning();
+    return newAgent;
+  }
+
+  async updatePersonalizedAgent(agentId: string, updates: Partial<InsertPersonalizedAgent>): Promise<PersonalizedAgent> {
+    const [updatedAgent] = await db
+      .update(personalizedAgents)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(personalizedAgents.id, agentId))
+      .returning();
+    return updatedAgent;
+  }
+
+  async deletePersonalizedAgent(agentId: string): Promise<void> {
+    await db.delete(personalizedAgents).where(eq(personalizedAgents.id, agentId));
+  }
+
+  // ===========================
+  // AGENT TRAINING OPERATIONS
+  // ===========================
+  
+  async createAgentTrainingSession(session: InsertAgentTrainingSession & { id?: string }): Promise<AgentTrainingSession> {
+    const sessionWithId = {
+      ...session,
+      id: session.id || generateId('training')
+    };
+    const [newSession] = await db
+      .insert(agentTrainingSessions)
+      .values(sessionWithId)
+      .returning();
+    return newSession;
+  }
+
+  async getAgentTrainingSessions(agentId: string): Promise<AgentTrainingSession[]> {
+    return await db
+      .select()
+      .from(agentTrainingSessions)
+      .where(eq(agentTrainingSessions.agentId, agentId))
+      .orderBy(desc(agentTrainingSessions.createdAt));
+  }
+
+  async updateAgentTrainingSession(sessionId: string, updates: Partial<InsertAgentTrainingSession>): Promise<AgentTrainingSession> {
+    const [updatedSession] = await db
+      .update(agentTrainingSessions)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(agentTrainingSessions.id, sessionId))
+      .returning();
+    return updatedSession;
+  }
+
+  // ===========================
+  // AGENT PERFORMANCE METRICS OPERATIONS
+  // ===========================
+  
+  async createAgentPerformanceMetric(metric: InsertAgentPerformanceMetric & { id?: string }): Promise<AgentPerformanceMetric> {
+    const metricWithId = {
+      ...metric,
+      id: metric.id || generateId('metric')
+    };
+    const [newMetric] = await db
+      .insert(agentPerformanceMetrics)
+      .values(metricWithId)
+      .returning();
+    return newMetric;
+  }
+
+  async getAgentPerformanceMetrics(agentId: string): Promise<AgentPerformanceMetric[]> {
+    return await db
+      .select()
+      .from(agentPerformanceMetrics)
+      .where(eq(agentPerformanceMetrics.agentId, agentId))
+      .orderBy(desc(agentPerformanceMetrics.createdAt));
+  }
+
+  async updateAgentPerformanceMetric(metricId: string, updates: Partial<InsertAgentPerformanceMetric>): Promise<AgentPerformanceMetric> {
+    const [updatedMetric] = await db
+      .update(agentPerformanceMetrics)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(agentPerformanceMetrics.id, metricId))
+      .returning();
+    return updatedMetric;
   }
 }
 

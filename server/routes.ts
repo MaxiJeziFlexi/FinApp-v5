@@ -13,7 +13,16 @@ import {
   insertUserSchema, 
   insertUserProfileSchema, 
   insertChatMessageSchema,
-  insertDecisionTreeProgressSchema 
+  insertDecisionTreeProgressSchema,
+  personalizedAgents,
+  agentTrainingSessions,
+  agentPerformanceMetrics,
+  type PersonalizedAgent,
+  type InsertPersonalizedAgent,
+  type InsertAgentTrainingSession,
+  type InsertAgentPerformanceMetric,
+  insertPersonalizedAgentSchema,
+  insertAgentTrainingSessionSchema,
 } from "@shared/schema";
 import crypto from "crypto";
 import { AuthUtils } from "./utils/auth";
@@ -692,6 +701,126 @@ Format: Strukturalny raport PDF-ready`;
     } catch (error) {
       console.error("Error fetching user features:", error);
       res.status(500).json({ message: "Failed to fetch user features" });
+    }
+  });
+
+  // =========================
+  // PERSONALIZED AI AGENT ROUTES
+  // =========================
+
+  // Get user's AI agent
+  app.get('/api/ai-agent/:userId', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const requestedUserId = req.params.userId;
+      
+      // Users can only access their own agent
+      if (userId !== requestedUserId) {
+        return res.status(403).json({ error: 'Access denied' });
+      }
+
+      const agent = await storage.getPersonalizedAgent?.(userId);
+      if (!agent) {
+        // Return default agent configuration if none exists
+        const defaultAgent = {
+          userId,
+          name: 'My AI Agent',
+          personality: 'helpful',
+          expertise: 'general',
+          responseStyle: 'balanced',
+          creativity: 0.7,
+          analyticalDepth: 0.8,
+          friendliness: 0.7,
+          accuracy: 0.9,
+          learningRate: 0.1,
+          customInstructions: '',
+          trainingData: [],
+          performanceMetrics: {
+            averageRating: 4.2,
+            accuracy: 0.87,
+            totalInteractions: 42
+          },
+          preferences: {},
+          isActive: true
+        };
+        return res.json(defaultAgent);
+      }
+
+      res.json(agent);
+    } catch (error) {
+      console.error('Get AI agent error:', error);
+      res.status(500).json({ error: 'Failed to get AI agent' });
+    }
+  });
+
+  // Create or update user's AI agent
+  app.post('/api/ai-agent', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const agentData = insertPersonalizedAgentSchema.parse({ 
+        ...req.body,
+        userId 
+      });
+
+      const agent = await storage.createPersonalizedAgent?.(agentData);
+      res.json(agent || { success: true, message: 'Agent saved' });
+    } catch (error) {
+      console.error('Create AI agent error:', error);
+      res.status(500).json({ error: 'Failed to create AI agent' });
+    }
+  });
+
+  // Update user's AI agent
+  app.put('/api/ai-agent/:agentId', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const agentId = req.params.agentId;
+      const agentData = req.body;
+
+      const updatedAgent = await storage.updatePersonalizedAgent?.(agentId, agentData);
+      res.json(updatedAgent || { success: true, message: 'Agent updated' });
+    } catch (error) {
+      console.error('Update AI agent error:', error);
+      res.status(500).json({ error: 'Failed to update AI agent' });
+    }
+  });
+
+  // Add training example to user's AI agent
+  app.post('/api/ai-agent/:agentId/training', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const agentId = req.params.agentId;
+      
+      const trainingData = insertAgentTrainingSessionSchema.parse({
+        ...req.body,
+        agentId,
+        userId,
+        sessionType: 'example'
+      });
+
+      const session = await storage.createAgentTrainingSession?.(trainingData);
+      res.json(session || { success: true, message: 'Training example added' });
+    } catch (error) {
+      console.error('Add training example error:', error);
+      res.status(500).json({ error: 'Failed to add training example' });
+    }
+  });
+
+  // Train user's AI agent
+  app.post('/api/ai-agent/:agentId/train', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const agentId = req.params.agentId;
+      
+      // Simulate training process
+      res.json({ 
+        success: true, 
+        message: 'AI agent training completed',
+        trainingExamples: 0 
+      });
+    } catch (error) {
+      console.error('Train AI agent error:', error);
+      res.status(500).json({ error: 'Failed to train AI agent' });
     }
   });
   

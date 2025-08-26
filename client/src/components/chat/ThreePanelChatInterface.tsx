@@ -233,6 +233,15 @@ export default function ThreePanelChatInterface({ userId, advisorId }: ThreePane
   const [isStreaming, setIsStreaming] = useState(false);
   const [editingConversationId, setEditingConversationId] = useState<string | null>(null);
   const [editingTitle, setEditingTitle] = useState('');
+  const [advancedSearchOpen, setAdvancedSearchOpen] = useState(false);
+  const [searchFilters, setSearchFilters] = useState({
+    messageType: 'all' as 'all' | 'user' | 'assistant',
+    dateRange: 'all' as 'all' | 'today' | 'week' | 'month',
+    hasReactions: false,
+    favoriteOnly: false
+  });
+  const [customTheme, setCustomTheme] = useState('default');
+  const [showKeyboardShortcuts, setShowKeyboardShortcuts] = useState(false);
   
   // Refs
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -317,6 +326,52 @@ export default function ThreePanelChatInterface({ userId, advisorId }: ThreePane
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyboard = (e: KeyboardEvent) => {
+      // Ctrl/Cmd + N: New conversation
+      if ((e.ctrlKey || e.metaKey) && e.key === 'n') {
+        e.preventDefault();
+        startNewConversation();
+      }
+      // Ctrl/Cmd + K: Focus search
+      else if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+        e.preventDefault();
+        const searchInput = document.querySelector('[data-testid="input-search"]') as HTMLInputElement;
+        searchInput?.focus();
+      }
+      // Ctrl/Cmd + /: Show keyboard shortcuts
+      else if ((e.ctrlKey || e.metaKey) && e.key === '/') {
+        e.preventDefault();
+        setShowKeyboardShortcuts(true);
+      }
+      // Ctrl/Cmd + E: Export current conversation
+      else if ((e.ctrlKey || e.metaKey) && e.key === 'e') {
+        e.preventDefault();
+        if (currentConversationId && messages.length > 0) {
+          exportConversation('md');
+        }
+      }
+      // Ctrl/Cmd + D: Toggle theme
+      else if ((e.ctrlKey || e.metaKey) && e.key === 'd') {
+        e.preventDefault();
+        toggleTheme();
+      }
+      // Escape: Close modals
+      else if (e.key === 'Escape') {
+        setShowKeyboardShortcuts(false);
+        setAdvancedSearchOpen(false);
+        if (editingConversationId) {
+          setEditingConversationId(null);
+          setEditingTitle('');
+        }
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyboard);
+    return () => document.removeEventListener('keydown', handleKeyboard);
+  }, [currentConversationId, messages.length, editingConversationId, startNewConversation, exportConversation, toggleTheme]);
 
   // Start new conversation
   const startNewConversation = useCallback(async () => {
@@ -720,11 +775,38 @@ export default function ThreePanelChatInterface({ userId, advisorId }: ThreePane
     return groups;
   };
 
-  // Filter conversations based on search
-  const filteredConversations = conversations.filter((conv: Conversation) =>
-    conv.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    conv.lastMessage?.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  // Advanced search functionality
+  const filteredConversations = conversations.filter((conv: Conversation) => {
+    // Basic text search
+    const matchesSearch = searchQuery === '' || 
+      conv.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      conv.lastMessage?.toLowerCase().includes(searchQuery.toLowerCase());
+    
+    // Date range filter
+    let matchesDateRange = true;
+    if (searchFilters.dateRange !== 'all') {
+      const now = new Date();
+      const convDate = new Date(conv.updatedAt);
+      const daysDiff = Math.floor((now.getTime() - convDate.getTime()) / (1000 * 60 * 60 * 24));
+      
+      switch (searchFilters.dateRange) {
+        case 'today':
+          matchesDateRange = daysDiff === 0;
+          break;
+        case 'week':
+          matchesDateRange = daysDiff <= 7;
+          break;
+        case 'month':
+          matchesDateRange = daysDiff <= 30;
+          break;
+      }
+    }
+
+    // Message count filter (favorite conversations have more messages typically)
+    const matchesFavorite = !searchFilters.favoriteOnly || conv.messageCount > 5;
+
+    return matchesSearch && matchesDateRange && matchesFavorite;
+  });
 
   // Group filtered conversations
   const groupedConversations = groupConversationsByDate(filteredConversations);
@@ -783,19 +865,81 @@ export default function ThreePanelChatInterface({ userId, advisorId }: ThreePane
           </Button>
         </div>
 
-        {/* Search */}
+        {/* Enhanced Search */}
         {!sidebarCollapsed && (
           <div className="p-4 border-b border-border">
-            <div className="relative">
+            <div className="relative mb-2">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
               <Input
-                placeholder="Search conversations..."
+                placeholder="Search conversations... (Ctrl+K)"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10"
+                className="pl-10 pr-10"
                 data-testid="input-search"
               />
+              <Button
+                variant="ghost"
+                size="sm"
+                className="absolute right-1 top-1/2 transform -translate-y-1/2 h-6 w-6 p-0"
+                onClick={() => setAdvancedSearchOpen(!advancedSearchOpen)}
+                title="Advanced search filters"
+              >
+                <Settings className="h-3 w-3" />
+              </Button>
             </div>
+            
+            {/* Advanced Search Filters */}
+            {advancedSearchOpen && (
+              <div className="space-y-2 p-3 bg-muted/30 rounded-lg border">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-medium text-muted-foreground">FILTERS</span>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-5 px-1 text-xs"
+                    onClick={() => {
+                      setSearchFilters({
+                        messageType: 'all',
+                        dateRange: 'all',
+                        hasReactions: false,
+                        favoriteOnly: false
+                      });
+                    }}
+                  >
+                    Clear
+                  </Button>
+                </div>
+                
+                <div className="space-y-2">
+                  <div>
+                    <label className="text-xs text-muted-foreground">Date Range</label>
+                    <select
+                      value={searchFilters.dateRange}
+                      onChange={(e) => setSearchFilters(prev => ({ ...prev, dateRange: e.target.value as any }))}
+                      className="w-full mt-1 p-1 text-xs bg-background border rounded"
+                    >
+                      <option value="all">All time</option>
+                      <option value="today">Today</option>
+                      <option value="week">This week</option>
+                      <option value="month">This month</option>
+                    </select>
+                  </div>
+                  
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      id="favorite-filter"
+                      checked={searchFilters.favoriteOnly}
+                      onChange={(e) => setSearchFilters(prev => ({ ...prev, favoriteOnly: e.target.checked }))}
+                      className="w-3 h-3"
+                    />
+                    <label htmlFor="favorite-filter" className="text-xs text-muted-foreground">
+                      Active conversations only
+                    </label>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         )}
 
@@ -1003,6 +1147,58 @@ export default function ThreePanelChatInterface({ userId, advisorId }: ThreePane
                   >
                     Save
                   </Button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Keyboard Shortcuts Modal */}
+          {showKeyboardShortcuts && (
+            <div className="absolute inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center z-50">
+              <div className="bg-background border rounded-lg p-6 max-w-md w-full mx-4">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-semibold">Keyboard Shortcuts</h3>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-6 w-6 p-0"
+                    onClick={() => setShowKeyboardShortcuts(false)}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+                
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm">New conversation</span>
+                    <kbd className="px-2 py-1 text-xs bg-muted rounded">Ctrl+N</kbd>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm">Search conversations</span>
+                    <kbd className="px-2 py-1 text-xs bg-muted rounded">Ctrl+K</kbd>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm">Export conversation</span>
+                    <kbd className="px-2 py-1 text-xs bg-muted rounded">Ctrl+E</kbd>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm">Toggle theme</span>
+                    <kbd className="px-2 py-1 text-xs bg-muted rounded">Ctrl+D</kbd>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm">Show shortcuts</span>
+                    <kbd className="px-2 py-1 text-xs bg-muted rounded">Ctrl+/</kbd>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm">Close modal/menu</span>
+                    <kbd className="px-2 py-1 text-xs bg-muted rounded">Esc</kbd>
+                  </div>
+                </div>
+                
+                <div className="mt-6 pt-4 border-t">
+                  <p className="text-xs text-muted-foreground">
+                    Use Cmd instead of Ctrl on Mac
+                  </p>
                 </div>
               </div>
             </div>

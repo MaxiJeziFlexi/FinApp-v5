@@ -25,6 +25,9 @@ import {
   userSessions,
   featureFlags,
   usageCounters,
+  toolExecutions,
+  agentConfigs,
+  tradingAccounts,
   type User, 
   type InsertUser,
   type UpsertUser,
@@ -1415,6 +1418,93 @@ export class DatabaseStorage implements IStorage {
     } catch (error) {
       console.error('Error clearing user conversations:', error);
       throw error;
+    }
+  }
+
+  // Tool execution methods
+  async saveToolExecution(execution: any): Promise<any> {
+    try {
+      const [savedExecution] = await db
+        .insert(toolExecutions)
+        .values({
+          id: generateId('tool'),
+          userId: execution.user_id,
+          sessionId: execution.session_id || null,
+          toolName: execution.tool_name,
+          userRole: execution.user_role,
+          inputData: execution.input_data || {},
+          outputData: execution.output_data || {},
+          inputHash: execution.input_hash,
+          outputHash: execution.output_hash,
+          executionStatus: execution.execution_status,
+          permissionGranted: execution.permission_granted,
+          riskFlags: execution.risk_flags || [],
+          decisionRationale: execution.decision_rationale || '',
+          executionTimeMs: execution.response_time_ms || null,
+          errorMessage: execution.error_message || null,
+          createdAt: new Date()
+        })
+        .returning();
+      
+      return savedExecution;
+    } catch (error) {
+      console.error('Error saving tool execution:', error);
+      throw error;
+    }
+  }
+
+  async getUserAgentConfig(userId: string): Promise<any> {
+    try {
+      const config = await db
+        .select()
+        .from(agentConfigs)
+        .where(eq(agentConfigs.userId, userId))
+        .limit(1);
+      
+      return config[0] || null;
+    } catch (error) {
+      console.error('Error getting user agent config:', error);
+      return null;
+    }
+  }
+
+  async createUserAgentConfig(userId: string, config: any): Promise<any> {
+    try {
+      const [newConfig] = await db
+        .insert(agentConfigs)
+        .values({
+          id: generateId('agentcfg'),
+          userId,
+          agentRole: config.agentRole || 'analysis_only',
+          riskProfile: config.riskProfile || 'moderate',
+          preferredJurisdiction: config.preferredJurisdiction,
+          tradingPreferences: config.tradingPreferences || {},
+          newsSourcePreferences: config.newsSourcePreferences || [],
+          legalAlertSettings: config.legalAlertSettings || {},
+          autoExecutionLimits: config.autoExecutionLimits || {},
+          isActive: true,
+          createdAt: new Date()
+        })
+        .returning();
+      
+      return newConfig;
+    } catch (error) {
+      console.error('Error creating user agent config:', error);
+      throw error;
+    }
+  }
+
+  async getUserTradingAccounts(userId: string): Promise<any[]> {
+    try {
+      const accounts = await db
+        .select()
+        .from(tradingAccounts)
+        .where(eq(tradingAccounts.userId, userId));
+      
+      return accounts;
+    } catch (error) {
+      console.error('Error getting user trading accounts:', error);
+      return [];
     }
   }
 }

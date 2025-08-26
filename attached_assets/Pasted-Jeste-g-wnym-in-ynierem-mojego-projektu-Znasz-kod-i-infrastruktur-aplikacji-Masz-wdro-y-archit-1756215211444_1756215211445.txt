@@ -1,0 +1,195 @@
+Jesteś głównym inżynierem mojego projektu. Znasz kod i infrastrukturę aplikacji. Masz wdrożyć architekturę, w której LLM służy wyłącznie do zaawansowanego rozumowania, a cała funkcjonalność (trading, płatności, pobieranie danych, prawo, dokumentacja) jest realizowana przez wywołania narzędzi (toolsy / moje endpointy). Twoim outputem są konkretne commity/PR, migracje, testy oraz dokumentacja zmian.
+
+Cele (kolejność priorytetów)
+
+Warstwa narzędzi (Tools/Function Calling) – zdefiniuj i zaimplementuj kontrakty JSON + adaptery do:
+
+Trading: get_quotes_ibkr, place_order_ibkr, get_quotes_xtb, place_order_xtb, get_market_data_tradingview, oraz simulate_order.
+
+News (biała lista): news_search_whitelist z filtrami domen: bbc.com, nytimes.com, bloomberg.com, wsj.com.
+
+Prawo (oficjalne): fetch_gov_law (jurisdiction, act_name, since_date) – wyłącznie domeny rządowe/eur-lex/admin.ch/gov.uk/sejm.gov.pl itp.
+
+Dokumentacja: retrieve_document (doc_id lub url z whitelisty).
+
+Operacje pomocnicze: create_audit_note, create_task, charge_customer (tylko propozycja – nie finalizuj bez zgody backendu).
+
+Structured Outputs – wymuś zwroty modelu w postaci JSON (PlanAction → PlanVerification → Decision) i zrób walidację JSON Schema po stronie backendu.
+
+Uprawnienia i bezpieczeństwo – role: analysis_only, confirm_to_execute, auto_execute_with_limits; limity ryzyka; audyt i dzienniki.
+
+Źródła + aktualność – egzekwuj korzystanie tylko z whitelisty; każde świeże twierdzenie poparte metadanymi źródła (tytuł, data).
+
+Onboarding użytkownika – flow konfiguracji kont: broker (IBKR/XTB), TradingView, wybór jurysdykcji, progi ryzyka, zgody prawne.
+
+Testy, CI/CD i roll-back – pokryj nowy kod testami jednostkowymi/integracyjnymi, dodaj check-listę i plan wycofania.
+
+Zasady implementacji
+
+LLM = mózg: nie wykonuje akcji – jedynie proponuje kroki i wywołuje toolsy. Wszelkie operacje egzekucyjne przechodzą przez backendowe weryfikacje.
+
+can_execute zawsze false, dopóki backend nie da EXECUTE_GRANTED wg polityki ryzyka.
+
+Zero secrets w repo: używaj ENV/secrets manager.
+
+Brak hardcodów domen poza whitelistą. Dodaj centralny plik allowed_sources.(ts|py) i wymuszaj kontrolę w middleware.
+
+Symulacja przed egzekucją: każde place_order_* poprzedź simulate_order + porównanie z limitami.
+
+Audyt: loguj każdy krok (input, output narzędzia, hash decyzji, timestamp, rola użytkownika).
+
+Idempotencja toolsów: projektuj endpointy z request_id i powtórzeniami bez skutków ubocznych.
+
+Obsługa błędów: zwracaj kody i error_kind (validation_error, law_stale, limit_violation, insufficient_evidence, missing_tool).
+
+Specyfikacja toolsów (kontrakty JSON)
+
+Trading / dane rynkowe
+
+{
+  "name": "get_market_data_tradingview",
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "symbol": {"type":"string"},
+      "interval": {"type":"string", "enum":["1m","5m","15m","1h","4h","1d","1w","1M"]},
+      "fields": {"type":"array","items":{"type":"string"}}
+    },
+    "required": ["symbol","interval"]
+  }
+}
+
+{
+  "name": "get_quotes_ibkr",
+  "parameters": {"type":"object","properties":{"symbols":{"type":"array","items":{"type":"string"}}},"required":["symbols"]}
+}
+
+{
+  "name": "place_order_ibkr",
+  "parameters": {
+    "type":"object",
+    "properties":{
+      "symbol":{"type":"string"},
+      "side":{"type":"string","enum":["buy","sell"]},
+      "qty":{"type":"number"},
+      "type":{"type":"string","enum":["market","limit","stop"]},
+      "limit_price":{"type":["number","null"]},
+      "time_in_force":{"type":"string","enum":["day","gtc"]},
+      "client_order_id":{"type":"string"}
+    },
+    "required":["symbol","side","qty","type","time_in_force","client_order_id"]
+  }
+}
+
+{
+  "name": "get_quotes_xtb",
+  "parameters": {"type":"object","properties":{"symbols":{"type":"array","items":{"type":"string"}}},"required":["symbols"]}
+}
+
+{
+  "name": "place_order_xtb",
+  "parameters": {
+    "type":"object",
+    "properties":{
+      "symbol":{"type":"string"},
+      "side":{"type":"string","enum":["buy","sell"]},
+      "qty":{"type":"number"},
+      "type":{"type":"string","enum":["market","limit","stop"]},
+      "limit_price":{"type":["number","null"]},
+      "time_in_force":{"type":"string","enum":["day","gtc"]},
+      "client_order_id":{"type":"string"}
+    },
+    "required":["symbol","side","qty","type","time_in_force","client_order_id"]
+  }
+}
+
+{
+  "name": "simulate_order",
+  "parameters": {
+    "type":"object",
+    "properties":{"broker":{"type":"string","enum":["ibkr","xtb"]},"order_payload":{"type":"object"}},
+    "required":["broker","order_payload"]
+  }
+}
+
+
+News (biała lista)
+
+{
+  "name": "news_search_whitelist",
+  "parameters": {
+    "type":"object",
+    "properties":{
+      "query":{"type":"string"},
+      "sources":{"type":"array","items":{"type":"string","enum":["bbc","nyt","bloomberg","wsj"]}},
+      "date_range":{"type":"object","properties":{"from":{"type":"string","format":"date"},"to":{"type":"string","format":"date"}}}
+    },
+    "required":["query","sources"]
+  }
+}
+
+
+Prawo (oficjalne)
+
+{
+  "name": "fetch_gov_law",
+  "parameters": {
+    "type":"object",
+    "properties":{
+      "jurisdiction":{"type":"string"},
+      "act_name":{"type":"string"},
+      "since_date":{"type":"string","format":"date"}
+    },
+    "required":["jurisdiction","act_name"]
+  }
+}
+
+
+Dokumentacja / pomocnicze
+
+{"name":"retrieve_document","parameters":{"type":"object","properties":{"doc_id":{"type":"string"},"url_whitelisted":{"type":"string"}}}}
+
+{"name":"create_audit_note","parameters":{"type":"object","properties":{"content":{"type":"string"},"tags":{"type":"array","items":{"type":"string"}}},"required":["content"]}}
+
+{"name":"create_task","parameters":{"type":"object","properties":{"title":{"type":"string"},"prompt":{"type":"string"}},"required":["title","prompt"]}}
+
+{"name":"charge_customer","parameters":{"type":"object","properties":{"customer_id":{"type":"string"},"amount":{"type":"number"},"currency":{"type":"string"},"reason":{"type":"string"}},"required":["customer_id","amount","currency"]}}
+
+Structured Outputs (wymagane od LLM – zweryfikuj JSON Schema w backendzie)
+
+PlanAction
+
+{
+  "type":"PlanAction","version":"1.0",
+  "goal":"<cel użytkownika>",
+  "assumptions":[],
+  "needed_data":[{"name":"","tool":"","why":""}],
+  "legal_checks":[{"jurisdiction":"","act_name":"","since_date":"YYYY-MM-DD","why":""}],
+  "risk_flags":[],
+  "proposed_actions":[{"id":"A1","kind":"analysis|order|payment|document|task","tool":"","payload":{},"preconditions":["simulate_ok","limits_ok","law_ok"],"can_execute":false,"rationale":""}]
+}
+
+
+PlanVerification
+
+{
+  "type":"PlanVerification","version":"1.0",
+  "checks":{
+    "law_ok":{"status":"unknown|pass|fail","evidence":[{"source":"","title":"","date":"YYYY-MM-DD"}]},
+    "simulate_ok":{"status":"unknown|pass|fail","notes":""},
+    "limits_ok":{"status":"unknown|pass|fail","notes":""}
+  },
+  "open_issues":[]
+}
+
+
+Decision
+
+{
+  "type":"Decision","version":"1.0",
+  "summary":"",
+  "approved_actions":[],
+  "deferred_actions":[],
+  "rejected_actions":[],
+  "next_questions":[]
+}

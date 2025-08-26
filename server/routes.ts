@@ -30,6 +30,18 @@ import bcrypt from "bcryptjs";
 import Stripe from "stripe";
 import multer from "multer";
 
+// Tool handlers import
+import {
+  handleGetMarketDataTradingView,
+  handleSimulateOrder,
+  handleNewsSearchWhitelist,
+  handleFetchGovLaw,
+  handleCreateAuditNote,
+  handleChargeCustomer,
+} from "./tools/handlers";
+import { enforceWhitelist } from "./tools/whitelist";
+import { ALL_TOOLS } from "./tools/contracts";
+
 const upload = multer({ 
   storage: multer.memoryStorage(),
   limits: { fileSize: 10 * 1024 * 1024 } // 10MB limit
@@ -387,6 +399,263 @@ Format: Strukturalny raport PDF-ready`;
     } catch (error) {
       console.error('Report Generation Error:', error);
       res.status(500).json({ error: 'Failed to generate report' });
+    }
+  });
+
+  // ===== TOOL EXECUTION ENDPOINTS =====
+  // Advanced AI Agent Tool System - LLM serves as reasoning brain, tools execute actions
+  
+  // Trading Tools
+  app.post('/api/tools/market-data-tradingview', enforceWhitelist, handleGetMarketDataTradingView);
+  app.post('/api/tools/simulate-order', handleSimulateOrder);
+  app.post('/api/tools/quotes-ibkr', handleGetMarketDataTradingView); // Mock for now
+  app.post('/api/tools/quotes-xtb', handleGetMarketDataTradingView); // Mock for now
+  app.post('/api/tools/place-order-ibkr', handleSimulateOrder); // High risk - simulation only for now
+  app.post('/api/tools/place-order-xtb', handleSimulateOrder); // High risk - simulation only for now
+
+  // News Tools (Whitelist enforced)
+  app.post('/api/tools/news-search', enforceWhitelist, handleNewsSearchWhitelist);
+
+  // Legal Tools (Government sources only)
+  app.post('/api/tools/legal-documents', enforceWhitelist, handleFetchGovLaw);
+
+  // Helper Tools
+  app.post('/api/tools/audit-note', handleCreateAuditNote);
+  app.post('/api/tools/create-task', handleCreateAuditNote); // Mock for now
+  app.post('/api/tools/charge-customer', handleChargeCustomer); // Proposal only - never executes
+
+  // Tool metadata and contracts endpoint
+  app.get('/api/tools/contracts', (req, res) => {
+    res.json({
+      tools: ALL_TOOLS,
+      total_tools: ALL_TOOLS.length,
+      categories: {
+        trading: ALL_TOOLS.filter(t => t.name.includes('ibkr') || t.name.includes('xtb') || t.name.includes('trading')).length,
+        news: ALL_TOOLS.filter(t => t.name.includes('news')).length,
+        legal: ALL_TOOLS.filter(t => t.name.includes('gov') || t.name.includes('legal')).length,
+        helpers: ALL_TOOLS.filter(t => ['create_audit_note', 'create_task', 'charge_customer'].includes(t.name)).length
+      },
+      security: {
+        whitelist_enforced: true,
+        permission_based: true,
+        audit_trail: true,
+        simulation_required: true
+      }
+    });
+  });
+
+  // Agent configuration endpoints
+  app.get('/api/agent/config', async (req, res) => {
+    try {
+      const userId = (req as any).user?.id || 'demo-user';
+      const config = await storage.getUserAgentConfig(userId);
+      
+      if (!config) {
+        // Create default config
+        const defaultConfig = {
+          agentRole: 'analysis_only',
+          riskProfile: 'moderate',
+          preferredJurisdiction: 'US',
+          tradingPreferences: { paperTrading: true },
+          newsSourcePreferences: ['bbc', 'nyt'],
+          legalAlertSettings: { enabled: false },
+          autoExecutionLimits: { maxTradeAmount: 0 }
+        };
+        
+        const newConfig = await storage.createUserAgentConfig(userId, defaultConfig);
+        return res.json(newConfig);
+      }
+      
+      res.json(config);
+    } catch (error) {
+      console.error('Error getting agent config:', error);
+      res.status(500).json({ error: 'Failed to get agent configuration' });
+    }
+  });
+
+  app.post('/api/agent/config', async (req, res) => {
+    try {
+      const userId = (req as any).user?.id || 'demo-user';
+      const config = req.body;
+      
+      const updatedConfig = await storage.createUserAgentConfig(userId, config);
+      res.json(updatedConfig);
+    } catch (error) {
+      console.error('Error updating agent config:', error);
+      res.status(500).json({ error: 'Failed to update agent configuration' });
+    }
+  });
+
+  // ===== STRUCTURED PLANNING ENDPOINTS =====
+  // PlanAction → PlanVerification → Decision flow with JSON Schema validation
+  
+  app.post('/api/planning/generate', async (req, res) => {
+    try {
+      const { userQuery, context } = req.body;
+      const userId = (req as any).user?.id || 'demo-user';
+      const sessionId = req.body.sessionId || `plan_${Date.now()}`;
+      
+      if (!userQuery) {
+        return res.status(400).json({ error: 'User query is required' });
+      }
+
+      const { StructuredPlanningService } = await import('./structured/planning');
+      const planningService = new StructuredPlanningService();
+      
+      const planAction = await planningService.generatePlanAction(
+        userQuery,
+        userId,
+        sessionId,
+        context || {}
+      );
+
+      res.json({
+        success: true,
+        phase: 'planning',
+        planAction,
+        nextStep: 'verification',
+        sessionId
+      });
+    } catch (error: any) {
+      console.error('Plan generation error:', error);
+      res.status(500).json({ 
+        error: 'Failed to generate plan',
+        details: error.message 
+      });
+    }
+  });
+
+  app.post('/api/planning/verify', async (req, res) => {
+    try {
+      const { planAction } = req.body;
+      const userId = (req as any).user?.id || 'demo-user';
+      const sessionId = req.body.sessionId || `plan_${Date.now()}`;
+      
+      if (!planAction) {
+        return res.status(400).json({ error: 'Plan action is required' });
+      }
+
+      const { StructuredPlanningService } = await import('./structured/planning');
+      const planningService = new StructuredPlanningService();
+      
+      const verification = await planningService.verifyPlan(
+        planAction,
+        userId,
+        sessionId
+      );
+
+      res.json({
+        success: true,
+        phase: 'verification',
+        verification,
+        nextStep: 'decision',
+        sessionId
+      });
+    } catch (error: any) {
+      console.error('Plan verification error:', error);
+      res.status(500).json({ 
+        error: 'Failed to verify plan',
+        details: error.message 
+      });
+    }
+  });
+
+  app.post('/api/planning/decide', async (req, res) => {
+    try {
+      const { planAction, verification } = req.body;
+      const userId = (req as any).user?.id || 'demo-user';
+      const sessionId = req.body.sessionId || `plan_${Date.now()}`;
+      
+      if (!planAction || !verification) {
+        return res.status(400).json({ error: 'Plan action and verification are required' });
+      }
+
+      const { StructuredPlanningService } = await import('./structured/planning');
+      const planningService = new StructuredPlanningService();
+      
+      const decision = await planningService.makeDecision(
+        planAction,
+        verification,
+        userId,
+        sessionId
+      );
+
+      res.json({
+        success: true,
+        phase: 'decision',
+        decision,
+        nextStep: 'execute',
+        sessionId
+      });
+    } catch (error: any) {
+      console.error('Decision making error:', error);
+      res.status(500).json({ 
+        error: 'Failed to make decision',
+        details: error.message 
+      });
+    }
+  });
+
+  // Complete planning flow - all phases in one call
+  app.post('/api/planning/complete-flow', async (req, res) => {
+    try {
+      const { userQuery, context } = req.body;
+      const userId = (req as any).user?.id || 'demo-user';
+      const sessionId = req.body.sessionId || `plan_${Date.now()}`;
+      
+      if (!userQuery) {
+        return res.status(400).json({ error: 'User query is required' });
+      }
+
+      const { StructuredPlanningService } = await import('./structured/planning');
+      const planningService = new StructuredPlanningService();
+      
+      // Phase 1: Generate Plan
+      const planAction = await planningService.generatePlanAction(
+        userQuery,
+        userId,
+        sessionId,
+        context || {}
+      );
+
+      // Phase 2: Verify Plan
+      const verification = await planningService.verifyPlan(
+        planAction,
+        userId,
+        sessionId
+      );
+
+      // Phase 3: Make Decision
+      const decision = await planningService.makeDecision(
+        planAction,
+        verification,
+        userId,
+        sessionId
+      );
+
+      res.json({
+        success: true,
+        phase: 'complete',
+        sessionId,
+        planAction,
+        verification,
+        decision,
+        summary: {
+          userQuery,
+          totalActions: planAction.proposed_actions.length,
+          approvedActions: decision.approved_actions.length,
+          deferredActions: decision.deferred_actions.length,
+          rejectedActions: decision.rejected_actions.length,
+          openIssues: verification.open_issues.length,
+          nextQuestions: decision.next_questions
+        }
+      });
+    } catch (error: any) {
+      console.error('Complete planning flow error:', error);
+      res.status(500).json({ 
+        error: 'Failed to complete planning flow',
+        details: error.message 
+      });
     }
   });
 

@@ -1422,3 +1422,89 @@ export const SYSTEM_ROLE_PERMISSIONS: Record<SystemRole, string[]> = {
   USER: ['chat:access', 'onboarding:access', 'profile:read', 'profile:write'],
   ADMIN: ['*'] // All permissions including admin panel
 };
+
+// Tool execution audit trail
+export const toolExecutions = pgTable("tool_executions", {
+  id: varchar("id", { length: 255 }).primaryKey(),
+  userId: varchar("user_id", { length: 255 }).references(() => users.id).notNull(),
+  sessionId: varchar("session_id", { length: 255 }),
+  toolName: varchar("tool_name", { length: 100 }).notNull(),
+  userRole: varchar("user_role", { enum: ['analysis_only', 'confirm_to_execute', 'auto_execute_with_limits'] }).notNull(),
+  inputData: jsonb("input_data").notNull(),
+  outputData: jsonb("output_data"),
+  inputHash: varchar("input_hash", { length: 100 }),
+  outputHash: varchar("output_hash", { length: 100 }),
+  executionStatus: varchar("execution_status", { 
+    enum: ['simulated', 'executed', 'rejected', 'pending_confirmation', 'failed'] 
+  }).notNull(),
+  permissionGranted: boolean("permission_granted").default(false),
+  riskFlags: jsonb("risk_flags").default('[]'),
+  decisionRationale: text("decision_rationale"),
+  executionTimeMs: integer("execution_time_ms"),
+  errorMessage: text("error_message"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// User trading accounts configuration  
+export const tradingAccounts = pgTable("trading_accounts", {
+  id: varchar("id", { length: 255 }).primaryKey(),
+  userId: varchar("user_id", { length: 255 }).references(() => users.id).notNull(),
+  broker: varchar("broker", { enum: ['ibkr', 'xtb'] }).notNull(),
+  accountId: varchar("account_id", { length: 255 }),
+  accountName: varchar("account_name", { length: 255 }),
+  isActive: boolean("is_active").default(true),
+  isPaperTrading: boolean("is_paper_trading").default(true),
+  credentials: jsonb("credentials"), // Encrypted
+  riskLimits: jsonb("risk_limits").default('{}'),
+  lastConnected: timestamp("last_connected"),
+  connectionStatus: varchar("connection_status", { 
+    enum: ['connected', 'disconnected', 'error', 'pending'] 
+  }).default('pending'),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// User agent configuration and settings
+export const agentConfigs = pgTable("agent_configs", {
+  id: varchar("id", { length: 255 }).primaryKey(),
+  userId: varchar("user_id", { length: 255 }).references(() => users.id).notNull(),
+  agentRole: varchar("agent_role", { 
+    enum: ['analysis_only', 'confirm_to_execute', 'auto_execute_with_limits'] 
+  }).default('analysis_only'),
+  riskProfile: varchar("risk_profile", { 
+    enum: ['conservative', 'moderate', 'aggressive'] 
+  }).default('moderate'),
+  preferredJurisdiction: varchar("preferred_jurisdiction", { length: 100 }),
+  tradingPreferences: jsonb("trading_preferences").default('{}'),
+  newsSourcePreferences: jsonb("news_source_preferences").default('[]'),
+  legalAlertSettings: jsonb("legal_alert_settings").default('{}'),
+  autoExecutionLimits: jsonb("auto_execution_limits").default('{}'),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Additional insert schemas for new tables
+export const insertToolExecutionSchema = createInsertSchema(toolExecutions).omit({
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertTradingAccountSchema = createInsertSchema(tradingAccounts).omit({
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertAgentConfigSchema = createInsertSchema(agentConfigs).omit({
+  createdAt: true,
+  updatedAt: true,
+});
+
+// New types for tool system
+export type ToolExecution = typeof toolExecutions.$inferSelect;
+export type InsertToolExecution = z.infer<typeof insertToolExecutionSchema>;
+export type TradingAccount = typeof tradingAccounts.$inferSelect;
+export type InsertTradingAccount = z.infer<typeof insertTradingAccountSchema>;
+export type AgentConfig = typeof agentConfigs.$inferSelect;
+export type InsertAgentConfig = z.infer<typeof insertAgentConfigSchema>;

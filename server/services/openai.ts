@@ -483,33 +483,25 @@ Format the response as a detailed financial plan with sections for:
       return 'Unable to generate report at this time.';
     }
   }
-  // Enhanced Chat System Methods
+  // Enhanced Chat System Methods with function calling capability
   async generateAdvancedResponse(
     message: string,
     systemPrompt: string,
     model: string = 'gpt-4o'
   ): Promise<string> {
-    try {
-      const messages: OpenAI.Chat.Completions.ChatCompletionMessageParam[] = [
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: message }
-      ];
+    // Convert to the enhanced sendMessage format with context
+    const context: AdvisorContext = {
+      advisorId: 'financial-advisor',
+      advisorName: 'Financial Advisor',
+      specialty: 'comprehensive financial planning',
+      userProfile: undefined,
+      decisionPath: [],
+      chatHistory: []
+    };
 
-      const completion = await this.openai.chat.completions.create({
-        model,
-        messages,
-        temperature: 0.7,
-        max_tokens: 2000,
-        top_p: 1,
-        frequency_penalty: 0,
-        presence_penalty: 0
-      });
-
-      return completion.choices[0]?.message?.content || 'I apologize, but I was unable to generate a response. Could you please try rephrasing your question?';
-    } catch (error) {
-      console.error('Error in generateAdvancedResponse:', error);
-      throw new Error('Failed to generate AI response');
-    }
+    // Use the enhanced sendMessage with function calling
+    const response = await this.sendMessage(message, context, model);
+    return response.response;
   }
 
   async generateConversationTitle(message: string): Promise<string> {
@@ -539,6 +531,7 @@ Format the response as a detailed financial plan with sections for:
       return 'New Chat';
     }
   }
+
 }
 
 export const openAIService = new OpenAIService();

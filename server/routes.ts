@@ -1578,6 +1578,8 @@ Use this information to provide highly personalized advice based on their assess
 
   // Get messages for a specific conversation
   app.get('/api/chat/messages/:conversationId', async (req, res) => {
+    console.log(`🚨 ROUTE HIT! /api/chat/messages/${req.params.conversationId}`);
+    
     try {
       const { conversationId } = req.params;
       

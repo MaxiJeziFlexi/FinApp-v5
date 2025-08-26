@@ -23,6 +23,9 @@ export interface AdvisorContext {
 }
 
 export class OpenAIService {
+  generateStructuredResponse(prompt: string, arg1: { model: string; responseFormat: { type: string; }; maxTokens: number; }) {
+      throw new Error('Method not implemented.');
+  }
   private openai: OpenAI;
 
   constructor() {

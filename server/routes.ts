@@ -1594,6 +1594,11 @@ Use this information to provide highly personalized advice based on their assess
     try {
       const { conversationId } = req.params;
       
+      // Disable caching for real-time messages
+      res.set('Cache-Control', 'no-cache, no-store, must-revalidate');
+      res.set('Pragma', 'no-cache');
+      res.set('Expires', '0');
+      
       const messages = await storage.getConversationMessages(conversationId);
       console.log(`Fetching messages for conversation ${conversationId}: ${messages.length} messages found`);
       res.json(messages);

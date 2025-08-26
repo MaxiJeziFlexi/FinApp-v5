@@ -302,7 +302,14 @@ export default function ThreePanelChatInterface({ userId, advisorId }: ThreePane
     queryKey: ['/api/chat/messages', currentConversationId],
     queryFn: async () => {
       if (!currentConversationId) return [];
-      const response = await fetch(`/api/chat/messages/${currentConversationId}`);
+      // Add timestamp to prevent caching
+      const timestamp = Date.now();
+      const response = await fetch(`/api/chat/messages/${currentConversationId}?t=${timestamp}`, {
+        cache: 'no-store',
+        headers: {
+          'Cache-Control': 'no-cache'
+        }
+      });
       if (!response.ok) return [];
       const data = await response.json();
       return data.map((msg: {id: string, message: string, sender: string, createdAt: string, metadata?: any}) => ({
@@ -315,6 +322,8 @@ export default function ThreePanelChatInterface({ userId, advisorId }: ThreePane
       }));
     },
     enabled: !!currentConversationId,
+    staleTime: 0,  // Always consider data stale
+    cacheTime: 0,  // Don't cache at all
   });
 
   // Update messages when current conversation changes

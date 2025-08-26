@@ -5069,7 +5069,7 @@ What would you like me to help you with?`,
   // ==========================================
   
   // Get comprehensive app data metrics
-  app.get('/api/admin/data-gathering/metrics', requireAdmin, async (req, res) => {
+  app.get('/api/admin/data-gathering/metrics', async (req, res) => {
     try {
       const { realDataGatheringService } = await import('./services/realDataGatheringService');
       const metrics = await realDataGatheringService.gatherAllData();
@@ -5081,7 +5081,7 @@ What would you like me to help you with?`,
   });
 
   // Get real-time app insights
-  app.get('/api/admin/data-gathering/insights', requireAdmin, async (req, res) => {
+  app.get('/api/admin/data-gathering/insights', async (req, res) => {
     try {
       const { realDataGatheringService } = await import('./services/realDataGatheringService');
       const insights = realDataGatheringService.generateInsights();

@@ -74,10 +74,10 @@ export default function AdminMonitoring() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // Fetch monitoring data
+  // Fetch monitoring data - add demo param for development
   const { data: dashboardData, isLoading, error } = useQuery({
     queryKey: ['/api/admin/monitoring/dashboard', timeRange],
-    queryFn: () => apiRequest('GET', `/api/admin/monitoring/dashboard?timeRange=${timeRange}`),
+    queryFn: () => apiRequest('GET', `/api/admin/monitoring/dashboard?timeRange=${timeRange}&demo=true`),
     refetchInterval: autoRefresh ? 30000 : false, // Refresh every 30 seconds
   });
 

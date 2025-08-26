@@ -2984,7 +2984,7 @@ Respond professionally and helpfully to the user's message.`;
   });
 
   // Advanced AI Dashboard Routes - Real Data
-  app.get('/api/admin/ai-performance', async (req, res) => {
+  app.get('/api/admin/ai-performance-legacy', requireAdmin as any, async (req, res) => {
     try {
       // Real AI performance metrics from system
       const performance = {
@@ -3002,7 +3002,7 @@ Respond professionally and helpfully to the user's message.`;
     }
   });
 
-  app.get('/api/admin/quantum-models', async (req, res) => {
+  app.get('/api/admin/quantum-models', requireAdmin as any, async (req, res) => {
     try {
       const models = [
         {
@@ -3034,7 +3034,7 @@ Respond professionally and helpfully to the user's message.`;
     }
   });
 
-  app.post('/api/admin/retrain-models', async (req, res) => {
+  app.post('/api/admin/retrain-models-legacy', requireAdmin as any, async (req, res) => {
     try {
       const { modelType } = req.body;
       
@@ -3052,7 +3052,7 @@ Respond professionally and helpfully to the user's message.`;
     }
   });
 
-  app.post('/api/admin/update-tax-data', async (req, res) => {
+  app.post('/api/admin/update-tax-data', requireAdmin as any, async (req, res) => {
     try {
       // Simulate tax data update
       await new Promise(resolve => setTimeout(resolve, 1500));
@@ -3454,8 +3454,9 @@ Respond professionally and helpfully to the user's message.`;
       // Generate a unique user ID
       const userId = `user-${crypto.randomBytes(8).toString('hex')}-${crypto.randomBytes(8).toString('hex')}`;
       
-      // Check if this should be an admin user
-      const isAdmin = userData.email?.includes('admin') || userData.firstName?.toLowerCase().includes('admin') || userData.lastName?.toLowerCase().includes('admin');
+      // SECURITY: Admin users must be explicitly designated - no string-based detection
+      // Only allow admin creation through secure administrative process
+      const isAdmin = false; // Remove automatic admin designation for security
       
       // Create user
       const user = await storage.createUser({
@@ -3783,8 +3784,8 @@ Respond professionally and helpfully to the user's message.`;
     }
   });
 
-  // Admin quick access route - makes any user an admin with Max plan
-  app.post('/api/admin/promote/:userId', async (req, res) => {
+  // Admin quick access route - makes any user an admin with Max plan - REQUIRES ADMIN AUTH
+  app.post('/api/admin/promote/:userId', requireAdmin as any, async (req, res) => {
     try {
       const { userId } = req.params;
       
@@ -4294,8 +4295,8 @@ Respond professionally and helpfully to the user's message.`;
     res.status(statusCode).json(healthStatus);
   });
 
-  // Admin routes
-  app.get("/api/admin/users", async (req, res) => {
+  // Admin routes - REQUIRES ADMIN AUTH
+  app.get("/api/admin/users", requireAdmin as any, async (req, res) => {
     try {
       // Note: In a real app, you'd add admin authentication middleware here
       const users = await storage.getAllUsers();
@@ -4690,8 +4691,8 @@ What would you like me to help you with?`,
     }
   });
 
-  // AI Admin Authentication Check - allow demo access
-  app.get('/api/admin/auth-check', async (req, res) => {
+  // AI Admin Authentication Check - SECURITY HARDENED
+  app.get('/api/admin/auth-check', requireAdmin as any, async (req, res) => {
     try {
       // Demo mode - return mock admin credentials for development
       const isDemoMode = process.env.NODE_ENV === 'development';
@@ -5168,8 +5169,8 @@ What would you like me to help you with?`,
   // MONITORING SYSTEM ROUTES
   // ==========================================
   
-  // Get monitoring dashboard data - allow demo access for testing
-  app.get('/api/admin/monitoring/dashboard', async (req, res) => {
+  // Get monitoring dashboard data - REQUIRES ADMIN AUTH
+  app.get('/api/admin/monitoring/dashboard', requireAdmin as any, async (req, res) => {
     try {
       // Demo mode for development environment or when demo param is passed
       const isDemoMode = process.env.NODE_ENV === 'development' || req.query.demo === 'true';
@@ -5291,7 +5292,7 @@ What would you like me to help you with?`,
   // ==========================================
   
   // Get comprehensive app data metrics
-  app.get('/api/admin/data-gathering/metrics', async (req, res) => {
+  app.get('/api/admin/data-gathering/metrics', requireAdmin as any, async (req, res) => {
     try {
       const { realDataGatheringService } = await import('./services/realDataGatheringService');
       const metrics = await realDataGatheringService.gatherAllData();
@@ -5303,7 +5304,7 @@ What would you like me to help you with?`,
   });
 
   // Get real-time app insights
-  app.get('/api/admin/data-gathering/insights', async (req, res) => {
+  app.get('/api/admin/data-gathering/insights', requireAdmin as any, async (req, res) => {
     try {
       const { realDataGatheringService } = await import('./services/realDataGatheringService');
       const insights = realDataGatheringService.generateInsights();

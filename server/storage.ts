@@ -1310,21 +1310,27 @@ export class DatabaseStorage implements IStorage {
 
   async getConversationMessages(conversationId: string): Promise<any[]> {
     try {
+      console.log(`🔍 STORAGE: Querying messages for conversation: ${conversationId}`);
+      
       const messages = await db
         .select()
         .from(chatMessages)
         .where(eq(chatMessages.sessionId, conversationId))
         .orderBy(asc(chatMessages.createdAt));
 
+      console.log(`📊 STORAGE: Found ${messages.length} messages:`, messages.map(m => ({ id: m.id, content: m.message?.substring(0, 50), sender: m.sender })));
+      
       return messages;
     } catch (error) {
-      console.error('Error getting conversation messages:', error);
+      console.error('❌ STORAGE ERROR getting conversation messages:', error);
       return [];
     }
   }
 
   async saveConversationMessage(message: any): Promise<any> {
     try {
+      console.log(`💾 STORAGE: Saving message with sessionId: ${message.conversationId}`);
+      
       const [savedMessage] = await db
         .insert(chatMessages)
         .values({
@@ -1342,6 +1348,8 @@ export class DatabaseStorage implements IStorage {
         })
         .returning();
 
+      console.log(`✅ STORAGE: Message saved successfully:`, { id: savedMessage.id, sessionId: savedMessage.sessionId, sender: savedMessage.sender });
+
       // Update conversation timestamp
       await db
         .update(advisorSessions)
@@ -1350,7 +1358,7 @@ export class DatabaseStorage implements IStorage {
 
       return savedMessage;
     } catch (error) {
-      console.error('Error saving conversation message:', error);
+      console.error('❌ STORAGE ERROR saving conversation message:', error);
       throw error;
     }
   }

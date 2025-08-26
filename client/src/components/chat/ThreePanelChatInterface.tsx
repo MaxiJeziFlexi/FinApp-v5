@@ -849,7 +849,7 @@ export default function ThreePanelChatInterface({ userId, advisorId }: ThreePane
         className="opacity-30 z-0"
       />
       {/* Left Sidebar - App Branding, Navigation, User Profile */}
-      <div className={`${sidebarCollapsed ? 'w-16' : 'w-80'} bg-muted/30 border-r border-border flex flex-col transition-all duration-300 backdrop-blur-sm relative z-10`}>
+      <div className={`${sidebarCollapsed ? 'w-16 min-w-16' : 'w-80 min-w-80'} bg-muted/30 border-r border-border flex flex-col transition-all duration-300 backdrop-blur-sm relative z-10`}>
         {/* Header with Branding */}
         <div className="p-4 border-b border-border">
           {/* Collapse Toggle Button */}
@@ -1290,17 +1290,174 @@ export default function ThreePanelChatInterface({ userId, advisorId }: ThreePane
       <div className="flex-1 flex flex-col">
         {currentConversationId ? (
           <>
-            {/* Chat Header */}
-            <div className="p-4 border-b border-border bg-muted/30">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg text-white">
-                  <Bot className="h-5 w-5" />
+            {/* Chat Header with Integrated Settings */}
+            <div className="border-b border-border bg-muted/30">
+              {/* Main Header */}
+              <div className="p-4 pb-2">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg text-white">
+                    <Bot className="h-5 w-5" />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="font-semibold">Financial AI Assistant</h3>
+                    <p className="text-sm text-muted-foreground">Online • Ready to help</p>
+                  </div>
+                  <Badge className="bg-green-500 text-white">GPT-4o</Badge>
                 </div>
-                <div>
-                  <h3 className="font-semibold">Financial AI Assistant</h3>
-                  <p className="text-sm text-muted-foreground">Online • Ready to help</p>
+              </div>
+              
+              {/* Integrated Settings Bar */}
+              <div className="px-4 pb-3">
+                <div className="flex items-center justify-between gap-2 bg-background/50 rounded-lg p-2 border">
+                  {/* Left Side - AI Controls */}
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setShowAIAgentSettings(true)}
+                      className="h-7 px-2 text-xs hover:bg-primary/10"
+                      data-testid="button-ai-settings"
+                    >
+                      <Settings className="w-3 h-3 mr-1" />
+                      Agent
+                    </Button>
+                    
+                    <Select defaultValue="gpt-4o">
+                      <SelectTrigger className="h-7 w-24 text-xs">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="gpt-4o">GPT-4o</SelectItem>
+                        <SelectItem value="claude">Claude</SelectItem>
+                        <SelectItem value="gemini">Gemini</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={toggleTheme}
+                      className="h-7 px-2 text-xs hover:bg-primary/10"
+                    >
+                      {theme === 'dark' ? <Sun className="w-3 h-3" /> : <Moon className="w-3 h-3" />}
+                    </Button>
+                  </div>
+                  
+                  {/* Right Side - Chat Controls */}
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setAdvancedSearchOpen(!advancedSearchOpen)}
+                      className="h-7 px-2 text-xs hover:bg-primary/10"
+                    >
+                      <Search className="w-3 h-3 mr-1" />
+                      Filter
+                    </Button>
+                    
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setShowFileUploader(!showFileUploader)}
+                      className="h-7 px-2 text-xs hover:bg-primary/10"
+                    >
+                      <Brain className="w-3 h-3 mr-1" />
+                      Files
+                    </Button>
+                    
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={clearChatHistory}
+                      className="h-7 px-2 text-xs text-destructive hover:bg-destructive/10"
+                    >
+                      <Trash2 className="w-3 h-3 mr-1" />
+                      Clear
+                    </Button>
+                  </div>
                 </div>
-                <Badge className="ml-auto">GPT-4o</Badge>
+                
+                {/* Advanced Filter Panel */}
+                {advancedSearchOpen && (
+                  <motion.div 
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: "auto" }}
+                    exit={{ opacity: 0, height: 0 }}
+                    className="mt-2 p-3 bg-background/80 rounded-lg border space-y-3"
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-medium text-muted-foreground">CHAT FILTERS</span>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-5 px-1 text-xs"
+                        onClick={() => {
+                          setSearchFilters({
+                            messageType: 'all',
+                            dateRange: 'all',
+                            hasReactions: false,
+                            favoriteOnly: false
+                          });
+                        }}
+                      >
+                        Reset
+                      </Button>
+                    </div>
+                    <div className="grid grid-cols-3 gap-3">
+                      <div>
+                        <label className="text-xs text-muted-foreground">Date Range</label>
+                        <Select 
+                          value={searchFilters.dateRange} 
+                          onValueChange={(value) => setSearchFilters(prev => ({ ...prev, dateRange: value as any }))}
+                        >
+                          <SelectTrigger className="h-7 mt-1 text-xs">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="all">All time</SelectItem>
+                            <SelectItem value="today">Today</SelectItem>
+                            <SelectItem value="week">This week</SelectItem>
+                            <SelectItem value="month">This month</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div>
+                        <label className="text-xs text-muted-foreground">Message Type</label>
+                        <Select 
+                          value={searchFilters.messageType} 
+                          onValueChange={(value) => setSearchFilters(prev => ({ ...prev, messageType: value as any }))}
+                        >
+                          <SelectTrigger className="h-7 mt-1 text-xs">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="all">All messages</SelectItem>
+                            <SelectItem value="user">My messages</SelectItem>
+                            <SelectItem value="assistant">AI responses</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="flex items-end">
+                        <div className="space-y-1">
+                          <div className="flex items-center space-x-2">
+                            <Switch 
+                              checked={searchFilters.favoriteOnly} 
+                              onCheckedChange={(checked) => setSearchFilters(prev => ({ ...prev, favoriteOnly: checked }))}
+                            />
+                            <label className="text-xs text-muted-foreground">Favorites only</label>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <Switch 
+                              checked={searchFilters.hasReactions} 
+                              onCheckedChange={(checked) => setSearchFilters(prev => ({ ...prev, hasReactions: checked }))}
+                            />
+                            <label className="text-xs text-muted-foreground">With reactions</label>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
               </div>
             </div>
 

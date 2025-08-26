@@ -19,6 +19,7 @@ import MandatorySignIn from "@/pages/mandatory-signin";
 import CryptoMarketplace from "@/pages/crypto-marketplace";
 import AdvancedAIDashboard from "@/pages/advanced-ai-dashboard";
 import AdvancedAIControlCenter from "@/components/admin/AdvancedAIControlCenter";
+import ComprehensiveAIControlCenter from "@/components/admin/ComprehensiveAIControlCenter";
 import GamingHub from "@/pages/gaming-hub";
 import EnhancedCryptoMarketplace from "@/pages/enhanced-crypto-marketplace";
 import DeveloperDiagnostics from "@/pages/developer-diagnostics";
@@ -218,6 +219,7 @@ function Router() {
           <Route path="/admin-jarvis" component={AdminJarvis} />
           <Route path="/admin-monitoring" component={AdminMonitoring} />
           <Route path="/admin-ai-control" component={AdvancedAIControlCenter} />
+          <Route path="/admin-comprehensive" component={ComprehensiveAIControlCenter} />
           <Route path="/developer-diagnostics" component={DeveloperDiagnostics} />
 
           {/* Shared routes accessible by admin */}

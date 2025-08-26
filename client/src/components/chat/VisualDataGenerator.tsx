@@ -93,11 +93,10 @@ export default function VisualDataGenerator({
       exit={{ opacity: 0, scale: 0.9 }}
       transition={{ duration: 0.6, type: "spring" }}
       className={cn(
-        "relative p-8 rounded-3xl backdrop-blur-xl border-2",
-        "bg-gradient-to-br from-indigo-900/80 via-purple-900/70 to-pink-900/80",
-        "border-gradient-to-r from-cyan-400 to-purple-500",
-        "shadow-4xl shadow-purple-500/50 transform-gpu",
-        "hover:shadow-5xl hover:shadow-cyan-500/60 transition-all duration-700",
+        "relative p-6 rounded-2xl backdrop-blur-md border",
+        "bg-gradient-to-br from-background/80 to-background/40",
+        "border-border/50",
+        "shadow-xl hover:shadow-2xl transition-all duration-300",
         className
       )}
     >

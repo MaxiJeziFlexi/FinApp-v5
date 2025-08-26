@@ -190,10 +190,10 @@ export default function FileAnalysisUploader({
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         className={cn(
-          "relative p-8 rounded-3xl border-2 border-dashed transition-all duration-300",
+          "relative p-6 rounded-2xl border-2 border-dashed transition-all duration-300",
           dragActive 
-            ? "border-cyan-400 bg-gradient-to-br from-cyan-500/20 to-purple-500/20 shadow-2xl shadow-cyan-500/50" 
-            : "border-purple-400/50 bg-gradient-to-br from-slate-900/80 to-indigo-900/80 hover:border-purple-400 hover:shadow-xl hover:shadow-purple-500/30"
+            ? "border-primary bg-primary/5 shadow-lg" 
+            : "border-border hover:border-primary/50 bg-background/50 hover:shadow-lg"
         )}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
@@ -221,8 +221,8 @@ export default function FileAnalysisUploader({
             }}
             className="mx-auto mb-6"
           >
-            <div className="p-6 rounded-2xl bg-gradient-to-br from-purple-500/30 to-cyan-500/40 border border-purple-400/50 shadow-2xl inline-block">
-              <Upload className="w-12 h-12 text-purple-300 drop-shadow-2xl" />
+            <div className="p-4 rounded-xl bg-primary/10 border border-primary/20 shadow-lg inline-block">
+              <Upload className="w-10 h-10 text-primary" />
             </div>
           </motion.div>
           

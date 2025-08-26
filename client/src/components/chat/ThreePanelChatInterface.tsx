@@ -12,6 +12,10 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth, logout } from '@/hooks/useAuth';
 import { useTheme } from '@/contexts/ThemeContext';
+import ThinkingAnimation from './ThinkingAnimation';
+import AdvancedThinkingProcess from './AdvancedThinkingProcess';
+import FloatingParticles from './FloatingParticles';
+import AITypingIndicator from './AITypingIndicator';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import {
@@ -830,9 +834,16 @@ export default function ThreePanelChatInterface({ userId, advisorId }: ThreePane
   }, [conversations, currentConversationId, isCreatingConversation, startNewConversation]);
 
   return (
-    <div className="h-screen flex bg-background">
+    <div className="h-screen flex bg-background relative">
+      {/* Floating Particles Background */}
+      <FloatingParticles 
+        isActive={isLoading || isStreaming} 
+        count={15}
+        colors={['#3b82f6', '#8b5cf6', '#10b981', '#f59e0b']}
+        className="opacity-30 z-0"
+      />
       {/* Left Sidebar - App Branding, Navigation, User Profile */}
-      <div className={`${sidebarCollapsed ? 'w-16' : 'w-80'} bg-muted/30 border-r border-border flex flex-col transition-all duration-300`}>
+      <div className={`${sidebarCollapsed ? 'w-16' : 'w-80'} bg-muted/30 border-r border-border flex flex-col transition-all duration-300 backdrop-blur-sm relative z-10`}>
         {/* Header with Branding */}
         <div className="p-4 border-b border-border">
           {/* Collapse Toggle Button */}
@@ -1420,6 +1431,29 @@ export default function ThreePanelChatInterface({ userId, advisorId }: ThreePane
                     </div>
                   ))
                 )}
+                
+                {/* Advanced Thinking Animation */}
+                {(isLoading || isStreaming) && (
+                  <div className="px-4 py-6">
+                    <AdvancedThinkingProcess 
+                      isVisible={true}
+                      currentThought={isStreaming ? "Generating your personalized financial response..." : "Analyzing your financial question..."}
+                      className="mb-4"
+                    />
+                    <ThinkingAnimation 
+                      stage={isStreaming ? 'responding' : 'analyzing'}
+                      message={isStreaming ? 'Streaming response...' : 'Processing your request...'}
+                      className="animate-fade-in-3d"
+                    />
+                    <AITypingIndicator 
+                      isVisible={true}
+                      stage={isStreaming ? 'typing' : 'thinking'}
+                      message="Generating comprehensive financial advice..."
+                      className="mt-4 mx-auto"
+                    />
+                  </div>
+                )}
+                
                 <div ref={messagesEndRef} />
               </div>
             </ScrollArea>

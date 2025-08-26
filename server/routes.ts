@@ -1595,6 +1595,7 @@ Use this information to provide highly personalized advice based on their assess
       const { conversationId } = req.params;
       
       const messages = await storage.getConversationMessages(conversationId);
+      console.log(`Fetching messages for conversation ${conversationId}: ${messages.length} messages found`);
       res.json(messages);
     } catch (error) {
       console.error('Error fetching conversation messages:', error);

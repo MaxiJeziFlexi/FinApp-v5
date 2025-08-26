@@ -488,9 +488,9 @@ export default function ThreePanelChatInterface({ userId, advisorId }: ThreePane
         }
       }
       
-      if (messages.length === 0) {
-        queryClient.invalidateQueries({ queryKey: ['/api/chat/conversations'] });
-      }
+      // Invalidate queries to ensure consistency
+      queryClient.invalidateQueries({ queryKey: ['/api/chat/messages', currentConversationId] });
+      queryClient.invalidateQueries({ queryKey: ['/api/chat/conversations'] });
 
     } catch (error) {
       toast({

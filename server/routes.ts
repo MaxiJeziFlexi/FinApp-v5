@@ -1599,11 +1599,15 @@ Use this information to provide highly personalized advice based on their assess
       res.set('Pragma', 'no-cache');
       res.set('Expires', '0');
       
+      console.log(`🔍 ROUTE: Fetching messages for conversation: ${conversationId}`);
       const messages = await storage.getConversationMessages(conversationId);
-      console.log(`Fetching messages for conversation ${conversationId}: ${messages.length} messages found`);
+      console.log(`📊 ROUTE: Found ${messages.length} messages, sending direct array`);
+      console.log(`🔢 ROUTE: Messages preview:`, messages.slice(0, 2).map(m => ({ id: m.id, content: m.message?.substring(0, 30), sender: m.sender })));
+      
+      // Return messages directly as array (client expects array, not {messages: array})
       res.json(messages);
     } catch (error) {
-      console.error('Error fetching conversation messages:', error);
+      console.error('❌ ROUTE ERROR fetching conversation messages:', error);
       res.status(500).json({ message: 'Failed to fetch messages' });
     }
   });

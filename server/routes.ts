@@ -1876,12 +1876,12 @@ Use this information to provide highly personalized advice based on their assess
     }
   });
 
-  // Send message in enhanced chat system
+  // Send message in enhanced chat system with thinking process
   app.post('/api/chat/send-enhanced', async (req, res) => {
     const startTime = Date.now();
     
     try {
-      const { conversationId, message, userId, advisorId } = req.body;
+      const { conversationId, message, userId, advisorId, useThinking = true } = req.body;
       
       if (!conversationId || !message || !userId || !advisorId) {
         return res.status(400).json({ message: 'Missing required fields' });
@@ -1906,8 +1906,28 @@ Use this information to provide highly personalized advice based on their assess
       // Get advisor details
       const advisor = await storage.getAdvisor(advisorId);
       
-      // Build enhanced AI prompt
-      const systemPrompt = `You are ${advisor?.name || 'a professional financial advisor'}, an expert AI financial advisor specializing in ${advisor?.specialty || 'comprehensive financial planning'}.
+      let aiResponse;
+      
+      if (useThinking) {
+        // Use natural thinking process (Claude 4.1 / GPT-5 style)
+        const { thinkingAdvisor } = await import('./services/thinkingAdvisor');
+        
+        const context = {
+          advisor,
+          recentMessages,
+          userId,
+          conversationId
+        };
+        
+        aiResponse = await thinkingAdvisor.processWithEnhancedThinking(
+          message,
+          userId,
+          conversationId,
+          context
+        );
+      } else {
+        // Use traditional structured approach
+        const systemPrompt = `You are ${advisor?.name || 'a professional financial advisor'}, an expert AI financial advisor specializing in ${advisor?.specialty || 'comprehensive financial planning'}.
 
 Your role: ${advisor?.description || 'Provide personalized financial guidance and advice'}
 
@@ -1927,12 +1947,13 @@ ${recentMessages.map(msg => `${msg.sender}: ${msg.message}`).join('\n')}
 
 Respond professionally and helpfully to the user's message.`;
 
-      // Generate AI response
-      const aiResponse = await openAIService.generateAdvancedResponse(
-        message,
-        systemPrompt,
-        'gpt-4o'
-      );
+        // Generate AI response
+        aiResponse = await openAIService.generateAdvancedResponse(
+          message,
+          systemPrompt,
+          'gpt-4o'
+        );
+      }
 
       // Save AI response
       const responseTime = Date.now() - startTime;

@@ -177,6 +177,116 @@ export const LEGAL_TOOLS: ToolContract[] = [
   }
 ];
 
+// Real-Time Data Tools
+export const REALTIME_TOOLS: ToolContract[] = [
+  {
+    name: "get_realtime_updates",
+    description: "Get contextually relevant real-time updates from WSJ, Bloomberg, Reuters, NYT, BBC, Economic Calendar, Legal Changes, and TradingView",
+    requires_permissions: ["realtime_data"],
+    risk_level: "low",
+    can_simulate: false,
+    parameters: {
+      type: "object",
+      properties: {
+        user_query: {
+          type: "string",
+          description: "User's request or query to determine contextual relevance"
+        },
+        sources: {
+          type: "array",
+          items: {
+            type: "string",
+            enum: ["wsj", "bloomberg", "reuters", "nyt", "bbc", "economic_calendar", "legal_updates", "tradingview"]
+          },
+          description: "Specific sources to fetch from (if empty, fetches from all)"
+        },
+        countries: {
+          type: "array",
+          items: {
+            type: "string",
+            enum: ["US", "EU", "UK", "PL"]
+          },
+          description: "Countries for legal and economic updates"
+        },
+        instruments: {
+          type: "array",
+          items: {
+            type: "string"
+          },
+          description: "Specific financial instruments to track (stocks, forex, crypto)"
+        },
+        relevance_threshold: {
+          type: "number",
+          minimum: 0.0,
+          maximum: 1.0,
+          default: 0.7,
+          description: "Minimum relevance score (0.0-1.0) for including updates"
+        }
+      },
+      required: ["user_query"]
+    }
+  },
+  {
+    name: "setup_realtime_tracking",
+    description: "Initialize contextual real-time tracking based on user's profile and requests",
+    requires_permissions: ["realtime_setup"],
+    risk_level: "low",
+    can_simulate: false,
+    parameters: {
+      type: "object",
+      properties: {
+        user_query: {
+          type: "string",
+          description: "Initial user query to establish tracking context"
+        },
+        tracking_preferences: {
+          type: "object",
+          properties: {
+            news_sources: {
+              type: "array",
+              items: {
+                type: "string",
+                enum: ["wsj", "bloomberg", "reuters", "nyt", "bbc"]
+              }
+            },
+            economic_calendars: {
+              type: "array",
+              items: {
+                type: "string",
+                enum: ["US", "EU", "UK", "PL"]
+              }
+            },
+            legal_jurisdictions: {
+              type: "array",
+              items: {
+                type: "string",
+                enum: ["US", "EU", "UK", "PL"]
+              }
+            },
+            market_data: {
+              type: "object",
+              properties: {
+                instruments: {
+                  type: "array",
+                  items: {
+                    type: "string"
+                  }
+                },
+                update_frequency: {
+                  type: "string",
+                  enum: ["real-time", "minute", "5min", "15min", "hourly"],
+                  default: "real-time"
+                }
+              }
+            }
+          }
+        }
+      },
+      required: ["user_query"]
+    }
+  }
+];
+
 // Helper Tools
 export const HELPER_TOOLS: ToolContract[] = [
   {
@@ -247,6 +357,7 @@ export const ALL_TOOLS = [
   ...TRADING_TOOLS,
   ...NEWS_TOOLS,
   ...LEGAL_TOOLS,
+  ...REALTIME_TOOLS,
   ...HELPER_TOOLS
 ];
 

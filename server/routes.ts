@@ -38,6 +38,8 @@ import {
   handleFetchGovLaw,
   handleCreateAuditNote,
   handleChargeCustomer,
+  handleGetRealTimeUpdates,
+  handleSetupRealTimeTracking,
 } from "./tools/handlers";
 import { enforceWhitelist } from "./tools/whitelist";
 import { ALL_TOOLS } from "./tools/contracts";
@@ -418,6 +420,10 @@ Format: Strukturalny raport PDF-ready`;
 
   // Legal Tools (Government sources only)
   app.post('/api/tools/legal-documents', enforceWhitelist, handleFetchGovLaw);
+
+  // Real-Time Data Tools
+  app.post('/api/tools/realtime-updates', handleGetRealTimeUpdates);
+  app.post('/api/tools/setup-tracking', handleSetupRealTimeTracking);
 
   // Helper Tools
   app.post('/api/tools/audit-note', handleCreateAuditNote);

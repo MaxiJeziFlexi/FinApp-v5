@@ -497,3 +497,210 @@ export async function handleChargeCustomer(req: Request, res: Response) {
     });
   }
 }
+
+// REAL-TIME DATA TOOLS
+
+export async function handleGetRealTimeUpdates(req: Request, res: Response) {
+  const context: ToolContext = {
+    userId: req.body.userId || 'demo-user',
+    userRole: req.body.userRole || 'analysis_only',
+    sessionId: req.body.sessionId || 'default',
+    requestId: req.body.requestId || Date.now().toString()
+  };
+
+  const schema = z.object({
+    user_query: z.string().min(1),
+    sources: z.array(z.enum(['wsj', 'bloomberg', 'reuters', 'nyt', 'bbc', 'economic_calendar', 'legal_updates', 'tradingview'])).optional(),
+    countries: z.array(z.enum(['US', 'EU', 'UK', 'PL'])).optional(),
+    instruments: z.array(z.string()).optional(),
+    relevance_threshold: z.number().min(0).max(1).optional()
+  });
+
+  try {
+    const input = schema.parse(req.body);
+    
+    const result = await executeToolSafely(
+      'get_realtime_updates',
+      context,
+      async () => {
+        // Import real-time service dynamically to avoid circular imports
+        const { RealTimeDataService } = await import('../services/realTimeDataSources');
+        const realTimeService = new RealTimeDataService();
+
+        // Get user profile for context
+        const userProfile = await storage.getUserProfile(context.userId);
+        const agentConfig = await storage.getUserAgentConfig(context.userId);
+
+        // Create contextual filter
+        const filter = await realTimeService.createContextualFilter(
+          context.userId,
+          input.user_query,
+          {
+            ...userProfile,
+            ...agentConfig,
+            jurisdiction: userProfile?.jurisdiction || input.countries?.[0] || 'US'
+          }
+        );
+
+        // Override with specific parameters
+        if (input.countries) filter.countries = input.countries;
+        if (input.instruments) filter.instruments = input.instruments;
+        if (input.relevance_threshold !== undefined) filter.relevanceThreshold = input.relevance_threshold;
+
+        // Get relevant updates
+        const allUpdates = await realTimeService.getAllRelevantUpdates(context.userId);
+
+        // Filter by requested sources
+        const filteredUpdates = input.sources && input.sources.length > 0 
+          ? allUpdates.filter(update => {
+              const sourceKey = update.source.toLowerCase().replace(/\s+/g, '_');
+              return input.sources!.includes(sourceKey as any) || 
+                     input.sources!.some(s => sourceKey.includes(s));
+            })
+          : allUpdates;
+
+        return {
+          total_updates: filteredUpdates.length,
+          updates: filteredUpdates.slice(0, 20), // Limit to 20 updates
+          filter_applied: {
+            user_query: input.user_query,
+            relevance_threshold: filter.relevanceThreshold,
+            countries: filter.countries,
+            instruments: filter.instruments,
+            keywords: filter.keywords,
+            sectors: filter.sectors
+          },
+          sources_available: ['wsj', 'bloomberg', 'reuters', 'nyt', 'bbc', 'economic_calendar', 'legal_updates', 'tradingview'],
+          sources_used: [...new Set(filteredUpdates.map(u => u.source))],
+          last_updated: new Date().toISOString()
+        };
+      },
+      input
+    );
+    
+    res.json(result);
+  } catch (error: any) {
+    res.status(400).json({
+      success: false,
+      error: { code: 'VALIDATION_ERROR', message: error.message },
+      execution_time_ms: 0,
+      can_execute: false,
+      risk_flags: ['validation_error']
+    });
+  }
+}
+
+export async function handleSetupRealTimeTracking(req: Request, res: Response) {
+  const context: ToolContext = {
+    userId: req.body.userId || 'demo-user',
+    userRole: req.body.userRole || 'analysis_only',
+    sessionId: req.body.sessionId || 'default',
+    requestId: req.body.requestId || Date.now().toString()
+  };
+
+  const schema = z.object({
+    user_query: z.string().min(1),
+    tracking_preferences: z.object({
+      news_sources: z.array(z.enum(['wsj', 'bloomberg', 'reuters', 'nyt', 'bbc'])).optional(),
+      economic_calendars: z.array(z.enum(['US', 'EU', 'UK', 'PL'])).optional(),
+      legal_jurisdictions: z.array(z.enum(['US', 'EU', 'UK', 'PL'])).optional(),
+      market_data: z.object({
+        instruments: z.array(z.string()).optional(),
+        update_frequency: z.enum(['real-time', 'minute', '5min', '15min', 'hourly']).optional()
+      }).optional()
+    }).optional()
+  });
+
+  try {
+    const input = schema.parse(req.body);
+    
+    const result = await executeToolSafely(
+      'setup_realtime_tracking',
+      context,
+      async () => {
+        // Import real-time service dynamically
+        const { RealTimeDataService } = await import('../services/realTimeDataSources');
+        const realTimeService = new RealTimeDataService();
+
+        // Get user profile
+        const userProfile = await storage.getUserProfile(context.userId);
+        
+        // Create contextual filter
+        const filter = await realTimeService.createContextualFilter(
+          context.userId,
+          input.user_query,
+          userProfile
+        );
+
+        // Override with tracking preferences
+        if (input.tracking_preferences) {
+          const prefs = input.tracking_preferences;
+          if (prefs.economic_calendars) filter.countries = prefs.economic_calendars;
+          if (prefs.legal_jurisdictions && !filter.countries.length) {
+            filter.countries = prefs.legal_jurisdictions;
+          }
+          if (prefs.market_data?.instruments) filter.instruments = prefs.market_data.instruments;
+        }
+
+        // Update user's agent config
+        await storage.createUserAgentConfig(context.userId, {
+          agentRole: 'realtime_tracker',
+          riskProfile: filter.riskProfile,
+          preferredJurisdiction: filter.countries[0] || 'US',
+          tradingPreferences: {
+            instruments: filter.instruments,
+            keywords: filter.keywords,
+            sectors: filter.sectors,
+            updateFrequency: input.tracking_preferences?.market_data?.update_frequency || 'real-time'
+          },
+          newsSourcePreferences: input.tracking_preferences?.news_sources || ['wsj', 'bloomberg', 'reuters', 'nyt', 'bbc'],
+          legalAlertSettings: {
+            enabled: true,
+            countries: input.tracking_preferences?.legal_jurisdictions || filter.countries
+          },
+          autoExecutionLimits: { maxTradeAmount: 0 }
+        });
+
+        return {
+          message: 'Real-time tracking setup completed successfully',
+          configuration: {
+            user_query: input.user_query,
+            filter_applied: {
+              keywords: filter.keywords,
+              countries: filter.countries,
+              sectors: filter.sectors,
+              instruments: filter.instruments,
+              relevance_threshold: filter.relevanceThreshold
+            },
+            tracking_preferences: {
+              news_sources: input.tracking_preferences?.news_sources || ['wsj', 'bloomberg', 'reuters', 'nyt', 'bbc'],
+              economic_calendars: input.tracking_preferences?.economic_calendars || filter.countries,
+              legal_jurisdictions: input.tracking_preferences?.legal_jurisdictions || filter.countries,
+              market_data: {
+                instruments: filter.instruments,
+                update_frequency: input.tracking_preferences?.market_data?.update_frequency || 'real-time'
+              }
+            },
+            tracking_active: true
+          },
+          next_steps: [
+            'Use get_realtime_updates to fetch current relevant data',
+            'Updates will be automatically filtered based on this configuration',
+            `Relevance threshold set to ${filter.relevanceThreshold}`
+          ]
+        };
+      },
+      input
+    );
+    
+    res.json(result);
+  } catch (error: any) {
+    res.status(400).json({
+      success: false,
+      error: { code: 'VALIDATION_ERROR', message: error.message },
+      execution_time_ms: 0,
+      can_execute: false,
+      risk_flags: ['validation_error']
+    });
+  }
+}

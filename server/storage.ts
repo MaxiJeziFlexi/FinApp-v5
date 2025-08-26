@@ -1507,6 +1507,98 @@ export class DatabaseStorage implements IStorage {
       return [];
     }
   }
+
+  // Real-time data tracking methods
+  async saveUserDataFilter(userId: string, filter: any): Promise<any> {
+    try {
+      const filterId = `filter_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      
+      const [updatedConfig] = await db
+        .insert(agentConfigs)
+        .values({
+          id: generateId('agentcfg'),
+          userId,
+          agentRole: 'realtime_tracker',
+          riskProfile: filter.riskProfile || 'moderate',
+          preferredJurisdiction: filter.countries?.[0] || 'US',
+          tradingPreferences: { 
+            instruments: filter.instruments,
+            keywords: filter.keywords,
+            sectors: filter.sectors
+          },
+          newsSourcePreferences: ['wsj', 'bloomberg', 'reuters', 'nyt', 'bbc'],
+          legalAlertSettings: { 
+            enabled: true,
+            countries: filter.countries 
+          },
+          autoExecutionLimits: { maxTradeAmount: 0 },
+          isActive: true,
+          createdAt: new Date()
+        })
+        .onConflictDoUpdate({
+          target: agentConfigs.userId,
+          set: {
+            tradingPreferences: { 
+              instruments: filter.instruments,
+              keywords: filter.keywords,
+              sectors: filter.sectors
+            },
+            newsSourcePreferences: ['wsj', 'bloomberg', 'reuters', 'nyt', 'bbc'],
+            legalAlertSettings: { 
+              enabled: true,
+              countries: filter.countries 
+            },
+            updatedAt: new Date()
+          }
+        })
+        .returning();
+
+      return { id: filterId, ...filter };
+    } catch (error) {
+      console.error('Error saving user data filter:', error);
+      throw error;
+    }
+  }
+
+  async saveRealTimeUpdate(update: any): Promise<any> {
+    try {
+      const [savedUpdate] = await db
+        .insert(toolExecutions)
+        .values({
+          id: generateId('tool'),
+          userId: update.userId,
+          sessionId: update.sessionId || null,
+          toolName: `realtime_${update.source.toLowerCase().replace(/\s+/g, '_')}`,
+          userRole: 'analysis_only',
+          inputData: {
+            source: update.source,
+            category: update.category,
+            relevanceScore: update.relevanceScore
+          },
+          outputData: {
+            title: update.title,
+            content: update.content,
+            url: update.url,
+            timestamp: update.timestamp,
+            tags: update.tags,
+            instruments: update.instruments,
+            country: update.country,
+            sector: update.sector
+          },
+          executionStatus: 'executed',
+          permissionGranted: true,
+          riskFlags: update.relevanceScore < 0.5 ? ['low_relevance'] : [],
+          decisionRationale: `Real-time update from ${update.source}`,
+          createdAt: new Date()
+        })
+        .returning();
+      
+      return savedUpdate;
+    } catch (error) {
+      console.error('Error saving real-time update:', error);
+      throw error;
+    }
+  }
 }
 
 export const storage = new DatabaseStorage();

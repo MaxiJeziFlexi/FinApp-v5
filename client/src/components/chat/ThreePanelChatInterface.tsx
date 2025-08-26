@@ -14,8 +14,8 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth, logout } from '@/hooks/useAuth';
 import { useTheme } from '@/contexts/ThemeContext';
-import ThinkingAnimation from './ThinkingAnimation';
-import AdvancedThinkingProcess from './AdvancedThinkingProcess';
+import SimpleThinkingIndicator from './SimpleThinkingIndicator';
+import ProfessionalMessageRenderer from './ProfessionalMessageRenderer';
 import FloatingParticles from './FloatingParticles';
 import AITypingIndicator from './AITypingIndicator';
 import FileAnalysisUploader from './FileAnalysisUploader';
@@ -239,6 +239,7 @@ export default function ThreePanelChatInterface({ userId, advisorId }: ThreePane
   const [isCreatingConversation, setIsCreatingConversation] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+  const [thinkingMessage, setThinkingMessage] = useState('');
   const [streamingMessage, setStreamingMessage] = useState('');
   const [isStreaming, setIsStreaming] = useState(false);
   const [editingConversationId, setEditingConversationId] = useState<string | null>(null);
@@ -336,12 +337,12 @@ export default function ThreePanelChatInterface({ userId, advisorId }: ThreePane
     },
     enabled: !!currentConversationId,
     staleTime: 0,  // Always consider data stale
-    cacheTime: 0,  // Don't cache at all
+    gcTime: 0,  // Don't cache at all
   });
 
   // Update messages when current conversation changes
   useEffect(() => {
-    setMessages(currentMessages);
+    setMessages(currentMessages as Message[]);
   }, [currentMessages]);
 
   // Auto-scroll to bottom
@@ -456,6 +457,7 @@ export default function ThreePanelChatInterface({ userId, advisorId }: ThreePane
     setIsLoading(true);
     setIsStreaming(true);
     setStreamingMessage('');
+    setThinkingMessage('Analyzing your financial question...');
 
     try {
       const response = await fetch('/api/chat/send-enhanced', {
@@ -524,6 +526,7 @@ export default function ThreePanelChatInterface({ userId, advisorId }: ThreePane
       setIsLoading(false);
       setIsStreaming(false);
       setStreamingMessage('');
+      setThinkingMessage('');
     }
   };
 
@@ -1548,11 +1551,10 @@ export default function ThreePanelChatInterface({ userId, advisorId }: ThreePane
                               : 'bg-muted'
                           }`}
                         >
-                          <div className="prose prose-sm dark:prose-invert max-w-none">
-                            <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                              {message.content}
-                            </ReactMarkdown>
-                          </div>
+                          <ProfessionalMessageRenderer 
+                            message={{ content: message.content }}
+                            role={message.role === 'user' ? 'user' : 'assistant'}
+                          />
                           <div className="text-xs opacity-70 mt-2">
                             {message.timestamp.toLocaleTimeString([], { 
                               hour: '2-digit', 
@@ -1624,24 +1626,11 @@ export default function ThreePanelChatInterface({ userId, advisorId }: ThreePane
                   ))
                 )}
                 
-                {/* Advanced Thinking Animation */}
+                {/* Simple Thinking Indicator */}
                 {(isLoading || isStreaming) && (
                   <div className="px-4 py-6">
-                    <AdvancedThinkingProcess 
-                      isVisible={true}
-                      currentThought={isStreaming ? "Generating your personalized financial response..." : "Analyzing your financial question..."}
-                      className="mb-4"
-                    />
-                    <ThinkingAnimation 
-                      stage={isStreaming ? 'responding' : 'analyzing'}
-                      message={isStreaming ? 'Streaming response...' : 'Processing your request...'}
-                      className="animate-fade-in-3d"
-                    />
-                    <AITypingIndicator 
-                      isVisible={true}
-                      stage={isStreaming ? 'typing' : 'thinking'}
-                      message="Generating comprehensive financial advice..."
-                      className="mt-4 mx-auto"
+                    <SimpleThinkingIndicator 
+                      message={isStreaming ? 'Generating your personalized financial response...' : thinkingMessage || 'Analyzing your financial question...'}
                     />
                     
                     {/* Show Visual Data Generator if file analysis data exists */}

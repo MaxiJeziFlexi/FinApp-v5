@@ -614,6 +614,73 @@
     animation: matrix-rain 2s linear infinite;
   }
 
+  /* Enhanced shadow effects */
+  .shadow-4xl {
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4), 0 0 60px rgba(99, 102, 241, 0.15);
+  }
+
+  .shadow-5xl {
+    box-shadow: 0 35px 70px -12px rgba(0, 0, 0, 0.5), 0 0 80px rgba(168, 85, 247, 0.2);
+  }
+
+  /* Shimmer animation for progress bars */
+  @keyframes shimmer {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+  }
+
+  .animate-shimmer {
+    animation: shimmer 2s infinite;
+  }
+
+  /* Ultra colorful gradients */
+  .ultra-gradient {
+    background: linear-gradient(45deg, 
+      #ff0040 0%, 
+      #ff8c00 25%, 
+      #40ff00 50%, 
+      #00ffff 75%, 
+      #8000ff 100%);
+    background-size: 400% 400%;
+    animation: gradient-shift 4s ease-in-out infinite;
+  }
+
+  @keyframes gradient-shift {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+  }
+
+  /* Neon glow effects */
+  .neon-glow-blue {
+    box-shadow: 0 0 20px #00ffff, 0 0 40px #00ffff, 0 0 60px #00ffff;
+    animation: neon-pulse-blue 2s ease-in-out infinite alternate;
+  }
+
+  .neon-glow-purple {
+    box-shadow: 0 0 20px #8000ff, 0 0 40px #8000ff, 0 0 60px #8000ff;
+    animation: neon-pulse-purple 2s ease-in-out infinite alternate;
+  }
+
+  .neon-glow-pink {
+    box-shadow: 0 0 20px #ff0080, 0 0 40px #ff0080, 0 0 60px #ff0080;
+    animation: neon-pulse-pink 2s ease-in-out infinite alternate;
+  }
+
+  @keyframes neon-pulse-blue {
+    from { box-shadow: 0 0 10px #00ffff, 0 0 20px #00ffff, 0 0 30px #00ffff; }
+    to { box-shadow: 0 0 20px #00ffff, 0 0 40px #00ffff, 0 0 60px #00ffff; }
+  }
+
+  @keyframes neon-pulse-purple {
+    from { box-shadow: 0 0 10px #8000ff, 0 0 20px #8000ff, 0 0 30px #8000ff; }
+    to { box-shadow: 0 0 20px #8000ff, 0 0 40px #8000ff, 0 0 60px #8000ff; }
+  }
+
+  @keyframes neon-pulse-pink {
+    from { box-shadow: 0 0 10px #ff0080, 0 0 20px #ff0080, 0 0 30px #ff0080; }
+    to { box-shadow: 0 0 20px #ff0080, 0 0 40px #ff0080, 0 0 60px #ff0080; }
+  }
+
   /* Enhanced gradient backgrounds with 3D effect */
   .gradient-3d {
     background: linear-gradient(135deg, 

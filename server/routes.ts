@@ -26,6 +26,7 @@ import { requireAdmin, logAdminAction, validateAIParams } from "./middleware/adm
 import { requirePermission, requireQuota } from "./middleware/rbac";
 import { aiMetricsService } from "./services/aiMetricsService";
 import { registerTestRoutes } from "./routes/testRoutes";
+import { registerFileAnalysisRoutes } from './routes/fileAnalysis';
 import bcrypt from "bcryptjs";
 import Stripe from "stripe";
 import multer from "multer";
@@ -59,6 +60,9 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
 export async function registerRoutes(app: Express): Promise<Server> {
   // Auth middleware
   await setupAuth(app);
+  
+  // File analysis routes
+  registerFileAnalysisRoutes(app);
   
   // Public Analytics Routes (no authentication required for heat map tracking)
   app.post('/api/public/analytics/button-click', async (req, res) => {

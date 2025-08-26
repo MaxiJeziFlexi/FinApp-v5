@@ -16,6 +16,8 @@ import ThinkingAnimation from './ThinkingAnimation';
 import AdvancedThinkingProcess from './AdvancedThinkingProcess';
 import FloatingParticles from './FloatingParticles';
 import AITypingIndicator from './AITypingIndicator';
+import FileAnalysisUploader from './FileAnalysisUploader';
+import VisualDataGenerator from './VisualDataGenerator';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import {
@@ -246,6 +248,8 @@ export default function ThreePanelChatInterface({ userId, advisorId }: ThreePane
   });
   const [customTheme, setCustomTheme] = useState('default');
   const [showKeyboardShortcuts, setShowKeyboardShortcuts] = useState(false);
+  const [showFileUploader, setShowFileUploader] = useState(false);
+  const [fileAnalysisData, setFileAnalysisData] = useState<any[]>([]);
   
   // Refs
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -1310,10 +1314,10 @@ export default function ThreePanelChatInterface({ userId, advisorId }: ThreePane
                     <p className="text-muted-foreground mb-6">
                       Ask me anything about finance, investments, budgeting, or financial planning.
                     </p>
-                    <div className="grid grid-cols-2 gap-3 max-w-md mx-auto">
+                    <div className="grid grid-cols-2 gap-3 max-w-lg mx-auto">
                       <Button
                         variant="outline"
-                        className="h-auto p-4 text-left"
+                        className="h-auto p-4 text-left hover:shadow-2xl hover:shadow-green-500/30 transition-all duration-300 transform hover:scale-105"
                         onClick={() => setInput("I need help with investment advice")}
                       >
                         <TrendingUp className="w-5 h-5 mb-2 text-green-600" />
@@ -1324,7 +1328,7 @@ export default function ThreePanelChatInterface({ userId, advisorId }: ThreePane
                       </Button>
                       <Button
                         variant="outline"
-                        className="h-auto p-4 text-left"
+                        className="h-auto p-4 text-left hover:shadow-2xl hover:shadow-blue-500/30 transition-all duration-300 transform hover:scale-105"
                         onClick={() => setInput("Help me create a personal budget")}
                       >
                         <Calculator className="w-5 h-5 mb-2 text-blue-600" />
@@ -1333,7 +1337,33 @@ export default function ThreePanelChatInterface({ userId, advisorId }: ThreePane
                           <div className="text-xs text-muted-foreground">Create a personal budget</div>
                         </div>
                       </Button>
+                      <Button
+                        variant="outline"
+                        className="h-auto p-4 text-left col-span-2 hover:shadow-2xl hover:shadow-purple-500/30 transition-all duration-300 transform hover:scale-105"
+                        onClick={() => setShowFileUploader(!showFileUploader)}
+                      >
+                        <Brain className="w-5 h-5 mb-2 text-purple-600" />
+                        <div>
+                          <div className="font-medium">📊 Analyze Files (NEW!)</div>
+                          <div className="text-xs text-muted-foreground">Upload images, PDFs, Excel, Word, PowerPoint for AI visual analysis</div>
+                        </div>
+                      </Button>
                     </div>
+                    
+                    {/* File Analysis Uploader */}
+                    {showFileUploader && (
+                      <div className="mt-8 max-w-4xl mx-auto">
+                        <FileAnalysisUploader
+                          onFileAnalyze={(file, analysis) => {
+                            setFileAnalysisData(prev => [...prev, { file, analysis }]);
+                            // Auto-generate message with file insights
+                            const insights = analysis.insights?.slice(0, 3).join('\n• ') || 'File analysis completed';
+                            setInput(`📁 Analyzed file: ${file.name}\n\nKey Insights:\n• ${insights}\n\nPlease provide detailed financial recommendations based on this analysis.`);
+                          }}
+                          className="animate-fade-in-3d"
+                        />
+                      </div>
+                    )}
                   </div>
                 ) : (
                   messages.map((message) => (
@@ -1451,6 +1481,18 @@ export default function ThreePanelChatInterface({ userId, advisorId }: ThreePane
                       message="Generating comprehensive financial advice..."
                       className="mt-4 mx-auto"
                     />
+                    
+                    {/* Show Visual Data Generator if file analysis data exists */}
+                    {fileAnalysisData.length > 0 && (
+                      <div className="mt-6">
+                        <VisualDataGenerator
+                          analysisData={fileAnalysisData}
+                          isGenerating={isStreaming}
+                          fileType="image"
+                          className="animate-fade-in-3d"
+                        />
+                      </div>
+                    )}
                   </div>
                 )}
                 

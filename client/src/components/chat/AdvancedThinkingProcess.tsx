@@ -55,32 +55,36 @@ const thinkingSteps: ThoughtStep[] = [
 
 const colorClasses = {
   blue: {
-    bg: 'bg-blue-500/20',
-    border: 'border-blue-500/30',
-    text: 'text-blue-600',
-    icon: 'text-blue-500',
-    glow: 'shadow-blue-500/25'
+    bg: 'bg-gradient-to-br from-blue-400/30 to-cyan-600/40',
+    border: 'border-blue-400/50',
+    text: 'text-blue-100 font-bold text-xl',
+    icon: 'text-cyan-300 drop-shadow-lg',
+    glow: 'shadow-2xl shadow-blue-500/60',
+    particle: 'bg-gradient-to-r from-blue-400 to-cyan-500'
   },
   purple: {
-    bg: 'bg-purple-500/20',
-    border: 'border-purple-500/30', 
-    text: 'text-purple-600',
-    icon: 'text-purple-500',
-    glow: 'shadow-purple-500/25'
+    bg: 'bg-gradient-to-br from-purple-400/30 to-pink-600/40',
+    border: 'border-purple-400/50', 
+    text: 'text-purple-100 font-bold text-xl',
+    icon: 'text-pink-300 drop-shadow-lg',
+    glow: 'shadow-2xl shadow-purple-500/60',
+    particle: 'bg-gradient-to-r from-purple-400 to-pink-500'
   },
   orange: {
-    bg: 'bg-orange-500/20',
-    border: 'border-orange-500/30',
-    text: 'text-orange-600', 
-    icon: 'text-orange-500',
-    glow: 'shadow-orange-500/25'
+    bg: 'bg-gradient-to-br from-orange-400/30 to-red-600/40',
+    border: 'border-orange-400/50',
+    text: 'text-orange-100 font-bold text-xl', 
+    icon: 'text-red-300 drop-shadow-lg',
+    glow: 'shadow-2xl shadow-orange-500/60',
+    particle: 'bg-gradient-to-r from-orange-400 to-red-500'
   },
   green: {
-    bg: 'bg-green-500/20',
-    border: 'border-green-500/30',
-    text: 'text-green-600',
-    icon: 'text-green-500', 
-    glow: 'shadow-green-500/25'
+    bg: 'bg-gradient-to-br from-green-400/30 to-emerald-600/40',
+    border: 'border-green-400/50',
+    text: 'text-green-100 font-bold text-xl',
+    icon: 'text-emerald-300 drop-shadow-lg', 
+    glow: 'shadow-2xl shadow-green-500/60',
+    particle: 'bg-gradient-to-r from-green-400 to-emerald-500'
   }
 };
 
@@ -98,14 +102,14 @@ export default function AdvancedThinkingProcess({
     delay: number;
   }>>([]);
 
-  // Generate floating particles
+  // Generate floating particles - więcej i bardziej kolorowe
   useEffect(() => {
-    const newParticles = Array.from({ length: 12 }, (_, i) => ({
+    const newParticles = Array.from({ length: 25 }, (_, i) => ({
       id: i,
-      x: Math.random() * 400,
-      y: Math.random() * 200,
-      scale: Math.random() * 0.5 + 0.5,
-      delay: Math.random() * 2
+      x: Math.random() * 600,
+      y: Math.random() * 300,
+      scale: Math.random() * 1.5 + 0.8,
+      delay: Math.random() * 3
     }));
     setParticles(newParticles);
   }, [isVisible]);
@@ -131,8 +135,9 @@ export default function AdvancedThinkingProcess({
         exit={{ opacity: 0, y: -20, scale: 0.95 }}
         transition={{ duration: 0.5, type: "spring" }}
         className={cn(
-          "relative p-6 rounded-3xl border backdrop-blur-md bg-gradient-to-br from-background/80 to-background/40",
-          "shadow-2xl border-border/50",
+          "relative p-8 rounded-3xl border backdrop-blur-xl bg-gradient-to-br from-slate-900/90 to-indigo-900/90",
+          "shadow-4xl shadow-indigo-500/40 border-indigo-400/60 transform-gpu scale-105",
+          "hover:shadow-5xl hover:shadow-purple-500/50 transition-all duration-500",
           className
         )}
       >
@@ -141,7 +146,7 @@ export default function AdvancedThinkingProcess({
           {particles.map((particle) => (
             <motion.div
               key={particle.id}
-              className="absolute w-1 h-1 bg-primary/20 rounded-full"
+              className="absolute w-3 h-3 bg-gradient-to-r from-cyan-400 to-purple-500 rounded-full blur-sm shadow-lg"
               initial={{ opacity: 0 }}
               animate={{
                 opacity: [0, 1, 0],

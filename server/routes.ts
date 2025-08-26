@@ -1615,6 +1615,7 @@ Use this information to provide highly personalized advice based on their assess
       }
 
       // Save user message
+      console.log(`Saving user message for conversation ${conversationId}`);
       const userMessage = await storage.saveConversationMessage({
         conversationId,
         userId,
@@ -1623,6 +1624,7 @@ Use this information to provide highly personalized advice based on their assess
         message,
         metadata: { timestamp: new Date().toISOString() }
       });
+      console.log(`User message saved:`, userMessage);
 
       // Get conversation context
       const conversationMessages = await storage.getConversationMessages(conversationId);
@@ -1661,6 +1663,7 @@ Respond professionally and helpfully to the user's message.`;
 
       // Save AI response
       const responseTime = Date.now() - startTime;
+      console.log(`Saving AI response for conversation ${conversationId}`);
       const aiMessage = await storage.saveConversationMessage({
         conversationId,
         userId,
@@ -1673,6 +1676,7 @@ Respond professionally and helpfully to the user's message.`;
           timestamp: new Date().toISOString()
         }
       });
+      console.log(`AI message saved:`, aiMessage);
 
       // Update conversation title if it's the first message
       if (conversationMessages.length <= 1) {

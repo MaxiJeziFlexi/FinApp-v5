@@ -390,20 +390,7 @@ Format: Strukturalny raport PDF-ready`;
     }
   });
 
-  // Chat messages endpoint for retrieving chat history
-  app.get('/api/chat/messages/:sessionId', async (req, res) => {
-    try {
-      const { sessionId } = req.params;
-      
-      // For now, return empty array - in production you'd fetch from database
-      const messages = [];
-      
-      res.json({ messages });
-    } catch (error) {
-      console.error('Chat messages error:', error);
-      res.status(500).json({ error: 'Failed to fetch chat messages' });
-    }
-  });
+  // Chat messages stub route removed - using enhanced route at line 1593 instead
 
   // Auth routes
   app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {

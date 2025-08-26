@@ -7,6 +7,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Textarea } from '@/components/ui/textarea';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
+import { Skeleton } from '@/components/ui/skeleton';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth, logout } from '@/hooks/useAuth';
@@ -53,11 +54,57 @@ interface Conversation {
   lastMessage?: string;
   updatedAt: Date;
   messageCount: number;
+  createdAt?: Date;
 }
 
 interface ThreePanelChatInterfaceProps {
   userId: string;
   advisorId: string;
+}
+
+// Enhanced Conversation Item Component
+interface ConversationItemProps {
+  conversation: Conversation;
+  isSelected: boolean;
+  isCollapsed: boolean;
+  onClick: () => void;
+}
+
+function ConversationItem({ conversation, isSelected, isCollapsed, onClick }: ConversationItemProps) {
+  return (
+    <button
+      onClick={onClick}
+      className={`w-full text-left p-3 rounded-lg border transition-all hover:bg-accent ${
+        isSelected
+          ? 'bg-accent border-primary'
+          : 'border-transparent hover:border-border'
+      } ${isCollapsed ? 'px-2' : ''}`}
+      data-testid={`conversation-${conversation.id}`}
+      title={isCollapsed ? conversation.title : ''}
+    >
+      <div className="flex items-center gap-2 mb-1">
+        <MessageSquare className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+        {!isCollapsed && (
+          <span className="font-medium text-sm truncate">
+            {conversation.title}
+          </span>
+        )}
+      </div>
+      {!isCollapsed && (
+        <>
+          {conversation.lastMessage && (
+            <p className="text-xs text-muted-foreground mb-1 truncate">
+              {conversation.lastMessage}
+            </p>
+          )}
+          <div className="flex items-center justify-between text-xs text-muted-foreground">
+            <span>{conversation.messageCount} messages</span>
+            <span>{conversation.updatedAt.toLocaleDateString()}</span>
+          </div>
+        </>
+      )}
+    </button>
+  );
 }
 
 export default function ThreePanelChatInterface({ userId, advisorId }: ThreePanelChatInterfaceProps) {
@@ -71,6 +118,8 @@ export default function ThreePanelChatInterface({ userId, advisorId }: ThreePane
   const [isCreatingConversation, setIsCreatingConversation] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+  const [streamingMessage, setStreamingMessage] = useState('');
+  const [isStreaming, setIsStreaming] = useState(false);
   
   // Refs
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -107,19 +156,20 @@ export default function ThreePanelChatInterface({ userId, advisorId }: ThreePane
     }
   }, [toast]);
 
-  // Fetch conversations list
-  const { data: conversations = [] } = useQuery({
+  // Fetch conversations list with loading state
+  const { data: conversations = [], isLoading: isLoadingConversations } = useQuery({
     queryKey: ['/api/chat/conversations', userId, advisorId],
     queryFn: async () => {
       const response = await fetch(`/api/chat/conversations?userId=${userId}&advisorId=${advisorId}`);
       if (!response.ok) return [];
       const data = await response.json();
-      return data.map((conv: {id: string, title: string, lastMessage: string, updatedAt: string, messageCount: number}) => ({
+      return data.map((conv: {id: string, title: string, lastMessage: string, updatedAt: string, messageCount: number, createdAt: string}) => ({
         id: conv.id,
         title: conv.title || 'New Chat',
-        lastMessage: conv.lastMessage,
+        lastMessage: conv.lastMessage || '',
         updatedAt: new Date(conv.updatedAt),
-        messageCount: conv.messageCount || 0
+        messageCount: conv.messageCount || 0,
+        createdAt: new Date(conv.createdAt || conv.updatedAt)
       }));
     },
     enabled: !!userId && !!advisorId,
@@ -199,7 +249,7 @@ export default function ThreePanelChatInterface({ userId, advisorId }: ThreePane
     setCurrentConversationId(conversationId);
   };
 
-  // Send message
+  // Enhanced send message with streaming support
   const sendMessage = async () => {
     if (!input.trim() || isLoading || !currentConversationId) return;
 
@@ -211,8 +261,11 @@ export default function ThreePanelChatInterface({ userId, advisorId }: ThreePane
     };
 
     setMessages(prev => [...prev, userMessage]);
+    const userInput = input;
     setInput('');
     setIsLoading(true);
+    setIsStreaming(true);
+    setStreamingMessage('');
 
     try {
       const response = await fetch('/api/chat/send-enhanced', {
@@ -220,7 +273,7 @@ export default function ThreePanelChatInterface({ userId, advisorId }: ThreePane
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           conversationId: currentConversationId,
-          message: input,
+          message: userInput,
           userId,
           advisorId
         })
@@ -230,9 +283,14 @@ export default function ThreePanelChatInterface({ userId, advisorId }: ThreePane
 
       const data = await response.json();
       
+      // Simulate streaming by gradually showing the response
+      const fullResponse = data.response;
+      const streamingMessageId = (Date.now() + 1).toString();
+      
+      // Add empty AI message that will be filled with streaming content
       const aiMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        content: data.response,
+        id: streamingMessageId,
+        content: '',
         role: 'assistant',
         timestamp: new Date(),
         model: data.model,
@@ -240,6 +298,27 @@ export default function ThreePanelChatInterface({ userId, advisorId }: ThreePane
       };
 
       setMessages(prev => [...prev, aiMessage]);
+
+      // Simulate streaming by showing text progressively
+      const words = fullResponse.split(' ');
+      for (let i = 0; i <= words.length; i++) {
+        const partialContent = words.slice(0, i).join(' ');
+        setStreamingMessage(partialContent);
+        
+        // Update the actual message
+        setMessages(prev => 
+          prev.map(msg => 
+            msg.id === streamingMessageId 
+              ? { ...msg, content: partialContent }
+              : msg
+          )
+        );
+        
+        // Add delay for streaming effect
+        if (i < words.length) {
+          await new Promise(resolve => setTimeout(resolve, 50));
+        }
+      }
       
       if (messages.length === 0) {
         queryClient.invalidateQueries({ queryKey: ['/api/chat/conversations'] });
@@ -253,6 +332,8 @@ export default function ThreePanelChatInterface({ userId, advisorId }: ThreePane
       });
     } finally {
       setIsLoading(false);
+      setIsStreaming(false);
+      setStreamingMessage('');
     }
   };
 
@@ -344,11 +425,49 @@ export default function ThreePanelChatInterface({ userId, advisorId }: ThreePane
     }
   };
 
+  // Helper function to group conversations by date
+  const groupConversationsByDate = (convs: Conversation[]) => {
+    const today = new Date();
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+    const weekAgo = new Date(today);
+    weekAgo.setDate(weekAgo.getDate() - 7);
+
+    const groups = {
+      today: [] as Conversation[],
+      yesterday: [] as Conversation[],
+      thisWeek: [] as Conversation[],
+      older: [] as Conversation[]
+    };
+
+    convs.forEach(conv => {
+      const convDate = new Date(conv.updatedAt);
+      const isToday = convDate.toDateString() === today.toDateString();
+      const isYesterday = convDate.toDateString() === yesterday.toDateString();
+      const isThisWeek = convDate >= weekAgo;
+
+      if (isToday) {
+        groups.today.push(conv);
+      } else if (isYesterday) {
+        groups.yesterday.push(conv);
+      } else if (isThisWeek) {
+        groups.thisWeek.push(conv);
+      } else {
+        groups.older.push(conv);
+      }
+    });
+
+    return groups;
+  };
+
   // Filter conversations based on search
   const filteredConversations = conversations.filter((conv: Conversation) =>
     conv.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
     conv.lastMessage?.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  // Group filtered conversations
+  const groupedConversations = groupConversationsByDate(filteredConversations);
 
   // Auto-start first conversation or create new one (only once)
   useEffect(() => {
@@ -438,34 +557,128 @@ export default function ThreePanelChatInterface({ userId, advisorId }: ThreePane
             </div>
           )}
           <ScrollArea className="h-full px-2">
-            <div className="space-y-1 pb-4">
-              {filteredConversations.map((conversation: Conversation) => (
-                <button
-                  key={conversation.id}
-                  onClick={() => selectConversation(conversation.id)}
-                  className={`w-full text-left p-3 rounded-lg border transition-all hover:bg-accent ${
-                    currentConversationId === conversation.id
-                      ? 'bg-accent border-primary'
-                      : 'border-transparent'
-                  } ${sidebarCollapsed ? 'px-2' : ''}`}
-                  data-testid={`conversation-${conversation.id}`}
-                  title={sidebarCollapsed ? conversation.title : ''}
-                >
-                  <div className="flex items-center gap-2 mb-1">
-                    <MessageSquare className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-                    {!sidebarCollapsed && (
-                      <span className="font-medium text-sm truncate">
-                        {conversation.title}
-                      </span>
-                    )}
-                  </div>
-                  {!sidebarCollapsed && (
-                    <div className="text-xs text-muted-foreground">
-                      {conversation.messageCount} messages • {conversation.updatedAt.toLocaleDateString()}
+            <div className="pb-4">
+              {isLoadingConversations ? (
+                // Skeleton loaders while loading
+                <div className="space-y-3">
+                  {Array.from({ length: 5 }).map((_, i) => (
+                    <div key={i} className="p-3 rounded-lg border space-y-2">
+                      <div className="flex items-center gap-2">
+                        <Skeleton className="h-4 w-4" />
+                        {!sidebarCollapsed && <Skeleton className="h-4 w-32" />}
+                      </div>
+                      {!sidebarCollapsed && (
+                        <>
+                          <Skeleton className="h-3 w-full" />
+                          <div className="flex justify-between">
+                            <Skeleton className="h-3 w-16" />
+                            <Skeleton className="h-3 w-20" />
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              ) : filteredConversations.length === 0 ? (
+                // No conversations message
+                <div className="text-center py-8 text-muted-foreground">
+                  <MessageSquare className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                  <p className="text-sm">
+                    {searchQuery ? 'No conversations found' : 'Start your first conversation'}
+                  </p>
+                </div>
+              ) : (
+                // Grouped conversations
+                <div className="space-y-4">
+                  {/* Today's Conversations */}
+                  {groupedConversations.today.length > 0 && (
+                    <div>
+                      {!sidebarCollapsed && (
+                        <h4 className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2 px-1">
+                          Today
+                        </h4>
+                      )}
+                      <div className="space-y-1">
+                        {groupedConversations.today.map((conversation) => (
+                          <ConversationItem
+                            key={conversation.id}
+                            conversation={conversation}
+                            isSelected={currentConversationId === conversation.id}
+                            isCollapsed={sidebarCollapsed}
+                            onClick={() => selectConversation(conversation.id)}
+                          />
+                        ))}
+                      </div>
                     </div>
                   )}
-                </button>
-              ))}
+
+                  {/* Yesterday's Conversations */}
+                  {groupedConversations.yesterday.length > 0 && (
+                    <div>
+                      {!sidebarCollapsed && (
+                        <h4 className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2 px-1">
+                          Yesterday
+                        </h4>
+                      )}
+                      <div className="space-y-1">
+                        {groupedConversations.yesterday.map((conversation) => (
+                          <ConversationItem
+                            key={conversation.id}
+                            conversation={conversation}
+                            isSelected={currentConversationId === conversation.id}
+                            isCollapsed={sidebarCollapsed}
+                            onClick={() => selectConversation(conversation.id)}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* This Week's Conversations */}
+                  {groupedConversations.thisWeek.length > 0 && (
+                    <div>
+                      {!sidebarCollapsed && (
+                        <h4 className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2 px-1">
+                          This Week
+                        </h4>
+                      )}
+                      <div className="space-y-1">
+                        {groupedConversations.thisWeek.map((conversation) => (
+                          <ConversationItem
+                            key={conversation.id}
+                            conversation={conversation}
+                            isSelected={currentConversationId === conversation.id}
+                            isCollapsed={sidebarCollapsed}
+                            onClick={() => selectConversation(conversation.id)}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Older Conversations */}
+                  {groupedConversations.older.length > 0 && (
+                    <div>
+                      {!sidebarCollapsed && (
+                        <h4 className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2 px-1">
+                          Older
+                        </h4>
+                      )}
+                      <div className="space-y-1">
+                        {groupedConversations.older.map((conversation) => (
+                          <ConversationItem
+                            key={conversation.id}
+                            conversation={conversation}
+                            isSelected={currentConversationId === conversation.id}
+                            isCollapsed={sidebarCollapsed}
+                            onClick={() => selectConversation(conversation.id)}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           </ScrollArea>
         </div>

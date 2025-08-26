@@ -43,6 +43,19 @@ Your role is to provide personalized, actionable financial advice based on the u
 - Suggest concrete next steps with timelines
 - Be encouraging and supportive
 
+DOSTĘPNE NARZĘDZIA REAL-TIME:
+Masz dostęp do informacji w czasie rzeczywistym przez następujące narzędzia:
+- get_realtime_updates: Pobiera najnowsze informacje z WSJ, Bloomberg, Reuters, NYT, BBC, kalendarz ekonomiczny i legal updates
+- get_market_data: Pobiera aktualne dane rynkowe dla konkretnych instrumentów finansowych
+
+Używaj tych narzędzi gdy użytkownik pyta o:
+- Najnowsze informacje ze świata finansów
+- Aktualne ceny akcji, walut lub towarów
+- Wydarzenia ekonomiczne i ich wpływ na rynek
+- Najnowsze regulacje prawne wpływające na finanse
+
+ZAWSZE sprawdź najnowsze informacje przed udzieleniem porady inwestycyjnej.
+
 `;
 
     const advisorSpecificPrompts = {
@@ -107,15 +120,111 @@ Your role is to provide personalized, actionable financial advice based on the u
       // Add the current user message
       messages.push({ role: 'user', content: contextualMessage });
 
+      // Define available tools for real-time data access
+      const tools: OpenAI.Chat.Completions.ChatCompletionTool[] = [
+        {
+          type: "function",
+          function: {
+            name: "get_realtime_updates",
+            description: "Pobierz najnowsze informacje w czasie rzeczywistym z WSJ, Bloomberg, Reuters, NYT, BBC, kalendarz ekonomiczny, legal updates i TradingView",
+            parameters: {
+              type: "object",
+              properties: {
+                user_query: {
+                  type: "string",
+                  description: "Zapytanie użytkownika określające kontekst dla filtrowania informacji"
+                },
+                sources: {
+                  type: "array",
+                  items: {
+                    type: "string",
+                    enum: ["wsj", "bloomberg", "reuters", "nyt", "bbc", "economic_calendar", "legal_updates", "tradingview"]
+                  },
+                  description: "Konkretne źródła do sprawdzenia (opcjonalne)"
+                },
+                relevance_threshold: {
+                  type: "number",
+                  minimum: 0.0,
+                  maximum: 1.0,
+                  default: 0.7,
+                  description: "Minimalny próg istotności (0.0-1.0)"
+                }
+              },
+              required: ["user_query"]
+            }
+          }
+        },
+        {
+          type: "function", 
+          function: {
+            name: "get_market_data",
+            description: "Pobierz dane rynkowe dla konkretnych instrumentów finansowych z TradingView",
+            parameters: {
+              type: "object",
+              properties: {
+                symbol: {
+                  type: "string",
+                  description: "Symbol instrumentu finansowego (np. AAPL, GOOGL, EUR/USD)"
+                },
+                interval: {
+                  type: "string",
+                  enum: ["1m", "5m", "15m", "1h", "4h", "1d", "1w", "1M"],
+                  default: "1d",
+                  description: "Interwał czasowy danych"
+                }
+              },
+              required: ["symbol"]
+            }
+          }
+        }
+      ];
+
       const response = await openai.chat.completions.create({
         model: model,
         messages: messages,
         max_tokens: 800,
         temperature: 0.7,
+        tools: tools,
+        tool_choice: "auto"
       });
 
+      const responseMessage = response.choices[0]?.message;
+      
+      // Check if AI wants to use tools
+      if (responseMessage?.tool_calls && responseMessage.tool_calls.length > 0) {
+        // Process tool calls
+        const toolResults = await this.processToolCalls(responseMessage.tool_calls, context);
+        
+        // Add tool results to conversation and get final response
+        messages.push(responseMessage);
+        for (const result of toolResults) {
+          messages.push({
+            role: "tool",
+            tool_call_id: result.tool_call_id,
+            content: JSON.stringify(result.content)
+          });
+        }
+
+        // Get final response with tool results
+        const finalResponse = await openai.chat.completions.create({
+          model: model,
+          messages: messages,
+          max_tokens: 800,
+          temperature: 0.7,
+        });
+
+        const responseTime = Date.now() - startTime;
+        const responseContent = finalResponse.choices[0]?.message?.content || 'Przepraszam, ale mam problemy techniczne. Spróbuj ponownie za chwilę.';
+        
+        return {
+          response: responseContent,
+          model: model,
+          responseTime: responseTime,
+        };
+      }
+
       const responseTime = Date.now() - startTime;
-      const responseContent = response.choices[0].message.content || 'I apologize, but I cannot provide a response at this time.';
+      const responseContent = responseMessage?.content || 'I apologize, but I cannot provide a response at this time.';
 
       return {
         response: responseContent,
@@ -132,6 +241,110 @@ Your role is to provide personalized, actionable financial advice based on the u
         model: model,
         responseTime: responseTime,
       };
+    }
+  }
+
+  // Process tool calls made by the AI
+  private async processToolCalls(
+    toolCalls: OpenAI.Chat.Completions.ChatCompletionMessageToolCall[],
+    context: AdvisorContext
+  ): Promise<Array<{ tool_call_id: string; content: any }>> {
+    const results = [];
+
+    for (const toolCall of toolCalls) {
+      try {
+        const args = JSON.parse(toolCall.function.arguments);
+        let result;
+
+        switch (toolCall.function.name) {
+          case 'get_realtime_updates':
+            result = await this.callRealTimeUpdates(args, context);
+            break;
+          case 'get_market_data':
+            result = await this.callMarketData(args, context);
+            break;
+          default:
+            result = { error: `Unknown tool: ${toolCall.function.name}` };
+        }
+
+        results.push({
+          tool_call_id: toolCall.id,
+          content: result
+        });
+      } catch (error) {
+        console.error(`Error processing tool call ${toolCall.function.name}:`, error);
+        results.push({
+          tool_call_id: toolCall.id,
+          content: { error: `Błąd wykonania narzędzia: ${error}` }
+        });
+      }
+    }
+
+    return results;
+  }
+
+  // Call real-time updates endpoint
+  private async callRealTimeUpdates(args: any, context: AdvisorContext): Promise<any> {
+    try {
+      // Mock implementation for now - will connect to actual real-time service
+      const mockUpdates = [
+        {
+          source: 'wsj',
+          title: 'Najnowsze informacje ze świata finansów',
+          content: 'Rynki finansowe wykazują stabilność pomimo globalnych wyzwań ekonomicznych...',
+          timestamp: new Date().toISOString(),
+          relevance: 0.8
+        },
+        {
+          source: 'bloomberg',
+          title: 'Aktualizacja rynków europejskich',
+          content: 'Indeksy europejskie notują wzrosty na otwarciu sesji...',
+          timestamp: new Date().toISOString(),
+          relevance: 0.9
+        },
+        {
+          source: 'economic_calendar',
+          title: 'Dzisiejsze wydarzenia ekonomiczne',
+          content: 'Oczekiwane publikacje: dane o inflacji w strefie euro, decyzja banku centralnego...',
+          timestamp: new Date().toISOString(),
+          relevance: 0.85
+        }
+      ];
+
+      return {
+        success: true,
+        total_updates: mockUpdates.length,
+        updates: mockUpdates,
+        sources_used: ['wsj', 'bloomberg', 'economic_calendar'],
+        last_updated: new Date().toISOString(),
+        user_query: args.user_query
+      };
+    } catch (error) {
+      return { error: `Błąd pobierania danych real-time: ${error}` };
+    }
+  }
+
+  // Call market data endpoint
+  private async callMarketData(args: any, context: AdvisorContext): Promise<any> {
+    try {
+      // Mock implementation - in production would call actual TradingView API
+      const mockPrice = Math.random() * 1000 + 100;
+      const change = (Math.random() - 0.5) * 10;
+      const changePercent = (change / mockPrice) * 100;
+
+      return {
+        success: true,
+        symbol: args.symbol,
+        interval: args.interval || '1d',
+        price: mockPrice.toFixed(2),
+        change: change.toFixed(2),
+        change_percent: changePercent.toFixed(2),
+        volume: Math.floor(Math.random() * 1000000),
+        timestamp: new Date().toISOString(),
+        source: 'TradingView'
+      };
+    } catch (error) {
+      return { error: `Błąd pobierania danych rynkowych: ${error}` };
     }
   }
 

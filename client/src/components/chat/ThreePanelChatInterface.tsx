@@ -36,7 +36,18 @@ import {
   Sun,
   ChevronLeft,
   ChevronRight,
-  X
+  X,
+  Copy,
+  Heart,
+  Star,
+  Download,
+  MoreVertical,
+  Edit3,
+  Trash2,
+  Pin,
+  Share2,
+  ThumbsUp,
+  ThumbsDown
 } from 'lucide-react';
 
 interface Message {
@@ -46,6 +57,11 @@ interface Message {
   timestamp: Date;
   model?: string;
   responseTime?: number;
+  reactions?: {
+    like?: boolean;
+    dislike?: boolean;
+    favorite?: boolean;
+  };
 }
 
 interface Conversation {
@@ -55,6 +71,8 @@ interface Conversation {
   updatedAt: Date;
   messageCount: number;
   createdAt?: Date;
+  isPinned?: boolean;
+  isFavorite?: boolean;
 }
 
 interface ThreePanelChatInterfaceProps {
@@ -68,42 +86,135 @@ interface ConversationItemProps {
   isSelected: boolean;
   isCollapsed: boolean;
   onClick: () => void;
+  onEdit?: (id: string, title: string) => void;
+  onDelete?: (id: string) => void;
+  onExport?: (format: 'txt' | 'md') => void;
 }
 
-function ConversationItem({ conversation, isSelected, isCollapsed, onClick }: ConversationItemProps) {
+function ConversationItem({ conversation, isSelected, isCollapsed, onClick, onEdit, onDelete, onExport }: ConversationItemProps) {
+  const [showMenu, setShowMenu] = useState(false);
+
+  const handleContextMenu = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setShowMenu(!showMenu);
+  };
+
+  const handleEdit = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onEdit?.(conversation.id, conversation.title);
+    setShowMenu(false);
+  };
+
+  const handleDelete = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    const confirmed = window.confirm('Are you sure you want to delete this conversation?');
+    if (confirmed) {
+      onDelete?.(conversation.id);
+    }
+    setShowMenu(false);
+  };
+
+  const handleExport = (e: React.MouseEvent, format: 'txt' | 'md') => {
+    e.stopPropagation();
+    // First select the conversation, then export
+    onClick();
+    setTimeout(() => onExport?.(format), 100);
+    setShowMenu(false);
+  };
+
   return (
-    <button
-      onClick={onClick}
-      className={`w-full text-left p-3 rounded-lg border transition-all hover:bg-accent ${
-        isSelected
-          ? 'bg-accent border-primary'
-          : 'border-transparent hover:border-border'
-      } ${isCollapsed ? 'px-2' : ''}`}
-      data-testid={`conversation-${conversation.id}`}
-      title={isCollapsed ? conversation.title : ''}
-    >
-      <div className="flex items-center gap-2 mb-1">
-        <MessageSquare className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-        {!isCollapsed && (
-          <span className="font-medium text-sm truncate">
-            {conversation.title}
-          </span>
-        )}
-      </div>
-      {!isCollapsed && (
-        <>
-          {conversation.lastMessage && (
-            <p className="text-xs text-muted-foreground mb-1 truncate">
-              {conversation.lastMessage}
-            </p>
+    <div className="relative">
+      <button
+        onClick={onClick}
+        onContextMenu={handleContextMenu}
+        className={`w-full text-left p-3 rounded-lg border transition-all hover:bg-accent ${
+          isSelected
+            ? 'bg-accent border-primary'
+            : 'border-transparent hover:border-border'
+        } ${isCollapsed ? 'px-2' : ''}`}
+        data-testid={`conversation-${conversation.id}`}
+        title={isCollapsed ? conversation.title : ''}
+      >
+        <div className="flex items-center gap-2 mb-1">
+          <MessageSquare className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+          {!isCollapsed && (
+            <span className="font-medium text-sm truncate flex-1">
+              {conversation.title}
+            </span>
           )}
-          <div className="flex items-center justify-between text-xs text-muted-foreground">
-            <span>{conversation.messageCount} messages</span>
-            <span>{conversation.updatedAt.toLocaleDateString()}</span>
-          </div>
-        </>
+          {!isCollapsed && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 hover:bg-muted"
+              onClick={(e) => {
+                e.stopPropagation();
+                handleContextMenu(e);
+              }}
+            >
+              <MoreVertical className="h-3 w-3" />
+            </Button>
+          )}
+        </div>
+        {!isCollapsed && (
+          <>
+            {conversation.lastMessage && (
+              <p className="text-xs text-muted-foreground mb-1 truncate">
+                {conversation.lastMessage}
+              </p>
+            )}
+            <div className="flex items-center justify-between text-xs text-muted-foreground">
+              <span>{conversation.messageCount} messages</span>
+              <span>{conversation.updatedAt.toLocaleDateString()}</span>
+            </div>
+          </>
+        )}
+      </button>
+
+      {/* Context Menu */}
+      {showMenu && !isCollapsed && (
+        <div className="absolute right-2 top-12 z-50 bg-background border rounded-lg shadow-lg py-1 min-w-[160px]">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="w-full justify-start h-8 px-3 text-xs hover:bg-accent"
+            onClick={handleEdit}
+          >
+            <Edit3 className="w-3 h-3 mr-2" />
+            Rename
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="w-full justify-start h-8 px-3 text-xs hover:bg-accent"
+            onClick={(e) => handleExport(e, 'txt')}
+          >
+            <Download className="w-3 h-3 mr-2" />
+            Export as TXT
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="w-full justify-start h-8 px-3 text-xs hover:bg-accent"
+            onClick={(e) => handleExport(e, 'md')}
+          >
+            <Download className="w-3 h-3 mr-2" />
+            Export as MD
+          </Button>
+          <Separator className="my-1" />
+          <Button
+            variant="ghost"
+            size="sm"
+            className="w-full justify-start h-8 px-3 text-xs hover:bg-destructive hover:text-destructive-foreground"
+            onClick={handleDelete}
+          >
+            <Trash2 className="w-3 h-3 mr-2" />
+            Delete
+          </Button>
+        </div>
       )}
-    </button>
+    </div>
   );
 }
 
@@ -120,6 +231,8 @@ export default function ThreePanelChatInterface({ userId, advisorId }: ThreePane
   const [showSettings, setShowSettings] = useState(false);
   const [streamingMessage, setStreamingMessage] = useState('');
   const [isStreaming, setIsStreaming] = useState(false);
+  const [editingConversationId, setEditingConversationId] = useState<string | null>(null);
+  const [editingTitle, setEditingTitle] = useState('');
   
   // Refs
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -358,6 +471,153 @@ export default function ThreePanelChatInterface({ userId, advisorId }: ThreePane
     }
   };
 
+  // Message reaction handlers
+  const toggleMessageReaction = (messageId: string, reactionType: 'like' | 'dislike' | 'favorite') => {
+    setMessages(prev => prev.map(msg => {
+      if (msg.id === messageId) {
+        const reactions = { ...msg.reactions };
+        
+        // Toggle the specific reaction
+        if (reactionType === 'like') {
+          reactions.like = !reactions.like;
+          if (reactions.like) reactions.dislike = false; // Can't like and dislike at the same time
+        } else if (reactionType === 'dislike') {
+          reactions.dislike = !reactions.dislike;
+          if (reactions.dislike) reactions.like = false; // Can't like and dislike at the same time
+        } else if (reactionType === 'favorite') {
+          reactions.favorite = !reactions.favorite;
+        }
+        
+        return { ...msg, reactions };
+      }
+      return msg;
+    }));
+  };
+
+  // Copy message to clipboard
+  const copyMessage = async (content: string) => {
+    try {
+      await navigator.clipboard.writeText(content);
+      toast({
+        title: "Message Copied",
+        description: "Message copied to clipboard",
+      });
+    } catch (error) {
+      toast({
+        title: "Copy Failed",
+        description: "Failed to copy message to clipboard",
+        variant: "destructive",
+      });
+    }
+  };
+
+  // Export conversation
+  const exportConversation = (format: 'txt' | 'md') => {
+    const conversation = conversations.find(c => c.id === currentConversationId);
+    if (!conversation || messages.length === 0) {
+      toast({
+        title: "Export Failed",
+        description: "No conversation to export",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    let content = '';
+    if (format === 'md') {
+      content = `# ${conversation.title}\\n\\nExported on ${new Date().toLocaleDateString()}\\n\\n`;
+      messages.forEach(msg => {
+        const role = msg.role === 'user' ? '**You**' : '**AI Assistant**';
+        content += `${role}: ${msg.content}\\n\\n`;
+      });
+    } else {
+      content = `${conversation.title}\\n\\nExported on ${new Date().toLocaleDateString()}\\n\\n`;
+      messages.forEach(msg => {
+        const role = msg.role === 'user' ? 'You' : 'AI Assistant';
+        content += `${role}: ${msg.content}\\n\\n`;
+      });
+    }
+
+    const blob = new Blob([content], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${conversation.title}.${format}`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+
+    toast({
+      title: "Export Successful",
+      description: `Conversation exported as ${format.toUpperCase()} file`,
+    });
+  };
+
+  // Conversation management
+  const startEditingConversation = (conversationId: string, currentTitle: string) => {
+    setEditingConversationId(conversationId);
+    setEditingTitle(currentTitle);
+  };
+
+  const saveConversationTitle = async () => {
+    if (!editingConversationId || !editingTitle.trim()) return;
+
+    try {
+      const response = await fetch(`/api/chat/conversations/${editingConversationId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title: editingTitle.trim() })
+      });
+
+      if (!response.ok) throw new Error('Failed to update title');
+
+      queryClient.invalidateQueries({ queryKey: ['/api/chat/conversations'] });
+      
+      toast({
+        title: "Title Updated",
+        description: "Conversation title has been updated",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to update conversation title",
+        variant: "destructive",
+      });
+    } finally {
+      setEditingConversationId(null);
+      setEditingTitle('');
+    }
+  };
+
+  const deleteConversation = async (conversationId: string) => {
+    try {
+      const response = await fetch(`/api/chat/conversations/${conversationId}`, {
+        method: 'DELETE'
+      });
+
+      if (!response.ok) throw new Error('Failed to delete conversation');
+
+      queryClient.invalidateQueries({ queryKey: ['/api/chat/conversations'] });
+      
+      if (currentConversationId === conversationId) {
+        setCurrentConversationId(null);
+        setMessages([]);
+      }
+
+      toast({
+        title: "Conversation Deleted",
+        description: "Conversation has been permanently deleted",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to delete conversation",
+        variant: "destructive",
+      });
+    }
+  };
+
   // Toggle sidebar collapse
   const toggleSidebar = () => {
     setSidebarCollapsed(!sidebarCollapsed);
@@ -546,14 +806,26 @@ export default function ThreePanelChatInterface({ userId, advisorId }: ThreePane
               <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
                 Chat History
               </h3>
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                onClick={clearChatHistory}
-                className="h-6 px-2 text-xs text-muted-foreground hover:text-destructive"
-              >
-                Clear
-              </Button>
+              <div className="flex gap-1">
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={() => exportConversation('md')}
+                  className="h-6 px-2 text-xs text-muted-foreground hover:text-foreground"
+                  title="Export current conversation"
+                  disabled={!currentConversationId || messages.length === 0}
+                >
+                  <Download className="w-3 h-3" />
+                </Button>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={clearChatHistory}
+                  className="h-6 px-2 text-xs text-muted-foreground hover:text-destructive"
+                >
+                  Clear
+                </Button>
+              </div>
             </div>
           )}
           <ScrollArea className="h-full px-2">
@@ -606,6 +878,9 @@ export default function ThreePanelChatInterface({ userId, advisorId }: ThreePane
                             isSelected={currentConversationId === conversation.id}
                             isCollapsed={sidebarCollapsed}
                             onClick={() => selectConversation(conversation.id)}
+                            onEdit={startEditingConversation}
+                            onDelete={deleteConversation}
+                            onExport={exportConversation}
                           />
                         ))}
                       </div>
@@ -628,6 +903,9 @@ export default function ThreePanelChatInterface({ userId, advisorId }: ThreePane
                             isSelected={currentConversationId === conversation.id}
                             isCollapsed={sidebarCollapsed}
                             onClick={() => selectConversation(conversation.id)}
+                            onEdit={startEditingConversation}
+                            onDelete={deleteConversation}
+                            onExport={exportConversation}
                           />
                         ))}
                       </div>
@@ -650,6 +928,9 @@ export default function ThreePanelChatInterface({ userId, advisorId }: ThreePane
                             isSelected={currentConversationId === conversation.id}
                             isCollapsed={sidebarCollapsed}
                             onClick={() => selectConversation(conversation.id)}
+                            onEdit={startEditingConversation}
+                            onDelete={deleteConversation}
+                            onExport={exportConversation}
                           />
                         ))}
                       </div>
@@ -672,6 +953,9 @@ export default function ThreePanelChatInterface({ userId, advisorId }: ThreePane
                             isSelected={currentConversationId === conversation.id}
                             isCollapsed={sidebarCollapsed}
                             onClick={() => selectConversation(conversation.id)}
+                            onEdit={startEditingConversation}
+                            onDelete={deleteConversation}
+                            onExport={exportConversation}
                           />
                         ))}
                       </div>
@@ -681,6 +965,48 @@ export default function ThreePanelChatInterface({ userId, advisorId }: ThreePane
               )}
             </div>
           </ScrollArea>
+
+          {/* Conversation Editing Modal */}
+          {editingConversationId && (
+            <div className="absolute inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center z-50">
+              <div className="bg-background border rounded-lg p-4 min-w-[300px]">
+                <h3 className="text-sm font-medium mb-3">Rename Conversation</h3>
+                <Input
+                  value={editingTitle}
+                  onChange={(e) => setEditingTitle(e.target.value)}
+                  placeholder="Enter new title..."
+                  className="mb-3"
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      saveConversationTitle();
+                    } else if (e.key === 'Escape') {
+                      setEditingConversationId(null);
+                      setEditingTitle('');
+                    }
+                  }}
+                />
+                <div className="flex justify-end gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      setEditingConversationId(null);
+                      setEditingTitle('');
+                    }}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    size="sm"
+                    onClick={saveConversationTitle}
+                    disabled={!editingTitle.trim()}
+                  >
+                    Save
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* User Profile Section */}
@@ -797,7 +1123,7 @@ export default function ThreePanelChatInterface({ userId, advisorId }: ThreePane
                   messages.map((message) => (
                     <div
                       key={message.id}
-                      className={`flex gap-3 ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                      className={`group flex gap-3 ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
                     >
                       {message.role === 'assistant' && (
                         <Avatar className="h-8 w-8 mt-2">
@@ -806,27 +1132,76 @@ export default function ThreePanelChatInterface({ userId, advisorId }: ThreePane
                           </AvatarFallback>
                         </Avatar>
                       )}
-                      <div
-                        className={`max-w-[70%] p-3 rounded-2xl ${
-                          message.role === 'user'
-                            ? 'bg-primary text-primary-foreground'
-                            : 'bg-muted'
-                        }`}
-                      >
-                        <div className="prose prose-sm dark:prose-invert max-w-none">
-                          <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                            {message.content}
-                          </ReactMarkdown>
+                      <div className={`max-w-[70%] ${message.role === 'user' ? 'flex flex-col items-end' : ''}`}>
+                        <div
+                          className={`p-3 rounded-2xl ${
+                            message.role === 'user'
+                              ? 'bg-primary text-primary-foreground'
+                              : 'bg-muted'
+                          }`}
+                        >
+                          <div className="prose prose-sm dark:prose-invert max-w-none">
+                            <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                              {message.content}
+                            </ReactMarkdown>
+                          </div>
+                          <div className="text-xs opacity-70 mt-2">
+                            {message.timestamp.toLocaleTimeString([], { 
+                              hour: '2-digit', 
+                              minute: '2-digit' 
+                            })}
+                            {message.model && message.responseTime && (
+                              <span className="ml-2">
+                                {message.model} • {message.responseTime}ms
+                              </span>
+                            )}
+                          </div>
                         </div>
-                        <div className="text-xs opacity-70 mt-2">
-                          {message.timestamp.toLocaleTimeString([], { 
-                            hour: '2-digit', 
-                            minute: '2-digit' 
-                          })}
-                          {message.model && message.responseTime && (
-                            <span className="ml-2">
-                              {message.model} • {message.responseTime}ms
-                            </span>
+                        
+                        {/* Message Actions & Reactions */}
+                        <div className="flex items-center gap-1 mt-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-6 px-2"
+                            onClick={() => copyMessage(message.content)}
+                            title="Copy message"
+                          >
+                            <Copy className="h-3 w-3" />
+                          </Button>
+                          
+                          {message.role === 'assistant' && (
+                            <>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className={`h-6 px-2 ${message.reactions?.like ? 'text-green-600' : ''}`}
+                                onClick={() => toggleMessageReaction(message.id, 'like')}
+                                title="Like message"
+                              >
+                                <ThumbsUp className="h-3 w-3" />
+                              </Button>
+                              
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className={`h-6 px-2 ${message.reactions?.dislike ? 'text-red-600' : ''}`}
+                                onClick={() => toggleMessageReaction(message.id, 'dislike')}
+                                title="Dislike message"
+                              >
+                                <ThumbsDown className="h-3 w-3" />
+                              </Button>
+                              
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className={`h-6 px-2 ${message.reactions?.favorite ? 'text-yellow-600' : ''}`}
+                                onClick={() => toggleMessageReaction(message.id, 'favorite')}
+                                title="Favorite message"
+                              >
+                                <Star className="h-3 w-3" />
+                              </Button>
+                            </>
                           )}
                         </div>
                       </div>

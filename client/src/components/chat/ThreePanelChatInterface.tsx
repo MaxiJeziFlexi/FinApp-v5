@@ -58,6 +58,7 @@ import {
   Share2,
   ThumbsUp,
   ThumbsDown,
+  RotateCcw
 } from 'lucide-react';
 
 interface Message {
@@ -876,10 +877,10 @@ export default function ThreePanelChatInterface({ userId, advisorId }: ThreePane
                 <Brain className="h-6 w-6" />
               </div>
               <div>
-                <h1 className="text-lg font-bold">FinApp Chat</h1>
+                <h1 className="text-lg font-bold">Reptile Agent</h1>
                 <div className="flex items-center gap-1 text-sm text-muted-foreground">
                   <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                  Online • Secure
+                  Online • Ready to help
                 </div>
               </div>
             </div>
@@ -1305,7 +1306,7 @@ export default function ThreePanelChatInterface({ userId, advisorId }: ThreePane
                     <Bot className="h-5 w-5" />
                   </div>
                   <div className="flex-1">
-                    <h3 className="font-semibold">Financial AI Assistant</h3>
+                    <h3 className="font-semibold">Reptile Agent</h3>
                     <p className="text-sm text-muted-foreground">Online • Ready to help</p>
                   </div>
                   <Badge className="bg-green-500 text-white">GPT-4o</Badge>
@@ -1342,43 +1343,11 @@ export default function ThreePanelChatInterface({ userId, advisorId }: ThreePane
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={toggleTheme}
+                      onClick={() => window.location.reload()}
                       className="h-7 px-2 text-xs hover:bg-primary/10"
+                      title="Refresh chat"
                     >
-                      {theme === 'dark' ? <Sun className="w-3 h-3" /> : <Moon className="w-3 h-3" />}
-                    </Button>
-                  </div>
-                  
-                  {/* Right Side - Chat Controls */}
-                  <div className="flex items-center gap-2">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setAdvancedSearchOpen(!advancedSearchOpen)}
-                      className="h-7 px-2 text-xs hover:bg-primary/10"
-                    >
-                      <Search className="w-3 h-3 mr-1" />
-                      Filter
-                    </Button>
-                    
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setShowFileUploader(!showFileUploader)}
-                      className="h-7 px-2 text-xs hover:bg-primary/10"
-                    >
-                      <Brain className="w-3 h-3 mr-1" />
-                      Files
-                    </Button>
-                    
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={clearChatHistory}
-                      className="h-7 px-2 text-xs text-destructive hover:bg-destructive/10"
-                    >
-                      <Trash2 className="w-3 h-3 mr-1" />
-                      Clear
+                      <RotateCcw className="w-3 h-3" />
                     </Button>
                   </div>
                 </div>

@@ -2082,28 +2082,91 @@ Use this information to provide highly personalized advice based on their assess
           context
         );
       } else {
-        // Use traditional structured approach
-        const systemPrompt = `You are ${advisor?.name || 'a professional financial advisor'}, an expert AI financial advisor specializing in ${advisor?.specialty || 'comprehensive financial planning'}.
+        // Check if user is asking about financial data that requires real-time lookup
+        const financialKeywords = ['bitcoin', 'btc', 'price', 'stock', 'market', 'crypto', 'ethereum', 'eth', 'trading', 'investment'];
+        const isFinancialQuery = financialKeywords.some(keyword => 
+          message.toLowerCase().includes(keyword)
+        );
+        
+        let realTimeData = '';
+        
+        if (isFinancialQuery) {
+          try {
+            console.log('🔍 REAL-TIME: Detected financial query, fetching live data...');
+            
+            // Import and use real-time data service
+            const { realTimeDataService } = await import('./services/realTimeDataService');
+            
+            if (message.toLowerCase().includes('bitcoin') || message.toLowerCase().includes('btc')) {
+              const bitcoinData = await realTimeDataService.getMarketData('BTC', 'crypto');
+              realTimeData = `
 
-Your role: ${advisor?.description || 'Provide personalized financial guidance and advice'}
+🔴 **LIVE MARKET DATA** (Real-time via Perplexity):
+**Bitcoin (BTC)**: $${bitcoinData.price}
+**24h Change**: ${bitcoinData.change} (${bitcoinData.percentChange}%)
+**Volume**: ${bitcoinData.volume}
+**Market Cap**: ${bitcoinData.marketCap}
+**Last Updated**: ${new Date(bitcoinData.timestamp).toLocaleString()}
+**Sources**: ${bitcoinData.sources.join(', ')}
 
-Context: You are having a conversation with a user about their financial needs. Be helpful, accurate, and personalized.
+📊 **Analysis**: ${bitcoinData.analysis}
+`;
+              console.log('✅ REAL-TIME: Bitcoin data fetched successfully');
+            } else {
+              // For other financial queries, use general search
+              const searchResult = await realTimeDataService.searchFinancialData(message);
+              realTimeData = `
 
-Guidelines:
-- Provide detailed, actionable financial advice
-- Ask clarifying questions when needed
-- Consider the user's individual situation
-- Explain complex concepts in simple terms
-- Be supportive and encouraging
-- Include specific recommendations and next steps
-- Reference previous conversation context when relevant
+🔴 **LIVE FINANCIAL DATA** (Real-time via Perplexity):
+${searchResult.data}
+
+**Insights**: ${searchResult.insights.join(', ')}
+**Confidence**: ${(searchResult.confidence * 100).toFixed(1)}%
+**Sources**: ${searchResult.sources.join(', ')}
+`;
+              console.log('✅ REAL-TIME: Financial data fetched successfully');
+            }
+          } catch (error) {
+            console.error('❌ REAL-TIME: Error fetching real-time data:', error);
+            realTimeData = '\n🚨 **Note**: Real-time data temporarily unavailable. Providing analysis based on general knowledge.';
+          }
+        }
+
+        // Enhanced system prompt with real-time data integration
+        const systemPrompt = `You are ${advisor?.name || 'REPTILE AGENT'}, an elite autonomous financial advisor with real-time data capabilities.
+
+🎯 **ENHANCED CAPABILITIES**:
+- **Real-Time Data Integration**: Live market data via Perplexity API
+- **Multi-Source Analysis**: Bloomberg, Reuters, WSJ, MarketWatch synthesis  
+- **Predictive Modeling**: AI-powered forecasting with confidence intervals
+- **Risk Assessment**: Advanced volatility and correlation analysis
+- **Personalized Recommendations**: Tailored to user goals and risk tolerance
+
+Your role: ${advisor?.description || 'Provide elite-level financial guidance with live market intelligence'}
+
+🔥 **STRUCTURED ANALYSIS FORMAT** (when providing financial analysis):
+**📝 My Personalized Analysis Approach**: Methodology incorporating real-time data
+**🔍 What I Need to Find**: Specific data points for comprehensive analysis  
+**⚡ Gathering Information**: Live market data, sentiment, and economic indicators
+**📊 My Smart Assessment**: Data-driven evaluation with confidence levels
+**💡 My Recommendation to Improve Your Life**: Actionable strategies with risk management
+
+${realTimeData}
 
 Previous conversation context:
 ${recentMessages.map(msg => `${msg.sender}: ${msg.message}`).join('\n')}
 
+Guidelines:
+- Use the live market data provided above when answering financial questions
+- Always include confidence levels and source citations when using real-time data
+- Provide specific, actionable recommendations
+- Include risk warnings for volatile assets like cryptocurrency
+- Use the structured analysis format for comprehensive financial queries
+- Be supportive and encouraging while maintaining professional accuracy
+
 Respond professionally and helpfully to the user's message.`;
 
-        // Generate AI response
+        // Generate AI response with enhanced real-time context
         aiResponse = await openAIService.generateAdvancedResponse(
           message,
           systemPrompt,

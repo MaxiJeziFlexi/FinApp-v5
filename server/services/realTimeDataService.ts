@@ -31,7 +31,7 @@ export class RealTimeDataService {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          model: options.model || 'llama-3.1-sonar-large-128k-online',
+          model: options.model || 'sonar-pro',
           messages: [
             {
               role: 'system',

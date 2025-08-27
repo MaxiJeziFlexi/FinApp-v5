@@ -2073,9 +2073,50 @@ Use this information to provide highly personalized advice based on their assess
         console.log('🚀 REPTILE AGENT: Intercepted coffee CFD query, gathering live data...');
         
         try {
-          // Import and use real-time data service
-          const { realTimeDataService } = await import('./services/realTimeDataService');
-          const liveData = await realTimeDataService.getMarketData('coffee', 'commodity');
+          // DIRECT Perplexity API call - bypass broken service layer
+          const response = await fetch('https://api.perplexity.ai/chat/completions', {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${process.env.PERPLEXITY_API_KEY}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              model: 'llama-3.1-sonar-large-128k-online',
+              messages: [
+                {
+                  role: 'system',
+                  content: 'Return ONLY coffee CFD price data with exact numbers. No explanations or procedural text.'
+                },
+                {
+                  role: 'user',
+                  content: 'Current coffee CFD price today exact USD price percentage change volume from major exchanges'
+                }
+              ],
+              temperature: 0.1,
+              search_recency_filter: 'hour',
+              stream: false
+            })
+          });
+
+          if (response.ok) {
+            const data = await response.json();
+            const content = data.choices[0].message.content;
+            const citations = data.citations || [];
+            
+            console.log('✅ REPTILE AGENT: Direct API success:', content.substring(0, 100));
+            
+            aiResponse = `## ☕ **COFFEE CFD - LIVE DATA**
+
+${content}
+
+**Sources:** ${citations.slice(0, 3).join(' • ')}
+**Updated:** ${new Date().toLocaleTimeString()} UTC
+
+*Live data via Reptile Agent*`;
+            
+          } else {
+            throw new Error(`Direct API failed: ${response.status}`);
+          }
           
           console.log('✅ Live coffee data retrieved:', liveData);
           

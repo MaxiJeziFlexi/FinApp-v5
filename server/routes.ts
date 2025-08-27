@@ -26,7 +26,7 @@ import {
 } from "@shared/schema";
 import crypto from "crypto";
 import { AuthUtils } from "./utils/auth";
-// No need to import the class, we'll use dynamic import in the coffee detection
+import { RealtimeDataService } from "./services/realtimeDataService";
 import { DiagnosticsService } from "./services/diagnosticsService";
 import { analyticsService } from "./services/analyticsService";
 import { webScrapingService } from "./services/webScrapingService";
@@ -2034,9 +2034,6 @@ Use this information to provide highly personalized advice based on their assess
 
   // Send message in enhanced chat system with thinking process
   app.post('/api/chat/send-enhanced', async (req, res) => {
-    console.log('');
-    console.log('🔥🔥🔥 FINGROK ROUTE HIT 🔥🔥🔥');
-    console.log('Request body:', JSON.stringify(req.body, null, 2));
     const startTime = Date.now();
     
     try {
@@ -2067,105 +2064,7 @@ Use this information to provide highly personalized advice based on their assess
       
       let aiResponse;
       
-      // 🚀 REPTILE AGENT: Smart financial query detection system
-      const messageText = message.toLowerCase();
-      console.log('🔍 ANALYZING MESSAGE:', messageText);
-      
-      // Financial instruments & assets
-      const financialAssets = ['stock', 'crypto', 'bitcoin', 'ethereum', 'gold', 'silver', 'oil', 'coffee', 'sugar', 'wheat', 'corn', 'forex', 'currency', 'bond', 'etf', 'cfd', 'future', 'option', 'commodity', 'index', 'spy', 'qqq', 'tesla', 'apple', 'microsoft', 'nvidia', 'amazon', 'google', 'meta'];
-      
-      // Market data indicators
-      const dataRequests = ['price', 'value', 'cost', 'quote', 'rate', 'yield', 'performance', 'return', 'gain', 'loss', 'chart', 'analysis', 'forecast', 'prediction', 'trend', 'market', 'trading', 'volume', 'volatility'];
-      
-      // Time indicators for real-time data
-      const timeIndicators = ['today', 'now', 'current', 'live', 'real-time', 'latest', 'recent', 'this', 'update'];
-      
-      // Check if message contains financial query
-      const hasFinancialAsset = financialAssets.some(asset => messageText.includes(asset));
-      const hasDataRequest = dataRequests.some(request => messageText.includes(request));
-      const hasTimeIndicator = timeIndicators.some(indicator => messageText.includes(indicator));
-      
-      const isFinancialQuery = hasFinancialAsset && (hasDataRequest || hasTimeIndicator);
-      
-      console.log('🎯 FINANCIAL ANALYSIS:');
-      console.log('   Financial Asset:', hasFinancialAsset);
-      console.log('   Data Request:', hasDataRequest);  
-      console.log('   Time Indicator:', hasTimeIndicator);
-      console.log('   IS FINANCIAL QUERY:', isFinancialQuery);
-      
-      if (isFinancialQuery) {
-        console.log('🚀 REPTILE AGENT: Financial query detected! Gathering real-time market data...');
-        
-        try {
-          // DIRECT Perplexity API call - bypass broken service layer
-          const response = await fetch('https://api.perplexity.ai/chat/completions', {
-            method: 'POST',
-            headers: {
-              'Authorization': `Bearer ${process.env.PERPLEXITY_API_KEY}`,
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              model: 'llama-3.1-sonar-large-128k-online',
-              messages: [
-                {
-                  role: 'system',
-                  content: 'You are FinGrok, a top-tier AI financial agent. Return current market data with exact prices, percentages, and actionable insights. Structure your response as: 📊 Current Data, 📈 Analysis, 💡 Personalized Recommendation. Be direct and helpful.'
-                },
-                {
-                  role: 'user',
-                  content: `${message} - provide exact current prices, percentage changes, and market data with sources`
-                }
-              ],
-              temperature: 0.1,
-              search_recency_filter: 'hour',
-              stream: false
-            })
-          });
-
-          if (response.ok) {
-            const data = await response.json();
-            const content = data.choices[0].message.content;
-            const citations = data.citations || [];
-            
-            console.log('✅ REPTILE AGENT: Direct API success:', content.substring(0, 100));
-            
-            aiResponse = `# 🚀 **FinGrok Live Market Intelligence**
-
-${content}
-
-**📊 Sources:** ${citations.slice(0, 3).join(' • ')}
-**⏰ Updated:** ${new Date().toLocaleTimeString()} UTC
-**🔥 Powered by:** FinGrok AI + Perplexity Real-Time Data
-
-*Ready to help optimize your financial future! 💰*`;
-            
-          } else {
-            throw new Error(`Direct API failed: ${response.status}`);
-          }
-
-        } catch (error) {
-          console.error('❌ Real-time coffee data failed, using fallback response:', error);
-          aiResponse = `# 🚀 **FinGrok Working on Your Request**
-
-I'm gathering live financial intelligence for you right now! 
-
-**📝 My Personalized Analysis Approach:**
-- Fetching real-time market data from premium sources
-- Cross-referencing multiple exchanges for accuracy
-- Analyzing trends that affect YOUR financial goals
-
-**⚡ Gathering Information:**
-- Current prices and percentage changes
-- Volume and volatility metrics  
-- Market sentiment and news impact
-- Personalized risk assessment
-
-**💡 Coming Up:**
-Real data with actionable insights to improve your financial life!
-
-*FinGrok never stops working for your success! 💪*`;
-        }
-      } else if (useThinking) {
+      if (useThinking) {
         // Use natural thinking process (Claude 4.1 / GPT-5 style)
         const { thinkingAdvisor } = await import('./services/thinkingAdvisor');
         

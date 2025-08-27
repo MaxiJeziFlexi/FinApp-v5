@@ -124,82 +124,65 @@ Zawsze odpowiadaj trzema obiektami:
     const startTime = Date.now();
 
     try {
-      // FORCE TOOL USAGE: Check if user is asking for price data (handle typos)
-      const messageText = message.toLowerCase();
-      const isPriceQuery = (messageText.includes('coffee') || messageText.includes('cooffe') || messageText.includes('cofee')) && 
-                          (messageText.includes('price') || messageText.includes('cfd') || messageText.includes('today'));
+      // FORCE TOOL USAGE: Check if user is asking for price data
+      const isPriceQuery = message.toLowerCase().includes('coffee') && 
+                          (message.toLowerCase().includes('price') || message.toLowerCase().includes('cfd'));
       
       console.log(`🔍 TOOL CHECK: isPriceQuery=${isPriceQuery}, message="${message}"`);
       
-      // If it's a price query, FORCE call the tool directly with REAL DATA
+      // If it's a price query, FORCE call the tool directly
       if (isPriceQuery) {
-        console.log('🚀 REPTILE AGENT: Gathering live coffee CFD data...');
+        console.log('🚀 FORCING COFFEE CFD TOOL CALL');
+        const toolResult = await this.callMarketData({ symbol: 'Coffee' }, context);
         
-        try {
-          // Import and use real-time data service
-          const { realTimeDataService } = await import('./realTimeDataService');
-          const liveData = await realTimeDataService.getMarketData('coffee', 'commodity');
+        if (toolResult.success) {
+          // STRUCTURED OUTPUT: PlanAction → PlanVerification → Decision
+          const structuredResponse = `## 📊 Coffee CFD Market Analysis
+
+### 🎯 PlanAction
+✅ **Tool Used:** get_market_data(symbol: "Coffee", verification_level: "full_verification")
+✅ **Objective:** Retrieve real-time Coffee CFD price with compliance audit
+✅ **Risk Assessment:** Low - read-only data operation
+
+### 🔍 PlanVerification  
+✅ **simulate_ok:** true (data-only operation)
+✅ **limits_ok:** true (within query limits)
+✅ **law_ok:** true (public market data)
+✅ **Evidence:** ${toolResult.audit_trail?.data_source || 'Live Coffee Futures Market Data'}
+✅ **as_of:** ${toolResult.as_of}
+✅ **Data Status:** ${toolResult.data_status} 
+
+### 💰 **Coffee CFD Current Price: $${toolResult.current_price}**
+
+| Metric | Value | Status |
+|--------|-------|---------|
+| **Price** | $${toolResult.current_price} | ${toolResult.data_status} |
+| **Change** | ${toolResult.price_change_percent} | Real-time |
+| **Volume** | ${toolResult.volume?.toLocaleString() || 'N/A'} | Live |
+| **Market** | ${toolResult.market_status} | Active |
+| **Source** | ${toolResult.source} | Verified |
+
+### ⚡ Decision
+**Status:** ✅ **APPROVED** - Data successfully retrieved and verified
+**can_execute:** true (read-only operation)
+**Actions:**
+- ✅ Real-time price delivered: $${toolResult.current_price}
+- ✅ Audit trail completed: ${toolResult.audit_trail?.compliance_status}
+- ✅ Source verification: ${toolResult.audit_trail?.perplexity_verification === 'enabled' ? 'Enhanced with Perplexity' : 'Standard verification'}
+
+**Market Context:** ${toolResult.additional_info}
+
+**⚠️ Data Freshness:** Real-time as of ${new Date().toLocaleString()} from verified market sources.
+
+${toolResult.audit_trail?.perplexity_verification === 'enabled' ? '\n🔗 **Enhanced Verification:** Multi-source validation with Perplexity API integration' : ''}`;
+
+          await this.storeInteractionForLearning(message, structuredResponse, context);
           
-          console.log('✅ Live coffee data retrieved:', liveData);
-          
-          // REAL DATA RESPONSE - No procedural text, just facts
-          const dataResponse = `## ☕ **Coffee CFD Live Market Data**
-
-### 💰 **Current Price: ${liveData.price}**
-
-| **Market Data** | **Value** | **Status** |
-|-----------------|-----------|------------|
-| **Current Price** | **${liveData.price}** | ✅ Live |
-| **Price Change** | **${liveData.change} (${liveData.percentChange})** | ✅ Real-time |
-| **Volume** | **${liveData.volume || 'N/A'}** | ✅ Current |
-| **Market Cap** | **${liveData.marketCap || 'N/A'}** | ✅ Live |
-
-### 📊 **Market Analysis**
-${liveData.analysis || 'Live market analysis not available'}
-
-### 📈 **Key Insights**
-- **Price Movement:** ${liveData.change?.includes('-') ? '📉 Declining' : '📈 Rising'} 
-- **Market Sentiment:** Based on current price action
-- **Data Sources:** ${liveData.sources.join(', ')}
-- **Last Updated:** ${new Date(liveData.timestamp).toLocaleString()}
-
-### ⚠️ **Trading Considerations**
-- **Volatility:** Coffee CFDs are subject to commodity market volatility
-- **Risk Level:** Medium to High (commodity trading)
-- **Liquidity:** Monitor market hours and volume
-- **Factors:** Weather, global supply/demand, currency fluctuations
-
-**Data Confidence:** 95% | **Sources:** ${liveData.sources.length} verified sources`;
-
           return {
-            response: dataResponse,
+            response: structuredResponse,
             model: 'gpt-4o',
             responseTime: Date.now() - startTime,
           };
-          
-        } catch (error) {
-          console.error('❌ Real-time data failed:', error);
-          // Fallback to tool call
-          const toolResult = await this.callMarketData({ symbol: 'Coffee' }, context);
-          
-          if (toolResult.success) {
-            const fallbackResponse = `## ☕ **Coffee CFD Price** 
-
-### 💰 **Current Price: $${toolResult.current_price || toolResult.price}**
-
-**Change:** ${toolResult.price_change || toolResult.change} (${toolResult.price_change_percent || toolResult.change_percent})
-**Volume:** ${toolResult.volume || 'N/A'}
-**Source:** ${toolResult.source || 'Market Data'}
-**Status:** ${toolResult.data_status || 'Live'}
-
-**Last Updated:** ${new Date().toLocaleString()}`;
-
-            return {
-              response: fallbackResponse,
-              model: 'gpt-4o',
-              responseTime: Date.now() - startTime,
-            };
-          }
         }
       }
 

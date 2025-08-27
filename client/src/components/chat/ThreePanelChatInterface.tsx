@@ -139,37 +139,37 @@ function ConversationItem({ conversation, isSelected, isCollapsed, onClick, onEd
       <button
         onClick={onClick}
         onContextMenu={handleContextMenu}
-        className={`w-full text-left p-3 rounded-lg border transition-all hover:bg-accent ${
+        className={`w-full text-left rounded-lg border transition-all hover:bg-accent ${
           isSelected
             ? 'bg-accent border-primary'
             : 'border-transparent hover:border-border'
-        } ${isCollapsed ? 'px-2' : ''}`}
+        } ${isCollapsed ? 'p-2 flex justify-center' : 'p-3'}`}
         data-testid={`conversation-${conversation.id}`}
         title={isCollapsed ? conversation.title : ''}
       >
-        <div className="flex items-center gap-2 mb-1">
-          <MessageSquare className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-          {!isCollapsed && (
-            <span className="font-medium text-sm truncate flex-1">
-              {conversation.title}
-            </span>
-          )}
-          {!isCollapsed && (
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 hover:bg-muted"
-              onClick={(e) => {
-                e.stopPropagation();
-                handleContextMenu(e);
-              }}
-            >
-              <MoreVertical className="h-3 w-3" />
-            </Button>
-          )}
-        </div>
-        {!isCollapsed && (
+        {isCollapsed ? (
+          // Collapsed view - only show icon
+          <MessageSquare className="w-4 h-4 text-muted-foreground" />
+        ) : (
+          // Expanded view - show full details
           <>
+            <div className="flex items-center gap-2 mb-1">
+              <MessageSquare className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+              <span className="font-medium text-sm truncate flex-1">
+                {conversation.title}
+              </span>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 hover:bg-muted"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleContextMenu(e);
+                }}
+              >
+                <MoreVertical className="h-3 w-3" />
+              </Button>
+            </div>
             {conversation.lastMessage && (
               <p className="text-xs text-muted-foreground mb-1 truncate">
                 {conversation.lastMessage}

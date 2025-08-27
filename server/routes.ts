@@ -26,7 +26,7 @@ import {
 } from "@shared/schema";
 import crypto from "crypto";
 import { AuthUtils } from "./utils/auth";
-import { RealtimeDataService } from "./services/realtimeDataService";
+// No need to import the class, we'll use dynamic import in the coffee detection
 import { DiagnosticsService } from "./services/diagnosticsService";
 import { analyticsService } from "./services/analyticsService";
 import { webScrapingService } from "./services/webScrapingService";

@@ -860,22 +860,24 @@ export default function ThreePanelChatInterface({ userId, advisorId }: ThreePane
         {/* Header with Branding */}
         <div className="p-4 border-b border-border">
           {/* Collapse Toggle Button */}
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center justify-center mb-4">
             <Button
               variant="ghost"
               size="sm"
               onClick={toggleSidebar}
-              className="h-8 w-8 p-0 ml-auto"
+              className="h-8 w-8 p-0"
               data-testid="button-toggle-sidebar"
             >
               {sidebarCollapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
             </Button>
           </div>
-          {!sidebarCollapsed && (
-            <div className="flex items-center gap-3 mb-4">
-              <div className="p-2 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg text-white">
-                <Brain className="h-6 w-6" />
-              </div>
+          
+          {/* Branding - Show logo always, text only when expanded */}
+          <div className={`flex items-center gap-3 mb-4 ${sidebarCollapsed ? 'justify-center' : ''}`}>
+            <div className="p-2 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg text-white">
+              <Brain className="h-6 w-6" />
+            </div>
+            {!sidebarCollapsed && (
               <div>
                 <h1 className="text-lg font-bold">Reptile Agent</h1>
                 <div className="flex items-center gap-1 text-sm text-muted-foreground">
@@ -883,13 +885,17 @@ export default function ThreePanelChatInterface({ userId, advisorId }: ThreePane
                   Online • Ready to help
                 </div>
               </div>
-            </div>
-          )}
+            )}
+          </div>
           
           <Button
             onClick={startNewConversation}
             disabled={isCreatingConversation}
-            className={`w-full justify-start gap-2 h-12 bg-primary hover:bg-primary/90 ${sidebarCollapsed ? 'px-0' : ''}`}
+            className={`w-full h-12 bg-primary hover:bg-primary/90 ${
+              sidebarCollapsed 
+                ? 'justify-center px-0' 
+                : 'justify-start gap-2'
+            }`}
             data-testid="button-new-chat"
             title={sidebarCollapsed ? 'New Chat' : ''}
           >
@@ -1240,7 +1246,7 @@ export default function ThreePanelChatInterface({ userId, advisorId }: ThreePane
 
         {/* User Profile Section */}
         <div className="p-4 border-t border-border">
-          <div className="flex items-center gap-3 mb-3">
+          <div className={`flex items-center gap-3 mb-3 ${sidebarCollapsed ? 'justify-center' : ''}`}>
             <Avatar className="h-10 w-10">
               <AvatarImage src={(user as any)?.profileImageUrl} />
               <AvatarFallback>
@@ -1257,35 +1263,38 @@ export default function ThreePanelChatInterface({ userId, advisorId }: ThreePane
             )}
           </div>
           
-          <div className={`grid ${sidebarCollapsed ? 'grid-cols-1' : 'grid-cols-3'} gap-2`}>
+          <div className={`space-y-1 ${sidebarCollapsed ? 'flex flex-col items-center' : 'grid grid-cols-3 gap-2'}`}>
             <Button 
               variant="ghost" 
               size="sm" 
-              className={`h-8 text-xs ${sidebarCollapsed ? 'w-full justify-center' : ''}`}
+              className={`h-8 text-xs ${sidebarCollapsed ? 'w-8 justify-center p-0' : 'justify-center'}`}
               onClick={() => setShowSettings(true)}
               title={sidebarCollapsed ? 'Settings' : ''}
             >
-              <Settings className="w-3 h-3 mr-1" />
+              <Settings className={`w-3 h-3 ${!sidebarCollapsed ? 'mr-1' : ''}`} />
               {!sidebarCollapsed && 'Settings'}
             </Button>
             <Button 
               variant="ghost" 
               size="sm" 
-              className={`h-8 text-xs ${sidebarCollapsed ? 'w-full justify-center' : ''}`}
+              className={`h-8 text-xs ${sidebarCollapsed ? 'w-8 justify-center p-0' : 'justify-center'}`}
               onClick={toggleTheme}
               title={sidebarCollapsed ? 'Toggle Theme' : ''}
             >
-              {theme === 'dark' ? <Sun className="w-3 h-3 mr-1" /> : <Moon className="w-3 h-3 mr-1" />}
+              {theme === 'dark' ? 
+                <Sun className={`w-3 h-3 ${!sidebarCollapsed ? 'mr-1' : ''}`} /> : 
+                <Moon className={`w-3 h-3 ${!sidebarCollapsed ? 'mr-1' : ''}`} />
+              }
               {!sidebarCollapsed && 'Theme'}
             </Button>
             <Button 
               variant="ghost" 
               size="sm" 
-              className={`h-8 text-xs ${sidebarCollapsed ? 'w-full justify-center' : ''}`}
+              className={`h-8 text-xs ${sidebarCollapsed ? 'w-8 justify-center p-0' : 'justify-center'}`}
               onClick={handleLogout}
               title={sidebarCollapsed ? 'Logout' : ''}
             >
-              <LogOut className="w-3 h-3 mr-1" />
+              <LogOut className={`w-3 h-3 ${!sidebarCollapsed ? 'mr-1' : ''}`} />
               {!sidebarCollapsed && 'Logout'}
             </Button>
           </div>

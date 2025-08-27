@@ -2065,15 +2065,34 @@ Use this information to provide highly personalized advice based on their assess
       
       let aiResponse;
       
-      // 🚀 REPTILE AGENT: Check for coffee CFD queries and handle immediately
+      // 🚀 REPTILE AGENT: Smart financial query detection system
       const messageText = message.toLowerCase();
-      console.log('🔍 CHECKING MESSAGE:', messageText);
-      const isCoffeeQuery = (messageText.includes('coffee') || messageText.includes('cooffe') || messageText.includes('cofee')) && 
-                          (messageText.includes('price') || messageText.includes('cfd') || messageText.includes('today'));
-      console.log('🎯 COFFEE DETECTION RESULT:', isCoffeeQuery);
+      console.log('🔍 ANALYZING MESSAGE:', messageText);
       
-      if (isCoffeeQuery) {
-        console.log('🚀 REPTILE AGENT: Intercepted coffee CFD query, gathering live data...');
+      // Financial instruments & assets
+      const financialAssets = ['stock', 'crypto', 'bitcoin', 'ethereum', 'gold', 'silver', 'oil', 'coffee', 'sugar', 'wheat', 'corn', 'forex', 'currency', 'bond', 'etf', 'cfd', 'future', 'option', 'commodity', 'index', 'spy', 'qqq', 'tesla', 'apple', 'microsoft', 'nvidia', 'amazon', 'google', 'meta'];
+      
+      // Market data indicators
+      const dataRequests = ['price', 'value', 'cost', 'quote', 'rate', 'yield', 'performance', 'return', 'gain', 'loss', 'chart', 'analysis', 'forecast', 'prediction', 'trend', 'market', 'trading', 'volume', 'volatility'];
+      
+      // Time indicators for real-time data
+      const timeIndicators = ['today', 'now', 'current', 'live', 'real-time', 'latest', 'recent', 'this', 'update'];
+      
+      // Check if message contains financial query
+      const hasFinancialAsset = financialAssets.some(asset => messageText.includes(asset));
+      const hasDataRequest = dataRequests.some(request => messageText.includes(request));
+      const hasTimeIndicator = timeIndicators.some(indicator => messageText.includes(indicator));
+      
+      const isFinancialQuery = hasFinancialAsset && (hasDataRequest || hasTimeIndicator);
+      
+      console.log('🎯 FINANCIAL ANALYSIS:');
+      console.log('   Financial Asset:', hasFinancialAsset);
+      console.log('   Data Request:', hasDataRequest);  
+      console.log('   Time Indicator:', hasTimeIndicator);
+      console.log('   IS FINANCIAL QUERY:', isFinancialQuery);
+      
+      if (isFinancialQuery) {
+        console.log('🚀 REPTILE AGENT: Financial query detected! Gathering real-time market data...');
         
         try {
           // DIRECT Perplexity API call - bypass broken service layer
@@ -2088,11 +2107,11 @@ Use this information to provide highly personalized advice based on their assess
               messages: [
                 {
                   role: 'system',
-                  content: 'Return ONLY coffee CFD price data with exact numbers. No explanations or procedural text.'
+                  content: 'Return ONLY financial market data with exact numbers, prices, and percentages. No explanations or procedural text.'
                 },
                 {
                   role: 'user',
-                  content: 'Current coffee CFD price today exact USD price percentage change volume from major exchanges'
+                  content: `${message} - provide exact current prices, percentage changes, and market data with sources`
                 }
               ],
               temperature: 0.1,
@@ -2108,14 +2127,14 @@ Use this information to provide highly personalized advice based on their assess
             
             console.log('✅ REPTILE AGENT: Direct API success:', content.substring(0, 100));
             
-            aiResponse = `## ☕ **COFFEE CFD - LIVE DATA**
+            aiResponse = `## 📊 **LIVE MARKET DATA**
 
 ${content}
 
 **Sources:** ${citations.slice(0, 3).join(' • ')}
 **Updated:** ${new Date().toLocaleTimeString()} UTC
 
-*Live data via Reptile Agent*`;
+*Real-time data via Reptile Agent*`;
             
           } else {
             throw new Error(`Direct API failed: ${response.status}`);
@@ -2123,17 +2142,17 @@ ${content}
 
         } catch (error) {
           console.error('❌ Real-time coffee data failed, using fallback response:', error);
-          aiResponse = `## ☕ **Coffee CFD Market Update**
+          aiResponse = `## 📊 **Market Data Update**
 
-I'm currently gathering live coffee CFD market data for you. Due to data source connectivity, I'm working on fetching the most current price information.
+I'm currently gathering live financial market data for your query. Due to data source connectivity, I'm working on fetching the most current information.
 
 **What I'm checking:**
-- Current coffee CFD prices from major exchanges
+- Current market prices from major exchanges  
 - Recent price movements and volatility
 - Market sentiment and trading volume
-- Key factors affecting coffee prices today
+- Key factors affecting market prices
 
-Please give me a moment to retrieve the most accurate real-time data for you. Coffee commodity prices can change rapidly based on weather conditions, supply chain factors, and global demand.`;
+Please give me a moment to retrieve the most accurate real-time data for you. Financial markets can change rapidly based on economic conditions, news events, and global factors.`;
         }
       } else if (useThinking) {
         // Use natural thinking process (Claude 4.1 / GPT-5 style)

@@ -1273,7 +1273,7 @@ Format: Strukturalny raport PDF-ready`;
             apiUsageResetDate: new Date(),
             emailVerified: true,
           });
-          console.log(`Created new user ${userId} with email ${uniqueEmail}`);
+          console.log(`Created new user ${userId}`);
         } catch (error: any) {
           console.error('Failed to create user during profile setup:', error);
           return res.status(500).json({ 

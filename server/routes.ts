@@ -2117,37 +2117,6 @@ ${content}
           } else {
             throw new Error(`Direct API failed: ${response.status}`);
           }
-          
-          console.log('✅ Live coffee data retrieved:', liveData);
-          
-          // REAL DATA RESPONSE - No procedural text, just facts
-          aiResponse = `## ☕ **Coffee CFD Live Market Data**
-
-### 💰 **Current Price: ${liveData.price}**
-
-| **Market Data** | **Value** | **Status** |
-|-----------------|-----------|------------|
-| **Current Price** | **${liveData.price}** | ✅ Live |
-| **Price Change** | **${liveData.change} (${liveData.percentChange})** | ✅ Real-time |
-| **Volume** | **${liveData.volume || 'N/A'}** | ✅ Current |
-| **Market Cap** | **${liveData.marketCap || 'N/A'}** | ✅ Live |
-
-### 📊 **Market Analysis**
-${liveData.analysis || 'Current market sentiment analysis based on price movement and trading volume'}
-
-### 📈 **Key Insights**
-- **Price Movement:** ${liveData.change?.includes('-') ? '📉 Declining' : '📈 Rising'} trend
-- **Market Sentiment:** ${liveData.change?.includes('-') ? 'Bearish' : 'Bullish'} based on current price action
-- **Data Sources:** ${liveData.sources.join(', ')}
-- **Last Updated:** ${new Date(liveData.timestamp).toLocaleString()}
-
-### ⚠️ **Trading Considerations**
-- **Volatility:** Coffee CFDs subject to commodity market volatility
-- **Risk Level:** Medium to High (commodity trading)
-- **Liquidity:** Monitor market hours and volume
-- **Key Factors:** Weather, global supply/demand, currency fluctuations
-
-**Data Confidence:** 95% | **Sources:** ${liveData.sources.length} verified sources`;
 
         } catch (error) {
           console.error('❌ Real-time coffee data failed, using fallback response:', error);

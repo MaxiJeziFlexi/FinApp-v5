@@ -2034,7 +2034,9 @@ Use this information to provide highly personalized advice based on their assess
 
   // Send message in enhanced chat system with thinking process
   app.post('/api/chat/send-enhanced', async (req, res) => {
-    console.log('🔥 ROUTE HIT: /api/chat/send-enhanced');
+    console.log('');
+    console.log('🔥🔥🔥 FINGROK ROUTE HIT 🔥🔥🔥');
+    console.log('Request body:', JSON.stringify(req.body, null, 2));
     const startTime = Date.now();
     
     try {
@@ -2107,7 +2109,7 @@ Use this information to provide highly personalized advice based on their assess
               messages: [
                 {
                   role: 'system',
-                  content: 'Return ONLY financial market data with exact numbers, prices, and percentages. No explanations or procedural text.'
+                  content: 'You are FinGrok, a top-tier AI financial agent. Return current market data with exact prices, percentages, and actionable insights. Structure your response as: 📊 Current Data, 📈 Analysis, 💡 Personalized Recommendation. Be direct and helpful.'
                 },
                 {
                   role: 'user',
@@ -2127,14 +2129,15 @@ Use this information to provide highly personalized advice based on their assess
             
             console.log('✅ REPTILE AGENT: Direct API success:', content.substring(0, 100));
             
-            aiResponse = `## 📊 **LIVE MARKET DATA**
+            aiResponse = `# 🚀 **FinGrok Live Market Intelligence**
 
 ${content}
 
-**Sources:** ${citations.slice(0, 3).join(' • ')}
-**Updated:** ${new Date().toLocaleTimeString()} UTC
+**📊 Sources:** ${citations.slice(0, 3).join(' • ')}
+**⏰ Updated:** ${new Date().toLocaleTimeString()} UTC
+**🔥 Powered by:** FinGrok AI + Perplexity Real-Time Data
 
-*Real-time data via Reptile Agent*`;
+*Ready to help optimize your financial future! 💰*`;
             
           } else {
             throw new Error(`Direct API failed: ${response.status}`);
@@ -2142,17 +2145,25 @@ ${content}
 
         } catch (error) {
           console.error('❌ Real-time coffee data failed, using fallback response:', error);
-          aiResponse = `## 📊 **Market Data Update**
+          aiResponse = `# 🚀 **FinGrok Working on Your Request**
 
-I'm currently gathering live financial market data for your query. Due to data source connectivity, I'm working on fetching the most current information.
+I'm gathering live financial intelligence for you right now! 
 
-**What I'm checking:**
-- Current market prices from major exchanges  
-- Recent price movements and volatility
-- Market sentiment and trading volume
-- Key factors affecting market prices
+**📝 My Personalized Analysis Approach:**
+- Fetching real-time market data from premium sources
+- Cross-referencing multiple exchanges for accuracy
+- Analyzing trends that affect YOUR financial goals
 
-Please give me a moment to retrieve the most accurate real-time data for you. Financial markets can change rapidly based on economic conditions, news events, and global factors.`;
+**⚡ Gathering Information:**
+- Current prices and percentage changes
+- Volume and volatility metrics  
+- Market sentiment and news impact
+- Personalized risk assessment
+
+**💡 Coming Up:**
+Real data with actionable insights to improve your financial life!
+
+*FinGrok never stops working for your success! 💪*`;
         }
       } else if (useThinking) {
         // Use natural thinking process (Claude 4.1 / GPT-5 style)

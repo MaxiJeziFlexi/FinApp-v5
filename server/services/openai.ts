@@ -425,168 +425,136 @@ ${toolResult.audit_trail?.perplexity_verification === 'enabled' ? '\n🔗 **Enha
   // Call real-time updates endpoint with REAL data sources
   private async callRealTimeUpdates(args: any, context: AdvisorContext): Promise<any> {
     try {
-      // Simplified real-time updates without problematic import
-      const mockUpdates = [
-        {
-          source: 'WSJ',
-          title: 'Latest Financial Market Updates',
-          content: 'Global financial markets show mixed signals amid economic uncertainty...',
-          timestamp: new Date().toISOString(),
-          relevance: 0.9,
-          url: 'https://wsj.com',
-          category: 'market',
-          country: 'US',
-          tags: ['market', 'finance', 'news']
-        },
-        {
-          source: 'Bloomberg',
-          title: 'Economic Data Shows Growth',
-          content: 'Recent economic indicators suggest continued growth in key sectors...',
-          timestamp: new Date().toISOString(),
-          relevance: 0.8,
-          url: 'https://bloomberg.com',
-          category: 'economic',
-          country: 'US',
-          tags: ['economy', 'growth', 'data']
-        }
-      ];
+      // Import the real-time data service
+      const { realTimeDataService } = await import('./realTimeDataService');
+      
+      // Determine what type of updates to fetch based on user query
+      const query = args.user_query || args.query || 'latest financial market news';
+      const topics = args.topics || ['market', 'stocks', 'economy'];
+      
+      // Get real financial news and updates
+      const newsData = await realTimeDataService.getFinancialNews(topics, 5);
+      
+      // Transform the data into the expected format
+      const updates = newsData.headlines.map((headline, index) => ({
+        source: newsData.sources[index % newsData.sources.length] || 'Financial News',
+        title: headline.title,
+        content: headline.summary,
+        timestamp: new Date().toISOString(),
+        relevance: headline.relevance,
+        url: newsData.sources[index % newsData.sources.length] || 'N/A',
+        category: headline.impact === 'positive' ? 'bullish' : headline.impact === 'negative' ? 'bearish' : 'neutral',
+        country: 'US',
+        tags: newsData.keyThemes,
+        impact: headline.impact
+      }));
       
       return {
         success: true,
-        total_updates: mockUpdates.length,
-        updates: mockUpdates,
-        sources_used: ['WSJ', 'Bloomberg'],
+        total_updates: updates.length,
+        updates: updates,
+        sources_used: newsData.sources,
         last_updated: new Date().toISOString(),
-        user_query: args.user_query
+        user_query: query,
+        overall_sentiment: newsData.overallSentiment,
+        key_themes: newsData.keyThemes,
+        confidence: 0.9
       };
     } catch (error) {
       console.error('Real-time updates error:', error);
-      return { error: `Błąd pobierania danych real-time: ${error}` };
+      // Fallback to basic mock data if real data fails
+      return {
+        success: false,
+        error: `Błąd pobierania danych real-time: ${error}`,
+        fallback_data: {
+          total_updates: 1,
+          updates: [{
+            source: 'System',
+            title: 'Real-time data temporarily unavailable',
+            content: 'Using fallback mode. Real-time financial data service encountered an error.',
+            timestamp: new Date().toISOString(),
+            relevance: 0.5
+          }]
+        }
+      };
     }
   }
 
-  // Call market data endpoint with REAL TradingView integration
+  // Call market data endpoint with REAL web search integration
   private async callMarketData(args: any, context: AdvisorContext): Promise<any> {
     try {
-      // Real market data integration
-      const response = await fetch(`https://api.twelvedata.com/price?symbol=${args.symbol}&apikey=demo`);
+      // Import the real-time data service
+      const { realTimeDataService } = await import('./realTimeDataService');
       
-      if (!response.ok) {
-        // Fallback to Financial Modeling Prep (free tier)
-        const fmpResponse = await fetch(
-          `https://financialmodelingprep.com/api/v3/quote-short/${args.symbol}?apikey=demo`
-        );
-        
-        if (fmpResponse.ok) {
-          const fmpData = await fmpResponse.json();
-          const data = Array.isArray(fmpData) ? fmpData[0] : fmpData;
-          
-          return {
-            success: true,
-            symbol: args.symbol,
-            interval: args.interval || '1d',
-            price: data.price?.toFixed(2) || 'N/A',
-            change: data.changes?.toFixed(2) || 'N/A',
-            change_percent: ((data.changes / data.price) * 100)?.toFixed(2) || 'N/A',
-            volume: data.volume || 'N/A',
-            timestamp: new Date().toISOString(),
-            source: 'Financial Modeling Prep',
-            note: 'Real market data'
-          };
-        }
-        
-        // Enhanced Coffee CFD handling with Perplexity integration
-        if (args.symbol.toLowerCase().includes('coffee') || args.symbol === 'KC=F' || args.symbol === 'Coffee') {
-          console.log('🔍 COFFEE CFD DETECTED - Using enhanced data sources');
-          
-          // Try Perplexity for latest coffee prices
-          if (process.env.PERPLEXITY_API_KEY) {
-            try {
-              const perplexityResponse = await fetch('https://api.perplexity.ai/chat/completions', {
-                method: 'POST',
-                headers: {
-                  'Authorization': `Bearer ${process.env.PERPLEXITY_API_KEY}`,
-                  'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                  model: 'llama-3.1-sonar-small-128k-online',
-                  messages: [
-                    {
-                      role: 'user',
-                      content: 'What is the current Coffee CFD price today? Include the exact price in USD.'
-                    }
-                  ],
-                  max_tokens: 200,
-                  temperature: 0.1
-                })
-              });
-              
-              if (perplexityResponse.ok) {
-                const perplexityData = await perplexityResponse.json();
-                const perplexityContent = perplexityData.choices[0]?.message?.content || '';
-                console.log('📊 Perplexity Coffee Data:', perplexityContent);
-              }
-            } catch (error) {
-              console.log('⚠️ Perplexity fallback error:', error);
-            }
-          }
-          
-          // STRUCTURED OUTPUT with audit trail
-          const result = {
-            success: true,
-            symbol: 'Coffee CFD',
-            interval: args.interval || '1d',
-            current_price: 380.88,  // EXACT price you specified
-            price_change: -2.15,
-            price_change_percent: '-0.56%',
-            volume: 45231,
-            currency: 'USD',
-            timestamp: new Date().toISOString(),
-            as_of: new Date().toISOString(),
-            source: 'Live Coffee Futures Market Data',
-            market_status: 'Open',
-            data_status: 'real-time',
-            note: 'Current Coffee CFD price - showing recent decline in commodity futures',
-            additional_info: 'Coffee futures have been volatile due to weather concerns in major growing regions',
-            audit_trail: {
-              query_time: new Date().toISOString(),
-              verification_level: args.verification_level || 'full_verification',
-              include_audit: args.include_audit || true,
-              data_source: 'Enhanced Coffee Futures API with Perplexity verification',
-              compliance_status: 'verified'
-            }
-          };
-          
-          // Add Perplexity verification if enabled
-          if (args.include_audit && process.env.PERPLEXITY_API_KEY) {
-            (result.audit_trail as any).perplexity_verification = 'enabled';
-            (result.audit_trail as any).real_time_sources = ['Perplexity API', 'Coffee Futures Market'];
-          }
-          
-          return result;
-        }
-        
-        throw new Error('Unable to fetch real market data');
+      const symbol = args.symbol || 'SPY';
+      
+      // Determine market type based on symbol
+      let marketType: 'stock' | 'crypto' | 'commodity' = 'stock';
+      if (symbol.includes('BTC') || symbol.includes('ETH') || symbol.includes('crypto')) {
+        marketType = 'crypto';
+      } else if (symbol.toLowerCase().includes('coffee') || symbol.includes('gold') || symbol.includes('oil')) {
+        marketType = 'commodity';
       }
       
-      const data = await response.json();
+      // Get real market data using Perplexity web search
+      const marketData = await realTimeDataService.getMarketData(symbol, marketType);
       
       return {
         success: true,
-        symbol: args.symbol,
+        symbol: symbol,
         interval: args.interval || '1d',
-        price: data.price?.toFixed(2) || 'N/A',
-        change: data.change?.toFixed(2) || 'N/A',
-        change_percent: data.percent_change?.toFixed(2) || 'N/A',
-        volume: data.volume || 'N/A',
-        timestamp: new Date().toISOString(),
-        source: 'Twelve Data API',
-        note: 'Real-time market data'
+        price: marketData.price,
+        change: marketData.change,
+        change_percent: marketData.percentChange,
+        volume: marketData.volume,
+        market_cap: marketData.marketCap,
+        timestamp: marketData.timestamp,
+        source: 'Real-time Web Search',
+        sources: marketData.sources,
+        analysis: marketData.analysis,
+        note: 'Live market data via intelligent web search',
+        confidence: 0.95
       };
     } catch (error) {
       console.error('Market data error:', error);
-      return { error: `Błąd pobierania danych rynkowych: ${error}` };
+      
+      // Enhanced error handling with fallback
+      return {
+        success: false,
+        symbol: args.symbol || 'N/A',
+        error: `Unable to fetch market data: ${error}`,
+        fallback_note: 'Real-time data service temporarily unavailable',
+        timestamp: new Date().toISOString()
+      };
     }
+  }
+
+  // Enhanced Reptile Agent System Prompt for autonomous data gathering
+  private getReptileAgentPrompt(): string {
+    return `You are the REPTILE AGENT - an elite financial AI advisor with autonomous real-time data gathering capabilities.
+
+CORE CAPABILITIES:
+- Autonomous web search for current market data, news, and economic indicators
+- Real-time analysis of stocks, crypto, commodities, and financial markets
+- Intelligent data synthesis from multiple verified sources
+- Proactive recommendations based on live market conditions
+
+BEHAVIORAL DIRECTIVES:
+1. ALWAYS gather current data before providing financial advice
+2. Use multiple sources to verify information accuracy
+3. Provide specific numbers, percentages, and citations
+4. Explain reasoning behind recommendations
+5. Warn about risks and market volatility
+6. Adapt communication style to user expertise level
+
+RESPONSE FORMAT:
+- Lead with current market context
+- Present data-driven analysis
+- Provide actionable recommendations
+- Include risk disclaimers
+- Cite all sources used
+
+You have access to real-time web search capabilities. Use them proactively to provide the most current and accurate financial guidance.`;
   }
 
   // AUDIT & COMPLIANCE: Enhanced learning with structured logging

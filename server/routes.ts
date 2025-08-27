@@ -2034,6 +2034,7 @@ Use this information to provide highly personalized advice based on their assess
 
   // Send message in enhanced chat system with thinking process
   app.post('/api/chat/send-enhanced', async (req, res) => {
+    console.log('🔥 ROUTE HIT: /api/chat/send-enhanced');
     const startTime = Date.now();
     
     try {
@@ -2066,8 +2067,10 @@ Use this information to provide highly personalized advice based on their assess
       
       // 🚀 REPTILE AGENT: Check for coffee CFD queries and handle immediately
       const messageText = message.toLowerCase();
+      console.log('🔍 CHECKING MESSAGE:', messageText);
       const isCoffeeQuery = (messageText.includes('coffee') || messageText.includes('cooffe') || messageText.includes('cofee')) && 
                           (messageText.includes('price') || messageText.includes('cfd') || messageText.includes('today'));
+      console.log('🎯 COFFEE DETECTION RESULT:', isCoffeeQuery);
       
       if (isCoffeeQuery) {
         console.log('🚀 REPTILE AGENT: Intercepted coffee CFD query, gathering live data...');

@@ -85,14 +85,42 @@ export class RealTimeDataService {
       searchDomain: ['finance.yahoo.com', 'marketwatch.com', 'bloomberg.com', 'reuters.com']
     });
 
-    // Parse the response to extract structured data
-    const priceMatch = result.content.match(/\$?([\d,]+\.?\d*)/);
-    const changeMatch = result.content.match(/([+-]?\$?[\d,]+\.?\d*)\s*\(([+-]?[\d,]+\.?\d*)%\)/);
+    // Enhanced parsing for Bitcoin data from Perplexity response
+    let price = 'Price not found';
+    let change = 'Change not found';
+    let percentChange = 'Percentage not found';
+    
+    // Try multiple patterns to extract Bitcoin price
+    const pricePatterns = [
+      /\$([0-9,]+(?:\.[0-9]{2})?)/g,  // $111,127 or $111,127.50
+      /([0-9,]+(?:\.[0-9]{2})?)\s*USD/gi,  // 111,127 USD
+      /Bitcoin.*?\$([0-9,]+(?:\.[0-9]{2})?)/gi  // Bitcoin ... $111,127
+    ];
+    
+    let priceMatch;
+    for (const pattern of pricePatterns) {
+      const matches = [...result.content.matchAll(pattern)];
+      if (matches.length > 0) {
+        // Get the highest price value (likely to be the current price)
+        const prices = matches.map(m => parseFloat(m[1].replace(/,/g, '')));
+        const maxPrice = Math.max(...prices);
+        price = maxPrice.toLocaleString();
+        break;
+      }
+    }
+    
+    // Extract change if available
+    const changePattern = /([+-]?\$?[\d,]+\.?\d*)\s*\(([+-]?[\d,]+\.?\d*)%\)/;
+    const changeMatch = result.content.match(changePattern);
+    if (changeMatch) {
+      change = changeMatch[1];
+      percentChange = changeMatch[2];
+    }
     
     return {
-      price: priceMatch?.[1] || 'Price not found',
-      change: changeMatch?.[1] || 'Change not found',
-      percentChange: changeMatch?.[2] || 'Percentage not found',
+      price: price,
+      change: change,
+      percentChange: percentChange,
       volume: this.extractVolume(result.content),
       marketCap: this.extractMarketCap(result.content),
       analysis: result.content,

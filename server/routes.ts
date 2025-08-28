@@ -2065,14 +2065,65 @@ Use this information to provide highly personalized advice based on their assess
       let aiResponse;
       
       if (useThinking) {
-        // Use natural thinking process (Claude 4.1 / GPT-5 style)
+        // Check for financial queries first to gather real-time data
+        const financialKeywords = ['bitcoin', 'btc', 'price', 'stock', 'market', 'crypto', 'ethereum', 'eth', 'trading', 'investment'];
+        const isFinancialQuery = financialKeywords.some(keyword => 
+          message.toLowerCase().includes(keyword)
+        );
+        
+        let realTimeData = '';
+        
+        if (isFinancialQuery) {
+          try {
+            console.log('🔍 REAL-TIME: Detected financial query in thinking mode, fetching live data...');
+            
+            // Import and use real-time data service
+            const { realTimeDataService } = await import('./services/realTimeDataService');
+            
+            if (message.toLowerCase().includes('bitcoin') || message.toLowerCase().includes('btc')) {
+              const bitcoinData = await realTimeDataService.getMarketData('BTC', 'crypto');
+              realTimeData = `
+
+🔴 **LIVE MARKET DATA** (Real-time via Perplexity):
+**Bitcoin (BTC)**: $${bitcoinData.price}
+**24h Change**: ${bitcoinData.change} (${bitcoinData.percentChange}%)
+**Volume**: ${bitcoinData.volume}
+**Market Cap**: ${bitcoinData.marketCap}
+**Last Updated**: ${new Date(bitcoinData.timestamp).toLocaleString()}
+**Sources**: ${bitcoinData.sources.join(', ')}
+
+📊 **Analysis**: ${bitcoinData.analysis}
+`;
+              console.log('✅ REAL-TIME: Bitcoin data fetched successfully for thinking mode');
+            } else {
+              // For other financial queries, use general search
+              const searchResult = await realTimeDataService.searchFinancialData(message);
+              realTimeData = `
+
+🔴 **LIVE FINANCIAL DATA** (Real-time via Perplexity):
+${searchResult.data}
+
+**Insights**: ${searchResult.insights.join(', ')}
+**Confidence**: ${(searchResult.confidence * 100).toFixed(1)}%
+**Sources**: ${searchResult.sources.join(', ')}
+`;
+              console.log('✅ REAL-TIME: Financial data fetched successfully for thinking mode');
+            }
+          } catch (error) {
+            console.error('❌ REAL-TIME: Error fetching real-time data in thinking mode:', error);
+            realTimeData = '\n🚨 **Note**: Real-time data temporarily unavailable. Providing analysis based on general knowledge.';
+          }
+        }
+
+        // Use natural thinking process (Claude 4.1 / GPT-5 style) with real-time data
         const { thinkingAdvisor } = await import('./services/thinkingAdvisor');
         
         const context = {
           advisor,
           recentMessages,
           userId,
-          conversationId
+          conversationId,
+          realTimeData  // Pass real-time data to thinking advisor
         };
         
         aiResponse = await thinkingAdvisor.processWithEnhancedThinking(

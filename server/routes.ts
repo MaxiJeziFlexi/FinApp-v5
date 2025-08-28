@@ -2082,6 +2082,14 @@ Use this information to provide highly personalized advice based on their assess
             
             if (message.toLowerCase().includes('bitcoin') || message.toLowerCase().includes('btc')) {
               const bitcoinData = await realTimeDataService.getMarketData('BTC', 'crypto');
+              
+              console.log('🔍 DEBUG: Raw Bitcoin data received:', {
+                price: bitcoinData.price,
+                change: bitcoinData.change,
+                percentChange: bitcoinData.percentChange,
+                sources: bitcoinData.sources?.slice(0, 2) // First 2 sources only
+              });
+              
               realTimeData = `
 
 🔴 **LIVE MARKET DATA** (Real-time via Perplexity):
@@ -2093,8 +2101,11 @@ Use this information to provide highly personalized advice based on their assess
 **Sources**: ${bitcoinData.sources.join(', ')}
 
 📊 **Analysis**: ${bitcoinData.analysis}
+
+🎯 **CRITICAL**: Use the above live price ($${bitcoinData.price}) in your analysis, NOT any other price data.
 `;
               console.log('✅ REAL-TIME: Bitcoin data fetched successfully for thinking mode');
+              console.log('🔍 DEBUG: Final realTimeData length:', realTimeData.length);
             } else {
               // For other financial queries, use general search
               const searchResult = await realTimeDataService.searchFinancialData(message);
@@ -2150,6 +2161,14 @@ ${searchResult.data}
             
             if (message.toLowerCase().includes('bitcoin') || message.toLowerCase().includes('btc')) {
               const bitcoinData = await realTimeDataService.getMarketData('BTC', 'crypto');
+              
+              console.log('🔍 DEBUG: Raw Bitcoin data received (non-thinking):', {
+                price: bitcoinData.price,
+                change: bitcoinData.change,
+                percentChange: bitcoinData.percentChange,
+                sources: bitcoinData.sources?.slice(0, 2) // First 2 sources only
+              });
+              
               realTimeData = `
 
 🔴 **LIVE MARKET DATA** (Real-time via Perplexity):
@@ -2161,6 +2180,8 @@ ${searchResult.data}
 **Sources**: ${bitcoinData.sources.join(', ')}
 
 📊 **Analysis**: ${bitcoinData.analysis}
+
+🎯 **CRITICAL**: Use the above live price ($${bitcoinData.price}) in your analysis, NOT any other price data.
 `;
               console.log('✅ REAL-TIME: Bitcoin data fetched successfully');
             } else {
